@@ -1,0 +1,1475 @@
+{
+  "provenance": "examples/fib10.bx",
+  "source": "def main() {\n  var x = 0 : int ;\n  var y = 0 : int ;\n  var z = 0 : int ;\n\n  y = 1;\n\n  print(x);\n  z = x + y;\n  x = y;\n  y = z;\n  print(x);\n  z = x + y;\n  x = y;\n  y = z;\n  print(x);\n  z = x + y;\n  x = y;\n  y = z;\n  print(x);\n  z = x + y;\n  x = y;\n  y = z;\n  print(x);\n  z = x + y;\n  x = y;\n  y = z;\n  print(x);\n  z = x + y;\n  x = y;\n  y = z;\n  print(x);\n  z = x + y;\n  x = y;\n  y = z;\n  print(x);\n  z = x + y;\n  x = y;\n  y = z;\n  print(x);\n}\n",
+  "ast": [
+    [
+      "<decl:proc>",
+      {
+        "position": { "start": [ 1, 0 ], "end": [ 41, 1 ] },
+        "name": [
+          "<name>",
+          {
+            "position": { "start": [ 1, 4 ], "end": [ 1, 8 ] },
+            "value": "main"
+          }
+        ],
+        "arguments": [],
+        "returntype": null,
+        "body": [
+          [
+            "<statement:vardecl>",
+            {
+              "position": { "start": [ 2, 2 ], "end": [ 2, 19 ] },
+              "name": [
+                "<name>",
+                {
+                  "position": { "start": [ 2, 6 ], "end": [ 2, 7 ] },
+                  "value": "x"
+                }
+              ],
+              "type": [
+                "<type:int>",
+                { "position": { "start": [ 2, 14 ], "end": [ 2, 17 ] } }
+              ],
+              "init": [
+                "<expression:int>",
+                {
+                  "position": { "start": [ 2, 10 ], "end": [ 2, 11 ] },
+                  "value": 0
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:vardecl>",
+            {
+              "position": { "start": [ 3, 2 ], "end": [ 3, 19 ] },
+              "name": [
+                "<name>",
+                {
+                  "position": { "start": [ 3, 6 ], "end": [ 3, 7 ] },
+                  "value": "y"
+                }
+              ],
+              "type": [
+                "<type:int>",
+                { "position": { "start": [ 3, 14 ], "end": [ 3, 17 ] } }
+              ],
+              "init": [
+                "<expression:int>",
+                {
+                  "position": { "start": [ 3, 10 ], "end": [ 3, 11 ] },
+                  "value": 0
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:vardecl>",
+            {
+              "position": { "start": [ 4, 2 ], "end": [ 4, 19 ] },
+              "name": [
+                "<name>",
+                {
+                  "position": { "start": [ 4, 6 ], "end": [ 4, 7 ] },
+                  "value": "z"
+                }
+              ],
+              "type": [
+                "<type:int>",
+                { "position": { "start": [ 4, 14 ], "end": [ 4, 17 ] } }
+              ],
+              "init": [
+                "<expression:int>",
+                {
+                  "position": { "start": [ 4, 10 ], "end": [ 4, 11 ] },
+                  "value": 0
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 6, 2 ], "end": [ 6, 8 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 6, 2 ], "end": [ 6, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 6, 2 ], "end": [ 6, 3 ] },
+                      "value": "y"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:int>",
+                {
+                  "position": { "start": [ 6, 6 ], "end": [ 6, 7 ] },
+                  "value": 1
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 8, 2 ], "end": [ 8, 11 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 8, 2 ], "end": [ 8, 10 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 8, 2 ], "end": [ 8, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:var>",
+                      {
+                        "position": { "start": [ 8, 8 ], "end": [ 8, 9 ] },
+                        "name": [
+                          "<name>",
+                          {
+                            "position": {
+                              "start": [ 8, 8 ],
+                              "end": [ 8, 9 ]
+                            },
+                            "value": "x"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 9, 2 ], "end": [ 9, 12 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 9, 2 ], "end": [ 9, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 9, 2 ], "end": [ 9, 3 ] },
+                      "value": "z"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:binop>",
+                {
+                  "position": { "start": [ 9, 6 ], "end": [ 9, 11 ] },
+                  "operator": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 9, 8 ], "end": [ 9, 9 ] },
+                      "value": "addition"
+                    }
+                  ],
+                  "left": [
+                    "<expression:var>",
+                    {
+                      "position": { "start": [ 9, 6 ], "end": [ 9, 7 ] },
+                      "name": [
+                        "<name>",
+                        {
+                          "position": { "start": [ 9, 6 ], "end": [ 9, 7 ] },
+                          "value": "x"
+                        }
+                      ]
+                    }
+                  ],
+                  "right": [
+                    "<expression:var>",
+                    {
+                      "position": { "start": [ 9, 10 ], "end": [ 9, 11 ] },
+                      "name": [
+                        "<name>",
+                        {
+                          "position": {
+                            "start": [ 9, 10 ],
+                            "end": [ 9, 11 ]
+                          },
+                          "value": "y"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 10, 2 ], "end": [ 10, 8 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 10, 2 ], "end": [ 10, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 10, 2 ], "end": [ 10, 3 ] },
+                      "value": "x"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:var>",
+                {
+                  "position": { "start": [ 10, 6 ], "end": [ 10, 7 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 10, 6 ], "end": [ 10, 7 ] },
+                      "value": "y"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 11, 2 ], "end": [ 11, 8 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 11, 2 ], "end": [ 11, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 11, 2 ], "end": [ 11, 3 ] },
+                      "value": "y"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:var>",
+                {
+                  "position": { "start": [ 11, 6 ], "end": [ 11, 7 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 11, 6 ], "end": [ 11, 7 ] },
+                      "value": "z"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 12, 2 ], "end": [ 12, 11 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 12, 2 ], "end": [ 12, 10 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 12, 2 ], "end": [ 12, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:var>",
+                      {
+                        "position": { "start": [ 12, 8 ], "end": [ 12, 9 ] },
+                        "name": [
+                          "<name>",
+                          {
+                            "position": {
+                              "start": [ 12, 8 ],
+                              "end": [ 12, 9 ]
+                            },
+                            "value": "x"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 13, 2 ], "end": [ 13, 12 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 13, 2 ], "end": [ 13, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 13, 2 ], "end": [ 13, 3 ] },
+                      "value": "z"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:binop>",
+                {
+                  "position": { "start": [ 13, 6 ], "end": [ 13, 11 ] },
+                  "operator": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 13, 8 ], "end": [ 13, 9 ] },
+                      "value": "addition"
+                    }
+                  ],
+                  "left": [
+                    "<expression:var>",
+                    {
+                      "position": { "start": [ 13, 6 ], "end": [ 13, 7 ] },
+                      "name": [
+                        "<name>",
+                        {
+                          "position": {
+                            "start": [ 13, 6 ],
+                            "end": [ 13, 7 ]
+                          },
+                          "value": "x"
+                        }
+                      ]
+                    }
+                  ],
+                  "right": [
+                    "<expression:var>",
+                    {
+                      "position": { "start": [ 13, 10 ], "end": [ 13, 11 ] },
+                      "name": [
+                        "<name>",
+                        {
+                          "position": {
+                            "start": [ 13, 10 ],
+                            "end": [ 13, 11 ]
+                          },
+                          "value": "y"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 14, 2 ], "end": [ 14, 8 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 14, 2 ], "end": [ 14, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 14, 2 ], "end": [ 14, 3 ] },
+                      "value": "x"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:var>",
+                {
+                  "position": { "start": [ 14, 6 ], "end": [ 14, 7 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 14, 6 ], "end": [ 14, 7 ] },
+                      "value": "y"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 15, 2 ], "end": [ 15, 8 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 15, 2 ], "end": [ 15, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 15, 2 ], "end": [ 15, 3 ] },
+                      "value": "y"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:var>",
+                {
+                  "position": { "start": [ 15, 6 ], "end": [ 15, 7 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 15, 6 ], "end": [ 15, 7 ] },
+                      "value": "z"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 16, 2 ], "end": [ 16, 11 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 16, 2 ], "end": [ 16, 10 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 16, 2 ], "end": [ 16, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:var>",
+                      {
+                        "position": { "start": [ 16, 8 ], "end": [ 16, 9 ] },
+                        "name": [
+                          "<name>",
+                          {
+                            "position": {
+                              "start": [ 16, 8 ],
+                              "end": [ 16, 9 ]
+                            },
+                            "value": "x"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 17, 2 ], "end": [ 17, 12 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 17, 2 ], "end": [ 17, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 17, 2 ], "end": [ 17, 3 ] },
+                      "value": "z"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:binop>",
+                {
+                  "position": { "start": [ 17, 6 ], "end": [ 17, 11 ] },
+                  "operator": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 17, 8 ], "end": [ 17, 9 ] },
+                      "value": "addition"
+                    }
+                  ],
+                  "left": [
+                    "<expression:var>",
+                    {
+                      "position": { "start": [ 17, 6 ], "end": [ 17, 7 ] },
+                      "name": [
+                        "<name>",
+                        {
+                          "position": {
+                            "start": [ 17, 6 ],
+                            "end": [ 17, 7 ]
+                          },
+                          "value": "x"
+                        }
+                      ]
+                    }
+                  ],
+                  "right": [
+                    "<expression:var>",
+                    {
+                      "position": { "start": [ 17, 10 ], "end": [ 17, 11 ] },
+                      "name": [
+                        "<name>",
+                        {
+                          "position": {
+                            "start": [ 17, 10 ],
+                            "end": [ 17, 11 ]
+                          },
+                          "value": "y"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 18, 2 ], "end": [ 18, 8 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 18, 2 ], "end": [ 18, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 18, 2 ], "end": [ 18, 3 ] },
+                      "value": "x"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:var>",
+                {
+                  "position": { "start": [ 18, 6 ], "end": [ 18, 7 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 18, 6 ], "end": [ 18, 7 ] },
+                      "value": "y"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 19, 2 ], "end": [ 19, 8 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 19, 2 ], "end": [ 19, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 19, 2 ], "end": [ 19, 3 ] },
+                      "value": "y"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:var>",
+                {
+                  "position": { "start": [ 19, 6 ], "end": [ 19, 7 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 19, 6 ], "end": [ 19, 7 ] },
+                      "value": "z"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 20, 2 ], "end": [ 20, 11 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 20, 2 ], "end": [ 20, 10 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 20, 2 ], "end": [ 20, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:var>",
+                      {
+                        "position": { "start": [ 20, 8 ], "end": [ 20, 9 ] },
+                        "name": [
+                          "<name>",
+                          {
+                            "position": {
+                              "start": [ 20, 8 ],
+                              "end": [ 20, 9 ]
+                            },
+                            "value": "x"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 21, 2 ], "end": [ 21, 12 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 21, 2 ], "end": [ 21, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 21, 2 ], "end": [ 21, 3 ] },
+                      "value": "z"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:binop>",
+                {
+                  "position": { "start": [ 21, 6 ], "end": [ 21, 11 ] },
+                  "operator": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 21, 8 ], "end": [ 21, 9 ] },
+                      "value": "addition"
+                    }
+                  ],
+                  "left": [
+                    "<expression:var>",
+                    {
+                      "position": { "start": [ 21, 6 ], "end": [ 21, 7 ] },
+                      "name": [
+                        "<name>",
+                        {
+                          "position": {
+                            "start": [ 21, 6 ],
+                            "end": [ 21, 7 ]
+                          },
+                          "value": "x"
+                        }
+                      ]
+                    }
+                  ],
+                  "right": [
+                    "<expression:var>",
+                    {
+                      "position": { "start": [ 21, 10 ], "end": [ 21, 11 ] },
+                      "name": [
+                        "<name>",
+                        {
+                          "position": {
+                            "start": [ 21, 10 ],
+                            "end": [ 21, 11 ]
+                          },
+                          "value": "y"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 22, 2 ], "end": [ 22, 8 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 22, 2 ], "end": [ 22, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 22, 2 ], "end": [ 22, 3 ] },
+                      "value": "x"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:var>",
+                {
+                  "position": { "start": [ 22, 6 ], "end": [ 22, 7 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 22, 6 ], "end": [ 22, 7 ] },
+                      "value": "y"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 23, 2 ], "end": [ 23, 8 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 23, 2 ], "end": [ 23, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 23, 2 ], "end": [ 23, 3 ] },
+                      "value": "y"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:var>",
+                {
+                  "position": { "start": [ 23, 6 ], "end": [ 23, 7 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 23, 6 ], "end": [ 23, 7 ] },
+                      "value": "z"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 24, 2 ], "end": [ 24, 11 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 24, 2 ], "end": [ 24, 10 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 24, 2 ], "end": [ 24, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:var>",
+                      {
+                        "position": { "start": [ 24, 8 ], "end": [ 24, 9 ] },
+                        "name": [
+                          "<name>",
+                          {
+                            "position": {
+                              "start": [ 24, 8 ],
+                              "end": [ 24, 9 ]
+                            },
+                            "value": "x"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 25, 2 ], "end": [ 25, 12 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 25, 2 ], "end": [ 25, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 25, 2 ], "end": [ 25, 3 ] },
+                      "value": "z"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:binop>",
+                {
+                  "position": { "start": [ 25, 6 ], "end": [ 25, 11 ] },
+                  "operator": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 25, 8 ], "end": [ 25, 9 ] },
+                      "value": "addition"
+                    }
+                  ],
+                  "left": [
+                    "<expression:var>",
+                    {
+                      "position": { "start": [ 25, 6 ], "end": [ 25, 7 ] },
+                      "name": [
+                        "<name>",
+                        {
+                          "position": {
+                            "start": [ 25, 6 ],
+                            "end": [ 25, 7 ]
+                          },
+                          "value": "x"
+                        }
+                      ]
+                    }
+                  ],
+                  "right": [
+                    "<expression:var>",
+                    {
+                      "position": { "start": [ 25, 10 ], "end": [ 25, 11 ] },
+                      "name": [
+                        "<name>",
+                        {
+                          "position": {
+                            "start": [ 25, 10 ],
+                            "end": [ 25, 11 ]
+                          },
+                          "value": "y"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 26, 2 ], "end": [ 26, 8 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 26, 2 ], "end": [ 26, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 26, 2 ], "end": [ 26, 3 ] },
+                      "value": "x"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:var>",
+                {
+                  "position": { "start": [ 26, 6 ], "end": [ 26, 7 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 26, 6 ], "end": [ 26, 7 ] },
+                      "value": "y"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 27, 2 ], "end": [ 27, 8 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 27, 2 ], "end": [ 27, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 27, 2 ], "end": [ 27, 3 ] },
+                      "value": "y"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:var>",
+                {
+                  "position": { "start": [ 27, 6 ], "end": [ 27, 7 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 27, 6 ], "end": [ 27, 7 ] },
+                      "value": "z"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 28, 2 ], "end": [ 28, 11 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 28, 2 ], "end": [ 28, 10 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 28, 2 ], "end": [ 28, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:var>",
+                      {
+                        "position": { "start": [ 28, 8 ], "end": [ 28, 9 ] },
+                        "name": [
+                          "<name>",
+                          {
+                            "position": {
+                              "start": [ 28, 8 ],
+                              "end": [ 28, 9 ]
+                            },
+                            "value": "x"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 29, 2 ], "end": [ 29, 12 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 29, 2 ], "end": [ 29, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 29, 2 ], "end": [ 29, 3 ] },
+                      "value": "z"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:binop>",
+                {
+                  "position": { "start": [ 29, 6 ], "end": [ 29, 11 ] },
+                  "operator": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 29, 8 ], "end": [ 29, 9 ] },
+                      "value": "addition"
+                    }
+                  ],
+                  "left": [
+                    "<expression:var>",
+                    {
+                      "position": { "start": [ 29, 6 ], "end": [ 29, 7 ] },
+                      "name": [
+                        "<name>",
+                        {
+                          "position": {
+                            "start": [ 29, 6 ],
+                            "end": [ 29, 7 ]
+                          },
+                          "value": "x"
+                        }
+                      ]
+                    }
+                  ],
+                  "right": [
+                    "<expression:var>",
+                    {
+                      "position": { "start": [ 29, 10 ], "end": [ 29, 11 ] },
+                      "name": [
+                        "<name>",
+                        {
+                          "position": {
+                            "start": [ 29, 10 ],
+                            "end": [ 29, 11 ]
+                          },
+                          "value": "y"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 30, 2 ], "end": [ 30, 8 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 30, 2 ], "end": [ 30, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 30, 2 ], "end": [ 30, 3 ] },
+                      "value": "x"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:var>",
+                {
+                  "position": { "start": [ 30, 6 ], "end": [ 30, 7 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 30, 6 ], "end": [ 30, 7 ] },
+                      "value": "y"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 31, 2 ], "end": [ 31, 8 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 31, 2 ], "end": [ 31, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 31, 2 ], "end": [ 31, 3 ] },
+                      "value": "y"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:var>",
+                {
+                  "position": { "start": [ 31, 6 ], "end": [ 31, 7 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 31, 6 ], "end": [ 31, 7 ] },
+                      "value": "z"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 32, 2 ], "end": [ 32, 11 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 32, 2 ], "end": [ 32, 10 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 32, 2 ], "end": [ 32, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:var>",
+                      {
+                        "position": { "start": [ 32, 8 ], "end": [ 32, 9 ] },
+                        "name": [
+                          "<name>",
+                          {
+                            "position": {
+                              "start": [ 32, 8 ],
+                              "end": [ 32, 9 ]
+                            },
+                            "value": "x"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 33, 2 ], "end": [ 33, 12 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 33, 2 ], "end": [ 33, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 33, 2 ], "end": [ 33, 3 ] },
+                      "value": "z"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:binop>",
+                {
+                  "position": { "start": [ 33, 6 ], "end": [ 33, 11 ] },
+                  "operator": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 33, 8 ], "end": [ 33, 9 ] },
+                      "value": "addition"
+                    }
+                  ],
+                  "left": [
+                    "<expression:var>",
+                    {
+                      "position": { "start": [ 33, 6 ], "end": [ 33, 7 ] },
+                      "name": [
+                        "<name>",
+                        {
+                          "position": {
+                            "start": [ 33, 6 ],
+                            "end": [ 33, 7 ]
+                          },
+                          "value": "x"
+                        }
+                      ]
+                    }
+                  ],
+                  "right": [
+                    "<expression:var>",
+                    {
+                      "position": { "start": [ 33, 10 ], "end": [ 33, 11 ] },
+                      "name": [
+                        "<name>",
+                        {
+                          "position": {
+                            "start": [ 33, 10 ],
+                            "end": [ 33, 11 ]
+                          },
+                          "value": "y"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 34, 2 ], "end": [ 34, 8 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 34, 2 ], "end": [ 34, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 34, 2 ], "end": [ 34, 3 ] },
+                      "value": "x"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:var>",
+                {
+                  "position": { "start": [ 34, 6 ], "end": [ 34, 7 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 34, 6 ], "end": [ 34, 7 ] },
+                      "value": "y"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 35, 2 ], "end": [ 35, 8 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 35, 2 ], "end": [ 35, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 35, 2 ], "end": [ 35, 3 ] },
+                      "value": "y"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:var>",
+                {
+                  "position": { "start": [ 35, 6 ], "end": [ 35, 7 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 35, 6 ], "end": [ 35, 7 ] },
+                      "value": "z"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 36, 2 ], "end": [ 36, 11 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 36, 2 ], "end": [ 36, 10 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 36, 2 ], "end": [ 36, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:var>",
+                      {
+                        "position": { "start": [ 36, 8 ], "end": [ 36, 9 ] },
+                        "name": [
+                          "<name>",
+                          {
+                            "position": {
+                              "start": [ 36, 8 ],
+                              "end": [ 36, 9 ]
+                            },
+                            "value": "x"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 37, 2 ], "end": [ 37, 12 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 37, 2 ], "end": [ 37, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 37, 2 ], "end": [ 37, 3 ] },
+                      "value": "z"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:binop>",
+                {
+                  "position": { "start": [ 37, 6 ], "end": [ 37, 11 ] },
+                  "operator": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 37, 8 ], "end": [ 37, 9 ] },
+                      "value": "addition"
+                    }
+                  ],
+                  "left": [
+                    "<expression:var>",
+                    {
+                      "position": { "start": [ 37, 6 ], "end": [ 37, 7 ] },
+                      "name": [
+                        "<name>",
+                        {
+                          "position": {
+                            "start": [ 37, 6 ],
+                            "end": [ 37, 7 ]
+                          },
+                          "value": "x"
+                        }
+                      ]
+                    }
+                  ],
+                  "right": [
+                    "<expression:var>",
+                    {
+                      "position": { "start": [ 37, 10 ], "end": [ 37, 11 ] },
+                      "name": [
+                        "<name>",
+                        {
+                          "position": {
+                            "start": [ 37, 10 ],
+                            "end": [ 37, 11 ]
+                          },
+                          "value": "y"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 38, 2 ], "end": [ 38, 8 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 38, 2 ], "end": [ 38, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 38, 2 ], "end": [ 38, 3 ] },
+                      "value": "x"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:var>",
+                {
+                  "position": { "start": [ 38, 6 ], "end": [ 38, 7 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 38, 6 ], "end": [ 38, 7 ] },
+                      "value": "y"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 39, 2 ], "end": [ 39, 8 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 39, 2 ], "end": [ 39, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 39, 2 ], "end": [ 39, 3 ] },
+                      "value": "y"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:var>",
+                {
+                  "position": { "start": [ 39, 6 ], "end": [ 39, 7 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 39, 6 ], "end": [ 39, 7 ] },
+                      "value": "z"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 40, 2 ], "end": [ 40, 11 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 40, 2 ], "end": [ 40, 10 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 40, 2 ], "end": [ 40, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:var>",
+                      {
+                        "position": { "start": [ 40, 8 ], "end": [ 40, 9 ] },
+                        "name": [
+                          "<name>",
+                          {
+                            "position": {
+                              "start": [ 40, 8 ],
+                              "end": [ 40, 9 ]
+                            },
+                            "value": "x"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  ]
+}

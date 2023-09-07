@@ -1,0 +1,51 @@
+{
+  "provenance": "examples/print42.bx",
+  "source": "def main() {\n  print(42);\n}",
+  "ast": [
+    [
+      "<decl:proc>",
+      {
+        "position": { "start": [ 1, 0 ], "end": [ 3, 1 ] },
+        "name": [
+          "<name>",
+          {
+            "position": { "start": [ 1, 4 ], "end": [ 1, 8 ] },
+            "value": "main"
+          }
+        ],
+        "arguments": [],
+        "returntype": null,
+        "body": [
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 2, 2 ], "end": [ 2, 12 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 2, 2 ], "end": [ 2, 11 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 2, 2 ], "end": [ 2, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:int>",
+                      {
+                        "position": { "start": [ 2, 8 ], "end": [ 2, 10 ] },
+                        "value": 42
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  ]
+}

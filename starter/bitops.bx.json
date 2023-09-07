@@ -1,0 +1,898 @@
+{
+  "provenance": "examples/bitops.bx",
+  "source": "def main() {\n  var x = 0 : int;\n  var y = 0 : int;\n  var z = 0 : int;\n\n  x = 10;\n  y = 42;\n  z = -100;\n  print(x & y);\n  print(x & z);\n  print(x | y);\n  print(x | z);\n  print(x ^ y);\n  print(x ^ z);\n  print(~x);\n  print(~z);\n  print(x << y);\n  print(x >> y);\n}\n",
+  "ast": [
+    [
+      "<decl:proc>",
+      {
+        "position": { "start": [ 1, 0 ], "end": [ 19, 1 ] },
+        "name": [
+          "<name>",
+          {
+            "position": { "start": [ 1, 4 ], "end": [ 1, 8 ] },
+            "value": "main"
+          }
+        ],
+        "arguments": [],
+        "returntype": null,
+        "body": [
+          [
+            "<statement:vardecl>",
+            {
+              "position": { "start": [ 2, 2 ], "end": [ 2, 18 ] },
+              "name": [
+                "<name>",
+                {
+                  "position": { "start": [ 2, 6 ], "end": [ 2, 7 ] },
+                  "value": "x"
+                }
+              ],
+              "type": [
+                "<type:int>",
+                { "position": { "start": [ 2, 14 ], "end": [ 2, 17 ] } }
+              ],
+              "init": [
+                "<expression:int>",
+                {
+                  "position": { "start": [ 2, 10 ], "end": [ 2, 11 ] },
+                  "value": 0
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:vardecl>",
+            {
+              "position": { "start": [ 3, 2 ], "end": [ 3, 18 ] },
+              "name": [
+                "<name>",
+                {
+                  "position": { "start": [ 3, 6 ], "end": [ 3, 7 ] },
+                  "value": "y"
+                }
+              ],
+              "type": [
+                "<type:int>",
+                { "position": { "start": [ 3, 14 ], "end": [ 3, 17 ] } }
+              ],
+              "init": [
+                "<expression:int>",
+                {
+                  "position": { "start": [ 3, 10 ], "end": [ 3, 11 ] },
+                  "value": 0
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:vardecl>",
+            {
+              "position": { "start": [ 4, 2 ], "end": [ 4, 18 ] },
+              "name": [
+                "<name>",
+                {
+                  "position": { "start": [ 4, 6 ], "end": [ 4, 7 ] },
+                  "value": "z"
+                }
+              ],
+              "type": [
+                "<type:int>",
+                { "position": { "start": [ 4, 14 ], "end": [ 4, 17 ] } }
+              ],
+              "init": [
+                "<expression:int>",
+                {
+                  "position": { "start": [ 4, 10 ], "end": [ 4, 11 ] },
+                  "value": 0
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 6, 2 ], "end": [ 6, 9 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 6, 2 ], "end": [ 6, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 6, 2 ], "end": [ 6, 3 ] },
+                      "value": "x"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:int>",
+                {
+                  "position": { "start": [ 6, 6 ], "end": [ 6, 8 ] },
+                  "value": 10
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 7, 2 ], "end": [ 7, 9 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 7, 2 ], "end": [ 7, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 7, 2 ], "end": [ 7, 3 ] },
+                      "value": "y"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:int>",
+                {
+                  "position": { "start": [ 7, 6 ], "end": [ 7, 8 ] },
+                  "value": 42
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:assign>",
+            {
+              "position": { "start": [ 8, 2 ], "end": [ 8, 11 ] },
+              "lvalue": [
+                "<lvalue:var>",
+                {
+                  "position": { "start": [ 8, 2 ], "end": [ 8, 3 ] },
+                  "name": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 8, 2 ], "end": [ 8, 3 ] },
+                      "value": "z"
+                    }
+                  ]
+                }
+              ],
+              "rvalue": [
+                "<expression:uniop>",
+                {
+                  "position": { "start": [ 8, 6 ], "end": [ 8, 10 ] },
+                  "operator": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 8, 6 ], "end": [ 8, 7 ] },
+                      "value": "opposite"
+                    }
+                  ],
+                  "argument": [
+                    "<expression:int>",
+                    {
+                      "position": { "start": [ 8, 7 ], "end": [ 8, 10 ] },
+                      "value": 100
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 9, 2 ], "end": [ 9, 15 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 9, 2 ], "end": [ 9, 14 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 9, 2 ], "end": [ 9, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:binop>",
+                      {
+                        "position": { "start": [ 9, 8 ], "end": [ 9, 13 ] },
+                        "operator": [
+                          "<name>",
+                          {
+                            "position": {
+                              "start": [ 9, 10 ],
+                              "end": [ 9, 11 ]
+                            },
+                            "value": "bitwise-and"
+                          }
+                        ],
+                        "left": [
+                          "<expression:var>",
+                          {
+                            "position": {
+                              "start": [ 9, 8 ],
+                              "end": [ 9, 9 ]
+                            },
+                            "name": [
+                              "<name>",
+                              {
+                                "position": {
+                                  "start": [ 9, 8 ],
+                                  "end": [ 9, 9 ]
+                                },
+                                "value": "x"
+                              }
+                            ]
+                          }
+                        ],
+                        "right": [
+                          "<expression:var>",
+                          {
+                            "position": {
+                              "start": [ 9, 12 ],
+                              "end": [ 9, 13 ]
+                            },
+                            "name": [
+                              "<name>",
+                              {
+                                "position": {
+                                  "start": [ 9, 12 ],
+                                  "end": [ 9, 13 ]
+                                },
+                                "value": "y"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 10, 2 ], "end": [ 10, 15 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 10, 2 ], "end": [ 10, 14 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 10, 2 ], "end": [ 10, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:binop>",
+                      {
+                        "position": { "start": [ 10, 8 ], "end": [ 10, 13 ] },
+                        "operator": [
+                          "<name>",
+                          {
+                            "position": {
+                              "start": [ 10, 10 ],
+                              "end": [ 10, 11 ]
+                            },
+                            "value": "bitwise-and"
+                          }
+                        ],
+                        "left": [
+                          "<expression:var>",
+                          {
+                            "position": {
+                              "start": [ 10, 8 ],
+                              "end": [ 10, 9 ]
+                            },
+                            "name": [
+                              "<name>",
+                              {
+                                "position": {
+                                  "start": [ 10, 8 ],
+                                  "end": [ 10, 9 ]
+                                },
+                                "value": "x"
+                              }
+                            ]
+                          }
+                        ],
+                        "right": [
+                          "<expression:var>",
+                          {
+                            "position": {
+                              "start": [ 10, 12 ],
+                              "end": [ 10, 13 ]
+                            },
+                            "name": [
+                              "<name>",
+                              {
+                                "position": {
+                                  "start": [ 10, 12 ],
+                                  "end": [ 10, 13 ]
+                                },
+                                "value": "z"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 11, 2 ], "end": [ 11, 15 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 11, 2 ], "end": [ 11, 14 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 11, 2 ], "end": [ 11, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:binop>",
+                      {
+                        "position": { "start": [ 11, 8 ], "end": [ 11, 13 ] },
+                        "operator": [
+                          "<name>",
+                          {
+                            "position": {
+                              "start": [ 11, 10 ],
+                              "end": [ 11, 11 ]
+                            },
+                            "value": "bitwise-or"
+                          }
+                        ],
+                        "left": [
+                          "<expression:var>",
+                          {
+                            "position": {
+                              "start": [ 11, 8 ],
+                              "end": [ 11, 9 ]
+                            },
+                            "name": [
+                              "<name>",
+                              {
+                                "position": {
+                                  "start": [ 11, 8 ],
+                                  "end": [ 11, 9 ]
+                                },
+                                "value": "x"
+                              }
+                            ]
+                          }
+                        ],
+                        "right": [
+                          "<expression:var>",
+                          {
+                            "position": {
+                              "start": [ 11, 12 ],
+                              "end": [ 11, 13 ]
+                            },
+                            "name": [
+                              "<name>",
+                              {
+                                "position": {
+                                  "start": [ 11, 12 ],
+                                  "end": [ 11, 13 ]
+                                },
+                                "value": "y"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 12, 2 ], "end": [ 12, 15 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 12, 2 ], "end": [ 12, 14 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 12, 2 ], "end": [ 12, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:binop>",
+                      {
+                        "position": { "start": [ 12, 8 ], "end": [ 12, 13 ] },
+                        "operator": [
+                          "<name>",
+                          {
+                            "position": {
+                              "start": [ 12, 10 ],
+                              "end": [ 12, 11 ]
+                            },
+                            "value": "bitwise-or"
+                          }
+                        ],
+                        "left": [
+                          "<expression:var>",
+                          {
+                            "position": {
+                              "start": [ 12, 8 ],
+                              "end": [ 12, 9 ]
+                            },
+                            "name": [
+                              "<name>",
+                              {
+                                "position": {
+                                  "start": [ 12, 8 ],
+                                  "end": [ 12, 9 ]
+                                },
+                                "value": "x"
+                              }
+                            ]
+                          }
+                        ],
+                        "right": [
+                          "<expression:var>",
+                          {
+                            "position": {
+                              "start": [ 12, 12 ],
+                              "end": [ 12, 13 ]
+                            },
+                            "name": [
+                              "<name>",
+                              {
+                                "position": {
+                                  "start": [ 12, 12 ],
+                                  "end": [ 12, 13 ]
+                                },
+                                "value": "z"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 13, 2 ], "end": [ 13, 15 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 13, 2 ], "end": [ 13, 14 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 13, 2 ], "end": [ 13, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:binop>",
+                      {
+                        "position": { "start": [ 13, 8 ], "end": [ 13, 13 ] },
+                        "operator": [
+                          "<name>",
+                          {
+                            "position": {
+                              "start": [ 13, 10 ],
+                              "end": [ 13, 11 ]
+                            },
+                            "value": "bitwise-xor"
+                          }
+                        ],
+                        "left": [
+                          "<expression:var>",
+                          {
+                            "position": {
+                              "start": [ 13, 8 ],
+                              "end": [ 13, 9 ]
+                            },
+                            "name": [
+                              "<name>",
+                              {
+                                "position": {
+                                  "start": [ 13, 8 ],
+                                  "end": [ 13, 9 ]
+                                },
+                                "value": "x"
+                              }
+                            ]
+                          }
+                        ],
+                        "right": [
+                          "<expression:var>",
+                          {
+                            "position": {
+                              "start": [ 13, 12 ],
+                              "end": [ 13, 13 ]
+                            },
+                            "name": [
+                              "<name>",
+                              {
+                                "position": {
+                                  "start": [ 13, 12 ],
+                                  "end": [ 13, 13 ]
+                                },
+                                "value": "y"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 14, 2 ], "end": [ 14, 15 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 14, 2 ], "end": [ 14, 14 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 14, 2 ], "end": [ 14, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:binop>",
+                      {
+                        "position": { "start": [ 14, 8 ], "end": [ 14, 13 ] },
+                        "operator": [
+                          "<name>",
+                          {
+                            "position": {
+                              "start": [ 14, 10 ],
+                              "end": [ 14, 11 ]
+                            },
+                            "value": "bitwise-xor"
+                          }
+                        ],
+                        "left": [
+                          "<expression:var>",
+                          {
+                            "position": {
+                              "start": [ 14, 8 ],
+                              "end": [ 14, 9 ]
+                            },
+                            "name": [
+                              "<name>",
+                              {
+                                "position": {
+                                  "start": [ 14, 8 ],
+                                  "end": [ 14, 9 ]
+                                },
+                                "value": "x"
+                              }
+                            ]
+                          }
+                        ],
+                        "right": [
+                          "<expression:var>",
+                          {
+                            "position": {
+                              "start": [ 14, 12 ],
+                              "end": [ 14, 13 ]
+                            },
+                            "name": [
+                              "<name>",
+                              {
+                                "position": {
+                                  "start": [ 14, 12 ],
+                                  "end": [ 14, 13 ]
+                                },
+                                "value": "z"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 15, 2 ], "end": [ 15, 12 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 15, 2 ], "end": [ 15, 11 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 15, 2 ], "end": [ 15, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:uniop>",
+                      {
+                        "position": { "start": [ 15, 8 ], "end": [ 15, 10 ] },
+                        "operator": [
+                          "<name>",
+                          {
+                            "position": {
+                              "start": [ 15, 8 ],
+                              "end": [ 15, 9 ]
+                            },
+                            "value": "bitwise-negation"
+                          }
+                        ],
+                        "argument": [
+                          "<expression:var>",
+                          {
+                            "position": {
+                              "start": [ 15, 9 ],
+                              "end": [ 15, 10 ]
+                            },
+                            "name": [
+                              "<name>",
+                              {
+                                "position": {
+                                  "start": [ 15, 9 ],
+                                  "end": [ 15, 10 ]
+                                },
+                                "value": "x"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 16, 2 ], "end": [ 16, 12 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 16, 2 ], "end": [ 16, 11 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 16, 2 ], "end": [ 16, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:uniop>",
+                      {
+                        "position": { "start": [ 16, 8 ], "end": [ 16, 10 ] },
+                        "operator": [
+                          "<name>",
+                          {
+                            "position": {
+                              "start": [ 16, 8 ],
+                              "end": [ 16, 9 ]
+                            },
+                            "value": "bitwise-negation"
+                          }
+                        ],
+                        "argument": [
+                          "<expression:var>",
+                          {
+                            "position": {
+                              "start": [ 16, 9 ],
+                              "end": [ 16, 10 ]
+                            },
+                            "name": [
+                              "<name>",
+                              {
+                                "position": {
+                                  "start": [ 16, 9 ],
+                                  "end": [ 16, 10 ]
+                                },
+                                "value": "z"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 17, 2 ], "end": [ 17, 16 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 17, 2 ], "end": [ 17, 15 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 17, 2 ], "end": [ 17, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:binop>",
+                      {
+                        "position": { "start": [ 17, 8 ], "end": [ 17, 14 ] },
+                        "operator": [
+                          "<name>",
+                          {
+                            "position": {
+                              "start": [ 17, 10 ],
+                              "end": [ 17, 12 ]
+                            },
+                            "value": "logical-shift-left"
+                          }
+                        ],
+                        "left": [
+                          "<expression:var>",
+                          {
+                            "position": {
+                              "start": [ 17, 8 ],
+                              "end": [ 17, 9 ]
+                            },
+                            "name": [
+                              "<name>",
+                              {
+                                "position": {
+                                  "start": [ 17, 8 ],
+                                  "end": [ 17, 9 ]
+                                },
+                                "value": "x"
+                              }
+                            ]
+                          }
+                        ],
+                        "right": [
+                          "<expression:var>",
+                          {
+                            "position": {
+                              "start": [ 17, 13 ],
+                              "end": [ 17, 14 ]
+                            },
+                            "name": [
+                              "<name>",
+                              {
+                                "position": {
+                                  "start": [ 17, 13 ],
+                                  "end": [ 17, 14 ]
+                                },
+                                "value": "y"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            "<statement:eval>",
+            {
+              "position": { "start": [ 18, 2 ], "end": [ 18, 16 ] },
+              "expression": [
+                "<expression:call>",
+                {
+                  "position": { "start": [ 18, 2 ], "end": [ 18, 15 ] },
+                  "target": [
+                    "<name>",
+                    {
+                      "position": { "start": [ 18, 2 ], "end": [ 18, 7 ] },
+                      "value": "print"
+                    }
+                  ],
+                  "arguments": [
+                    [
+                      "<expression:binop>",
+                      {
+                        "position": { "start": [ 18, 8 ], "end": [ 18, 14 ] },
+                        "operator": [
+                          "<name>",
+                          {
+                            "position": {
+                              "start": [ 18, 10 ],
+                              "end": [ 18, 12 ]
+                            },
+                            "value": "logical-shift-right"
+                          }
+                        ],
+                        "left": [
+                          "<expression:var>",
+                          {
+                            "position": {
+                              "start": [ 18, 8 ],
+                              "end": [ 18, 9 ]
+                            },
+                            "name": [
+                              "<name>",
+                              {
+                                "position": {
+                                  "start": [ 18, 8 ],
+                                  "end": [ 18, 9 ]
+                                },
+                                "value": "x"
+                              }
+                            ]
+                          }
+                        ],
+                        "right": [
+                          "<expression:var>",
+                          {
+                            "position": {
+                              "start": [ 18, 13 ],
+                              "end": [ 18, 14 ]
+                            },
+                            "name": [
+                              "<name>",
+                              {
+                                "position": {
+                                  "start": [ 18, 13 ],
+                                  "end": [ 18, 14 ]
+                                },
+                                "value": "y"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  ]
+}
