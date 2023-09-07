@@ -21,11 +21,11 @@ def tmm_code(expr, result, var_to_tmp) -> List[TACOp]:
             right_tmp = fresh_temp()
             left_ops = tmm_code(left, left_tmp, var_to_tmp)
             right_ops = tmm_code(right, right_tmp, var_to_tmp)
-            return left_ops + right_ops + [TACOp(operator, [left_tmp, right_tmp], result)]
+            return left_ops + right_ops + [TACOp(OPERATOR_TO_OPCODE[operator], [left_tmp, right_tmp], result)]
         case ExpressionUniOp(operator, arg):
             tmp = fresh_temp()
             arg_op = tmm_code(arg, tmp, var_to_tmp)
-            return arg_op + [TACOp(operator, [tmp], result)]
+            return arg_op + [TACOp(OPERATOR_TO_OPCODE[operator], [tmp], result)]
         case ExpressionCall("print", [arg]):
             tmp = fresh_temp()
             arg_op = tmm_code(arg, tmp, var_to_tmp)

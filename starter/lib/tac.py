@@ -20,7 +20,18 @@ class TACOp:
             "result": str(self.result)
         }
 
-
+OPERATOR_TO_OPCODE={
+    "addition": "add",
+    "subtraction": "sub",
+    "multiplication": "mul",
+    "division": "div",
+    "modulus": "mod",
+    "bitwise-xor": "xor",
+    "bitwise-or": "or",
+    "bitwise-and": "and",
+    "opposite": "neg",
+    "bitwise-negation": "not"
+}
 temporary_counter = 0
 
 def fresh_temp() -> TACTemp:
@@ -39,4 +50,11 @@ def var_mapping(statements):
 
 
 def serialize(tacops):
-    pass
+    ops_list = [op.to_dict() for op in tacops]
+    return [{"proc": "@main", "body": ops_list}]
+
+def pretty_print(tacops):
+    pp = ""
+    for op in tacops:
+        pp+= f"{op.result} = {op.opcode} {' '.join([str(arg) for arg in op.args])}\n"
+    return pp
