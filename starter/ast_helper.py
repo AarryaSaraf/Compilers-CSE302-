@@ -79,10 +79,10 @@ def json_to_int(js)-> Expression:
     return ExpressionInt(js["value"])
 
 def json_to_uniop(js)->Expression:
-    return ExpressionUniOp(operator=get_name(js["operator"]), argument=[json_to_expr(expr) for expr in js["argument"]])
+    return ExpressionUniOp(operator=get_name(js["operator"]), argument=json_to_expr(js["argument"]))
 
 def json_to_binop(js)->Expression:
-    return ExpressionBinOp(operator=get_name(js["operator"]), left=json_to_expr(js["left"], right=json_to_expr(js["right"])))
+    return ExpressionBinOp(operator=get_name(js["operator"]), left=json_to_expr(js["left"]), right=json_to_expr(js["right"]))
 
 def json_to_call(js)->Expression:
     return ExpressionCall(target=get_name(js["target"]), arguments=[json_to_expr(expr) for expr in js["arguments"]])
@@ -96,5 +96,5 @@ def json_to_expr(js)->Expression:
         case "<expression:call>": return json_to_call(js[1])
 
 def deserialize(js):
-    statements = js["ast"][1]["body"]
+    statements = js["ast"][0][1]["body"]
     return [json_to_statement(stmt) for stmt in statements]
