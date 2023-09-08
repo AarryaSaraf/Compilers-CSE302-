@@ -1,6 +1,6 @@
 from .ast import *
 from .tac import *
-from typing import Dict
+from typing import Dict, List
 
 def tmm(statments: List[Statement], var_to_tmp: Dict[str, TACTemp]) -> List[TACOp]:
     code = []
