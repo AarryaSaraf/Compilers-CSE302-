@@ -17,8 +17,8 @@ class TACOp:
     def to_dict(self):
         return {
             "opcode": self.opcode,
-            "args": [str(arg) for arg in self.args],
-            "result": str(self.result)
+            "args": [str(arg) if isinstance(arg, TACTemp) else arg for arg in self.args],
+            "result": str(self.result) if isinstance(self.result, TACTemp) else self.result
         }
 
 OPERATOR_TO_OPCODE={
@@ -57,5 +57,5 @@ def serialize(tacops: List[TACOp]):
 def pretty_print(tacops: List[TACOp]) -> str:
     pp = ""
     for op in tacops:
-        pp+= f"{op.result} = {op.opcode} {' '.join([str(arg) for arg in op.args])}\n"
+        pp+= f"{op.result} = {op.opcode} {' '.join([arg for arg in op.args])}\n"
     return pp

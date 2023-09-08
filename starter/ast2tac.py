@@ -16,8 +16,8 @@ def main(file, method="tmm"):
         code = tmm(statements, var_to_tmp)
     else:
         code = bmm(statements, var_to_tmp)
-    return pretty_print(code)
+    return serialize(code)
 
 if __name__ == "__main__":
     method = "bmm" if "--bmm" in sys.argv else "tmm"
-    print(main(sys.argv[1], method=method))
+    print(json.dumps(main(sys.argv[1], method=method)))
