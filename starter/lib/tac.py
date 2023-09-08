@@ -1,4 +1,5 @@
 from .ast import *
+from typing import Dict
 
 @dataclass
 class TACTemp:
@@ -40,7 +41,7 @@ def fresh_temp() -> TACTemp:
     temporary_counter += 1
     return var
 
-def var_mapping(statements):
+def var_mapping(statements: List[Statement]) -> Dict[str, TACTemp]:
     var_to_tmp = {}
     for stmt in statements:
         match stmt:
@@ -49,11 +50,11 @@ def var_mapping(statements):
     return var_to_tmp
 
 
-def serialize(tacops):
+def serialize(tacops: List[TACOp]):
     ops_list = [op.to_dict() for op in tacops]
     return [{"proc": "@main", "body": ops_list}]
 
-def pretty_print(tacops):
+def pretty_print(tacops: List[TACOp]) -> str:
     pp = ""
     for op in tacops:
         pp+= f"{op.result} = {op.opcode} {' '.join([str(arg) for arg in op.args])}\n"

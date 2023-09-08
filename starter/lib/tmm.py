@@ -1,7 +1,8 @@
 from .ast import *
 from .tac import *
+from typing import Dict
 
-def tmm(statments, var_to_tmp):
+def tmm(statments: List[Statement], var_to_tmp: Dict[str, TACTemp]) -> List[TACOp]:
     code = []
     for stmt in statments:
         match stmt: 
@@ -10,7 +11,7 @@ def tmm(statments, var_to_tmp):
             case StatementDecl(name): code += [TACOp("const", [0], var_to_tmp[name])]
     return code
 
-def tmm_code(expr, result, var_to_tmp) -> List[TACOp]:
+def tmm_code(expr: Expression, result: TACTemp, var_to_tmp:  Dict[str, TACTemp]) -> List[TACOp]:
     match expr:
         case ExpressionVar(name): 
             return [TACOp("copy", [var_to_tmp[name]], result)]

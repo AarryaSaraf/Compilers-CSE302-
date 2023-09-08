@@ -55,16 +55,16 @@ def get_name(json):
 
 
 # deserializing statements
-def json_to_vardecl(js):
+def json_to_vardecl(js) -> Statement:
     return StatementDecl(get_name(js["name"]), "int", ExpressionInt(0))
 
-def json_to_assign(js):
+def json_to_assign(js) -> Statement:
     return StatementAssign(lvalue=get_name(js["lvalue"][1]["name"]), rvalue=json_to_expr(js["rvalue"]))
 
-def json_to_eval(js):
+def json_to_eval(js) -> Statement:
     return StatementEval(expr=json_to_expr(js["expression"]))
 
-def json_to_statement(js):
+def json_to_statement(js) -> Statement:
     match js[0]:
         case "<statement:vardecl>": return json_to_vardecl(js[1])
         case "<statement:assign>": return json_to_assign(js[1])
@@ -95,6 +95,6 @@ def json_to_expr(js)->Expression:
         case "<expression:binop>": return json_to_binop(js[1])
         case "<expression:call>": return json_to_call(js[1])
 
-def deserialize(js):
+def deserialize(js) -> List[Statement]:
     statements = js["ast"][0][1]["body"]
     return [json_to_statement(stmt) for stmt in statements]
