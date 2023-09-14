@@ -1,4 +1,4 @@
-from .ast import *
+from .ast_def import *
 from typing import Dict
 
 @dataclass

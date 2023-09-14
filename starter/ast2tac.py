@@ -1,7 +1,7 @@
 from lib.tac import var_mapping, serialize, pretty_print
 from lib.tmm import tmm
 from lib.bmm import bmm
-from lib.ast import deserialize
+from lib.ast_def import deserialize
 import json
 import sys
 from typing import List
