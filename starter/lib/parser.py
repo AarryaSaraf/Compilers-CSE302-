@@ -5,7 +5,7 @@ from .bxast import *
 
 def p_program(p):
     "program : DEF IDENT LPAREN RPAREN LBRACE stmts RBRACE"
-    p[0] = Function(p[6])
+    p[0] = Function(p[2], p[6])
 
 def p_stmts(p):
     "stmts : stmtstar"
@@ -99,7 +99,7 @@ def p_binop_lshift(p):
 def p_binop_rshift(p):
     "binop : RSHIFT"
     p[0] = "rshift"
-    
+
 def p_error(p):
     print(f"Syntax error in input! {p}")
 

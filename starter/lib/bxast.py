@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 # TODO: Add position info for error message
+
 @dataclass
 class Expression:
     pass
@@ -49,7 +50,11 @@ class StatementAssign(Statement):
 class StatementEval(Statement):
     expr: Expression
 
-
+@dataclass
+class Function:
+    name: str
+    stmts: List[Statement]
+    
 def get_name(json):
     return json[1]["value"]
 
