@@ -3,6 +3,18 @@ import ply.yacc as yacc
 from .scanner import tokens
 from .bxast import *
 
+
+precedence = (
+        ('left', 'OR'),
+        ('left', 'XOR'),
+        ('left', 'AND'),
+        ('left', 'LSHIFT', 'RSHIFT'),
+        ('left' , 'PLUS', 'MINUS'),
+        ('left' , 'TIMES', 'DIVIDE', 'MOD'),
+        ('right', 'TILDE'),
+        ('right', 'UMINUS'),
+    )
+
 def p_program(p):
     "program : DEF IDENT LPAREN RPAREN LBRACE stmts RBRACE"
     p[0] = Function(p[2], p[6])
@@ -45,8 +57,12 @@ def p_expr_binop(p):
     p[0] = ExpressionBinOp(p[2], p[1], p[3])
 
 def p_expr_unop(p):
-    "expr : unop expr"
-    p[0] = ExpressionUniOp(p[1], p[2])
+    """expr : TILDE expr
+        | MINUS expr %prec UMINUS"""
+    if p[1] == "~":
+        p[0] = ExpressionUniOp("bitwise-negation", p[2])
+    else:
+        p[0] = ExpressionUniOp("opposite", p[2])
 
 def p_expr_parens(p):
     "expr : LPAREN expr RPAREN"
