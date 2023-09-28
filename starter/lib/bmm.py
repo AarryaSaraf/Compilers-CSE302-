@@ -2,7 +2,7 @@ from .bxast import *
 from .tac import *
 from typing import Dict, List, Tuple
 
-def bmm(statments: List[Statement], var_to_tmp: Dict[str, TACTemp]) -> List[TACOp]:
+def bmm(statments: List[Statement], var_to_tmp: Dict[str, TACTemp]) -> TAC:
     code = []
     for stmt in statments:
         match stmt: 
@@ -14,7 +14,7 @@ def bmm(statments: List[Statement], var_to_tmp: Dict[str, TACTemp]) -> List[TACO
                 code += expr_code
             case StatementDecl(name): 
                 code += [TACOp("const", [0], var_to_tmp[name])]
-    return code
+    return TAC(code)
 
 def bmm_code(expr: Expression, var_to_tmp: Dict[str, TACTemp]) -> Tuple[TACTemp, TACOp]:
     match expr:

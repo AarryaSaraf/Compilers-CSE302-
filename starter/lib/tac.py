@@ -8,6 +8,7 @@ class TACTemp:
     def __str__(self):
         return f"%{self.num}"
 
+
 @dataclass
 class TACOp:
     opcode: str
@@ -20,6 +21,29 @@ class TACOp:
             "args": [str(arg) if isinstance(arg, TACTemp) else arg for arg in self.args],
             "result": str(self.result) if isinstance(self.result, TACTemp) else self.result
         }
+
+@dataclass
+class TACLabel:
+    name: str
+
+@dataclass
+class TAC:
+    ops: List [TACOp| TACLabel]
+
+    def get_tmps(self):
+        temps = set()
+        for op in self.ops:
+            if isinstance(op, TACOp):
+                for arg in op.args:
+                    match arg:
+                        case TACTemp(n):
+                            temps.add(n)
+                        case _:
+                            pass
+                if op.result is not None:
+                    temps.add(op.result.num)
+        return temps
+
 
 OPERATOR_TO_OPCODE={
     "addition": "add",

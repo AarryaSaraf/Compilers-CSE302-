@@ -2,14 +2,14 @@ from .bxast import *
 from .tac import *
 from typing import Dict, List
 
-def tmm(statments: List[Statement], var_to_tmp: Dict[str, TACTemp]) -> List[TACOp]:
+def tmm(statments: List[Statement], var_to_tmp: Dict[str, TACTemp]) -> TAC:
     code = []
     for stmt in statments:
         match stmt: 
             case StatementAssign(var, expr): code += tmm_code(expr, var_to_tmp[var], var_to_tmp)
             case StatementEval(expr): code += tmm_code(expr, None, var_to_tmp)
             case StatementDecl(name): code += [TACOp("const", [0], var_to_tmp[name])]
-    return code
+    return TAC(code)
 
 def tmm_code(expr: Expression, result: TACTemp, var_to_tmp:  Dict[str, TACTemp]) -> List[TACOp]:
     match expr:
