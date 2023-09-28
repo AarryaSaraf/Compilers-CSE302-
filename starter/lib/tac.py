@@ -55,7 +55,9 @@ OPERATOR_TO_OPCODE={
     "bitwise-or": "or",
     "bitwise-and": "and",
     "opposite": "neg",
-    "bitwise-negation": "not"
+    "bitwise-negation": "not",
+    "lshift": "lshift",
+    "rshift": "rshift"
 }
 temporary_counter = 0
 

@@ -51,6 +51,7 @@ __BODY__
                     self.body += self.store_var("rax", res)
                 case TACOp("mod" | "div" as op , [tmp1, tmp2], res):
                     self.body += self.load_var(tmp1, "rax")
+                    self.body += "    cqto\n"
                     self.body += self.load_var(tmp2, "rbx")
                     self.body += "    idivq %rbx\n"
                     if op == "mod":
@@ -74,15 +75,15 @@ __BODY__
                     self.body += self.load_var(arg, "rax")
                     self.body += self.store_var("rax", res)
                 case TACOp("const", [val], res):
-                    self.body += f"    movq ${val}, {(self.tmp_alloc[res.num]+1)*8}(%rsp)\n"
+                    self.body += f"    movq ${val}, -{(self.tmp_alloc[res.num]+1)*8}(%rbp)\n"
                 case x:
                     print(f"WARNING: Cannot compile {x}")
         return self.skeleton.replace("__BODY__", self.body)
     
     def load_var(self, tmp:TACTemp, dest):
-        return f"    movq -{(self.tmp_alloc[tmp.num]+1)*8}(%rsp), %{dest}\n"
+        return f"    movq -{(self.tmp_alloc[tmp.num]+1)*8}(%rbp), %{dest}\n"
     
     def store_var(self, reg , tmp:TACTemp):
-        return f"    movq %{reg}, -{(self.tmp_alloc[tmp.num]+1)*8}(%rsp)\n"
+        return f"    movq %{reg}, -{(self.tmp_alloc[tmp.num]+1)*8}(%rbp)\n"
    
     
