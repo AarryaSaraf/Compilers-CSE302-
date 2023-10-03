@@ -44,7 +44,30 @@ class TAC:
                     temps.add(op.result.num)
         return temps
 
-
+OPCODES = [
+    "jmp",
+    "jc",
+    "jnz",
+    "jl",
+    "jle",
+    "jnl",
+    "jnle",
+    "lshift",
+    "rshift",
+    "mod",
+    "div",
+    "add",
+    "sub",
+    "mul",
+    "and",
+    "or",
+    "xor",
+    "not",
+    "neg",
+    "print",
+    "copy",
+    "const"
+]
 OPERATOR_TO_OPCODE={
     "addition": "add",
     "subtraction": "sub",
