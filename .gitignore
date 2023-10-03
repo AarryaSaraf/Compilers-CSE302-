@@ -1,3 +1,9 @@
 *.pyc
+*.cpython-311.pyc
 .venv/
 */__pycache__/*
+*.S
+*.s
+*.json
+*.exe
+*.o
