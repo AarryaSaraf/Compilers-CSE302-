@@ -44,10 +44,16 @@ __BODY__
             match op:
                 case TACLabel(name):
                     self.body += f"{name}:"
+                case TACOp("jmp", [label], None):
+                    self.body += f"    jmp {label}"
+                case TACOp("jz" | "jnz" | "jl" | "jle" | "jnl" | "jnle" as op, [arg, label], None):
+                    self.load_var(arg, "rax")
+                    self.body += f"    cmpq %rax $0"
+                    self.body += f"    {op} {label}"
                 case TACOp("lshift" | "rshift" as op, [tmp1, tmp2], res):
                     self.body += self.load_var(tmp1, "rax")
                     self.body += self.load_var(tmp2, "rcx")
-                    self.body += f"   {OPCODE_TO_ASM[op]} %cl, %rax\n"
+                    self.body += f"    {OPCODE_TO_ASM[op]} %cl, %rax\n"
                     self.body += self.store_var("rax", res)
                 case TACOp("mod" | "div" as op , [tmp1, tmp2], res):
                     self.body += self.load_var(tmp1, "rax")

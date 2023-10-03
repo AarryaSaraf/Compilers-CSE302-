@@ -85,3 +85,5 @@ def pretty_print(tacops: List[TACOp]) -> str:
     for op in tacops:
         pp+= f"{op.result} = {op.opcode} {' '.join([arg for arg in op.args])}\n"
     return pp
+
+# TODO: deserialization
