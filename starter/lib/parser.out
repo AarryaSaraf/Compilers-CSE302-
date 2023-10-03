@@ -1,0 +1,772 @@
+Created by PLY version 3.11 (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    COMMENT
+    MAIN
+
+Grammar
+
+Rule 0     S' -> program
+Rule 1     program -> DEF IDENT LPAREN RPAREN LBRACE stmts RBRACE
+Rule 2     stmts -> stmtstar
+Rule 3     stmtstar -> <empty>
+Rule 4     stmtstar -> stmtstar stmt
+Rule 5     stmt -> VAR IDENT EQUALS NUMBER COLON INT SEMICOLON
+Rule 6     stmt -> PRINT LPAREN expr RPAREN SEMICOLON
+Rule 7     stmt -> IDENT EQUALS expr SEMICOLON
+Rule 8     expr -> NUMBER
+Rule 9     expr -> IDENT
+Rule 10    expr -> expr binop expr
+Rule 11    expr -> TILDE expr
+Rule 12    expr -> MINUS expr
+Rule 13    expr -> LPAREN expr RPAREN
+Rule 14    unop -> MINUS
+Rule 15    unop -> TILDE
+Rule 16    binop -> PLUS
+Rule 17    binop -> MINUS
+Rule 18    binop -> TIMES
+Rule 19    binop -> DIVIDE
+Rule 20    binop -> MOD
+Rule 21    binop -> XOR
+Rule 22    binop -> AND
+Rule 23    binop -> OR
+Rule 24    binop -> LSHIFT
+Rule 25    binop -> RSHIFT
+
+Terminals, with rules where they appear
+
+AND                  : 22
+COLON                : 5
+COMMENT              : 
+DEF                  : 1
+DIVIDE               : 19
+EQUALS               : 5 7
+IDENT                : 1 5 7 9
+INT                  : 5
+LBRACE               : 1
+LPAREN               : 1 6 13
+LSHIFT               : 24
+MAIN                 : 
+MINUS                : 12 14 17
+MOD                  : 20
+NUMBER               : 5 8
+OR                   : 23
+PLUS                 : 16
+PRINT                : 6
+RBRACE               : 1
+RPAREN               : 1 6 13
+RSHIFT               : 25
+SEMICOLON            : 5 6 7
+TILDE                : 11 15
+TIMES                : 18
+VAR                  : 5
+XOR                  : 21
+error                : 
+
+Nonterminals, with rules where they appear
+
+binop                : 10
+expr                 : 6 7 10 10 11 12 13
+program              : 0
+stmt                 : 4
+stmts                : 1
+stmtstar             : 2 4
+unop                 : 
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . program
+    (1) program -> . DEF IDENT LPAREN RPAREN LBRACE stmts RBRACE
+
+    DEF             shift and go to state 2
+
+    program                        shift and go to state 1
+
+state 1
+
+    (0) S' -> program .
+
+
+
+state 2
+
+    (1) program -> DEF . IDENT LPAREN RPAREN LBRACE stmts RBRACE
+
+    IDENT           shift and go to state 3
+
+
+state 3
+
+    (1) program -> DEF IDENT . LPAREN RPAREN LBRACE stmts RBRACE
+
+    LPAREN          shift and go to state 4
+
+
+state 4
+
+    (1) program -> DEF IDENT LPAREN . RPAREN LBRACE stmts RBRACE
+
+    RPAREN          shift and go to state 5
+
+
+state 5
+
+    (1) program -> DEF IDENT LPAREN RPAREN . LBRACE stmts RBRACE
+
+    LBRACE          shift and go to state 6
+
+
+state 6
+
+    (1) program -> DEF IDENT LPAREN RPAREN LBRACE . stmts RBRACE
+    (2) stmts -> . stmtstar
+    (3) stmtstar -> .
+    (4) stmtstar -> . stmtstar stmt
+
+    VAR             reduce using rule 3 (stmtstar -> .)
+    PRINT           reduce using rule 3 (stmtstar -> .)
+    IDENT           reduce using rule 3 (stmtstar -> .)
+    RBRACE          reduce using rule 3 (stmtstar -> .)
+
+    stmts                          shift and go to state 7
+    stmtstar                       shift and go to state 8
+
+state 7
+
+    (1) program -> DEF IDENT LPAREN RPAREN LBRACE stmts . RBRACE
+
+    RBRACE          shift and go to state 9
+
+
+state 8
+
+    (2) stmts -> stmtstar .
+    (4) stmtstar -> stmtstar . stmt
+    (5) stmt -> . VAR IDENT EQUALS NUMBER COLON INT SEMICOLON
+    (6) stmt -> . PRINT LPAREN expr RPAREN SEMICOLON
+    (7) stmt -> . IDENT EQUALS expr SEMICOLON
+
+    RBRACE          reduce using rule 2 (stmts -> stmtstar .)
+    VAR             shift and go to state 11
+    PRINT           shift and go to state 13
+    IDENT           shift and go to state 12
+
+    stmt                           shift and go to state 10
+
+state 9
+
+    (1) program -> DEF IDENT LPAREN RPAREN LBRACE stmts RBRACE .
+
+    $end            reduce using rule 1 (program -> DEF IDENT LPAREN RPAREN LBRACE stmts RBRACE .)
+
+
+state 10
+
+    (4) stmtstar -> stmtstar stmt .
+
+    VAR             reduce using rule 4 (stmtstar -> stmtstar stmt .)
+    PRINT           reduce using rule 4 (stmtstar -> stmtstar stmt .)
+    IDENT           reduce using rule 4 (stmtstar -> stmtstar stmt .)
+    RBRACE          reduce using rule 4 (stmtstar -> stmtstar stmt .)
+
+
+state 11
+
+    (5) stmt -> VAR . IDENT EQUALS NUMBER COLON INT SEMICOLON
+
+    IDENT           shift and go to state 14
+
+
+state 12
+
+    (7) stmt -> IDENT . EQUALS expr SEMICOLON
+
+    EQUALS          shift and go to state 15
+
+
+state 13
+
+    (6) stmt -> PRINT . LPAREN expr RPAREN SEMICOLON
+
+    LPAREN          shift and go to state 16
+
+
+state 14
+
+    (5) stmt -> VAR IDENT . EQUALS NUMBER COLON INT SEMICOLON
+
+    EQUALS          shift and go to state 17
+
+
+state 15
+
+    (7) stmt -> IDENT EQUALS . expr SEMICOLON
+    (8) expr -> . NUMBER
+    (9) expr -> . IDENT
+    (10) expr -> . expr binop expr
+    (11) expr -> . TILDE expr
+    (12) expr -> . MINUS expr
+    (13) expr -> . LPAREN expr RPAREN
+
+    NUMBER          shift and go to state 20
+    IDENT           shift and go to state 18
+    TILDE           shift and go to state 21
+    MINUS           shift and go to state 22
+    LPAREN          shift and go to state 23
+
+    expr                           shift and go to state 19
+
+state 16
+
+    (6) stmt -> PRINT LPAREN . expr RPAREN SEMICOLON
+    (8) expr -> . NUMBER
+    (9) expr -> . IDENT
+    (10) expr -> . expr binop expr
+    (11) expr -> . TILDE expr
+    (12) expr -> . MINUS expr
+    (13) expr -> . LPAREN expr RPAREN
+
+    NUMBER          shift and go to state 20
+    IDENT           shift and go to state 18
+    TILDE           shift and go to state 21
+    MINUS           shift and go to state 22
+    LPAREN          shift and go to state 23
+
+    expr                           shift and go to state 24
+
+state 17
+
+    (5) stmt -> VAR IDENT EQUALS . NUMBER COLON INT SEMICOLON
+
+    NUMBER          shift and go to state 25
+
+
+state 18
+
+    (9) expr -> IDENT .
+
+    SEMICOLON       reduce using rule 9 (expr -> IDENT .)
+    PLUS            reduce using rule 9 (expr -> IDENT .)
+    MINUS           reduce using rule 9 (expr -> IDENT .)
+    TIMES           reduce using rule 9 (expr -> IDENT .)
+    DIVIDE          reduce using rule 9 (expr -> IDENT .)
+    MOD             reduce using rule 9 (expr -> IDENT .)
+    XOR             reduce using rule 9 (expr -> IDENT .)
+    AND             reduce using rule 9 (expr -> IDENT .)
+    OR              reduce using rule 9 (expr -> IDENT .)
+    LSHIFT          reduce using rule 9 (expr -> IDENT .)
+    RSHIFT          reduce using rule 9 (expr -> IDENT .)
+    RPAREN          reduce using rule 9 (expr -> IDENT .)
+
+
+state 19
+
+    (7) stmt -> IDENT EQUALS expr . SEMICOLON
+    (10) expr -> expr . binop expr
+    (16) binop -> . PLUS
+    (17) binop -> . MINUS
+    (18) binop -> . TIMES
+    (19) binop -> . DIVIDE
+    (20) binop -> . MOD
+    (21) binop -> . XOR
+    (22) binop -> . AND
+    (23) binop -> . OR
+    (24) binop -> . LSHIFT
+    (25) binop -> . RSHIFT
+
+    SEMICOLON       shift and go to state 26
+    PLUS            shift and go to state 28
+    MINUS           shift and go to state 29
+    TIMES           shift and go to state 30
+    DIVIDE          shift and go to state 31
+    MOD             shift and go to state 32
+    XOR             shift and go to state 33
+    AND             shift and go to state 34
+    OR              shift and go to state 35
+    LSHIFT          shift and go to state 36
+    RSHIFT          shift and go to state 37
+
+    binop                          shift and go to state 27
+
+state 20
+
+    (8) expr -> NUMBER .
+
+    SEMICOLON       reduce using rule 8 (expr -> NUMBER .)
+    PLUS            reduce using rule 8 (expr -> NUMBER .)
+    MINUS           reduce using rule 8 (expr -> NUMBER .)
+    TIMES           reduce using rule 8 (expr -> NUMBER .)
+    DIVIDE          reduce using rule 8 (expr -> NUMBER .)
+    MOD             reduce using rule 8 (expr -> NUMBER .)
+    XOR             reduce using rule 8 (expr -> NUMBER .)
+    AND             reduce using rule 8 (expr -> NUMBER .)
+    OR              reduce using rule 8 (expr -> NUMBER .)
+    LSHIFT          reduce using rule 8 (expr -> NUMBER .)
+    RSHIFT          reduce using rule 8 (expr -> NUMBER .)
+    RPAREN          reduce using rule 8 (expr -> NUMBER .)
+
+
+state 21
+
+    (11) expr -> TILDE . expr
+    (8) expr -> . NUMBER
+    (9) expr -> . IDENT
+    (10) expr -> . expr binop expr
+    (11) expr -> . TILDE expr
+    (12) expr -> . MINUS expr
+    (13) expr -> . LPAREN expr RPAREN
+
+    NUMBER          shift and go to state 20
+    IDENT           shift and go to state 18
+    TILDE           shift and go to state 21
+    MINUS           shift and go to state 22
+    LPAREN          shift and go to state 23
+
+    expr                           shift and go to state 38
+
+state 22
+
+    (12) expr -> MINUS . expr
+    (8) expr -> . NUMBER
+    (9) expr -> . IDENT
+    (10) expr -> . expr binop expr
+    (11) expr -> . TILDE expr
+    (12) expr -> . MINUS expr
+    (13) expr -> . LPAREN expr RPAREN
+
+    NUMBER          shift and go to state 20
+    IDENT           shift and go to state 18
+    TILDE           shift and go to state 21
+    MINUS           shift and go to state 22
+    LPAREN          shift and go to state 23
+
+    expr                           shift and go to state 39
+
+state 23
+
+    (13) expr -> LPAREN . expr RPAREN
+    (8) expr -> . NUMBER
+    (9) expr -> . IDENT
+    (10) expr -> . expr binop expr
+    (11) expr -> . TILDE expr
+    (12) expr -> . MINUS expr
+    (13) expr -> . LPAREN expr RPAREN
+
+    NUMBER          shift and go to state 20
+    IDENT           shift and go to state 18
+    TILDE           shift and go to state 21
+    MINUS           shift and go to state 22
+    LPAREN          shift and go to state 23
+
+    expr                           shift and go to state 40
+
+state 24
+
+    (6) stmt -> PRINT LPAREN expr . RPAREN SEMICOLON
+    (10) expr -> expr . binop expr
+    (16) binop -> . PLUS
+    (17) binop -> . MINUS
+    (18) binop -> . TIMES
+    (19) binop -> . DIVIDE
+    (20) binop -> . MOD
+    (21) binop -> . XOR
+    (22) binop -> . AND
+    (23) binop -> . OR
+    (24) binop -> . LSHIFT
+    (25) binop -> . RSHIFT
+
+    RPAREN          shift and go to state 41
+    PLUS            shift and go to state 28
+    MINUS           shift and go to state 29
+    TIMES           shift and go to state 30
+    DIVIDE          shift and go to state 31
+    MOD             shift and go to state 32
+    XOR             shift and go to state 33
+    AND             shift and go to state 34
+    OR              shift and go to state 35
+    LSHIFT          shift and go to state 36
+    RSHIFT          shift and go to state 37
+
+    binop                          shift and go to state 27
+
+state 25
+
+    (5) stmt -> VAR IDENT EQUALS NUMBER . COLON INT SEMICOLON
+
+    COLON           shift and go to state 42
+
+
+state 26
+
+    (7) stmt -> IDENT EQUALS expr SEMICOLON .
+
+    VAR             reduce using rule 7 (stmt -> IDENT EQUALS expr SEMICOLON .)
+    PRINT           reduce using rule 7 (stmt -> IDENT EQUALS expr SEMICOLON .)
+    IDENT           reduce using rule 7 (stmt -> IDENT EQUALS expr SEMICOLON .)
+    RBRACE          reduce using rule 7 (stmt -> IDENT EQUALS expr SEMICOLON .)
+
+
+state 27
+
+    (10) expr -> expr binop . expr
+    (8) expr -> . NUMBER
+    (9) expr -> . IDENT
+    (10) expr -> . expr binop expr
+    (11) expr -> . TILDE expr
+    (12) expr -> . MINUS expr
+    (13) expr -> . LPAREN expr RPAREN
+
+    NUMBER          shift and go to state 20
+    IDENT           shift and go to state 18
+    TILDE           shift and go to state 21
+    MINUS           shift and go to state 22
+    LPAREN          shift and go to state 23
+
+    expr                           shift and go to state 43
+
+state 28
+
+    (16) binop -> PLUS .
+
+    NUMBER          reduce using rule 16 (binop -> PLUS .)
+    IDENT           reduce using rule 16 (binop -> PLUS .)
+    TILDE           reduce using rule 16 (binop -> PLUS .)
+    MINUS           reduce using rule 16 (binop -> PLUS .)
+    LPAREN          reduce using rule 16 (binop -> PLUS .)
+
+
+state 29
+
+    (17) binop -> MINUS .
+
+    NUMBER          reduce using rule 17 (binop -> MINUS .)
+    IDENT           reduce using rule 17 (binop -> MINUS .)
+    TILDE           reduce using rule 17 (binop -> MINUS .)
+    MINUS           reduce using rule 17 (binop -> MINUS .)
+    LPAREN          reduce using rule 17 (binop -> MINUS .)
+
+
+state 30
+
+    (18) binop -> TIMES .
+
+    NUMBER          reduce using rule 18 (binop -> TIMES .)
+    IDENT           reduce using rule 18 (binop -> TIMES .)
+    TILDE           reduce using rule 18 (binop -> TIMES .)
+    MINUS           reduce using rule 18 (binop -> TIMES .)
+    LPAREN          reduce using rule 18 (binop -> TIMES .)
+
+
+state 31
+
+    (19) binop -> DIVIDE .
+
+    NUMBER          reduce using rule 19 (binop -> DIVIDE .)
+    IDENT           reduce using rule 19 (binop -> DIVIDE .)
+    TILDE           reduce using rule 19 (binop -> DIVIDE .)
+    MINUS           reduce using rule 19 (binop -> DIVIDE .)
+    LPAREN          reduce using rule 19 (binop -> DIVIDE .)
+
+
+state 32
+
+    (20) binop -> MOD .
+
+    NUMBER          reduce using rule 20 (binop -> MOD .)
+    IDENT           reduce using rule 20 (binop -> MOD .)
+    TILDE           reduce using rule 20 (binop -> MOD .)
+    MINUS           reduce using rule 20 (binop -> MOD .)
+    LPAREN          reduce using rule 20 (binop -> MOD .)
+
+
+state 33
+
+    (21) binop -> XOR .
+
+    NUMBER          reduce using rule 21 (binop -> XOR .)
+    IDENT           reduce using rule 21 (binop -> XOR .)
+    TILDE           reduce using rule 21 (binop -> XOR .)
+    MINUS           reduce using rule 21 (binop -> XOR .)
+    LPAREN          reduce using rule 21 (binop -> XOR .)
+
+
+state 34
+
+    (22) binop -> AND .
+
+    NUMBER          reduce using rule 22 (binop -> AND .)
+    IDENT           reduce using rule 22 (binop -> AND .)
+    TILDE           reduce using rule 22 (binop -> AND .)
+    MINUS           reduce using rule 22 (binop -> AND .)
+    LPAREN          reduce using rule 22 (binop -> AND .)
+
+
+state 35
+
+    (23) binop -> OR .
+
+    NUMBER          reduce using rule 23 (binop -> OR .)
+    IDENT           reduce using rule 23 (binop -> OR .)
+    TILDE           reduce using rule 23 (binop -> OR .)
+    MINUS           reduce using rule 23 (binop -> OR .)
+    LPAREN          reduce using rule 23 (binop -> OR .)
+
+
+state 36
+
+    (24) binop -> LSHIFT .
+
+    NUMBER          reduce using rule 24 (binop -> LSHIFT .)
+    IDENT           reduce using rule 24 (binop -> LSHIFT .)
+    TILDE           reduce using rule 24 (binop -> LSHIFT .)
+    MINUS           reduce using rule 24 (binop -> LSHIFT .)
+    LPAREN          reduce using rule 24 (binop -> LSHIFT .)
+
+
+state 37
+
+    (25) binop -> RSHIFT .
+
+    NUMBER          reduce using rule 25 (binop -> RSHIFT .)
+    IDENT           reduce using rule 25 (binop -> RSHIFT .)
+    TILDE           reduce using rule 25 (binop -> RSHIFT .)
+    MINUS           reduce using rule 25 (binop -> RSHIFT .)
+    LPAREN          reduce using rule 25 (binop -> RSHIFT .)
+
+
+state 38
+
+    (11) expr -> TILDE expr .
+    (10) expr -> expr . binop expr
+    (16) binop -> . PLUS
+    (17) binop -> . MINUS
+    (18) binop -> . TIMES
+    (19) binop -> . DIVIDE
+    (20) binop -> . MOD
+    (21) binop -> . XOR
+    (22) binop -> . AND
+    (23) binop -> . OR
+    (24) binop -> . LSHIFT
+    (25) binop -> . RSHIFT
+
+    SEMICOLON       reduce using rule 11 (expr -> TILDE expr .)
+    PLUS            reduce using rule 11 (expr -> TILDE expr .)
+    MINUS           reduce using rule 11 (expr -> TILDE expr .)
+    TIMES           reduce using rule 11 (expr -> TILDE expr .)
+    DIVIDE          reduce using rule 11 (expr -> TILDE expr .)
+    MOD             reduce using rule 11 (expr -> TILDE expr .)
+    XOR             reduce using rule 11 (expr -> TILDE expr .)
+    AND             reduce using rule 11 (expr -> TILDE expr .)
+    OR              reduce using rule 11 (expr -> TILDE expr .)
+    LSHIFT          reduce using rule 11 (expr -> TILDE expr .)
+    RSHIFT          reduce using rule 11 (expr -> TILDE expr .)
+    RPAREN          reduce using rule 11 (expr -> TILDE expr .)
+
+  ! PLUS            [ shift and go to state 28 ]
+  ! MINUS           [ shift and go to state 29 ]
+  ! TIMES           [ shift and go to state 30 ]
+  ! DIVIDE          [ shift and go to state 31 ]
+  ! MOD             [ shift and go to state 32 ]
+  ! XOR             [ shift and go to state 33 ]
+  ! AND             [ shift and go to state 34 ]
+  ! OR              [ shift and go to state 35 ]
+  ! LSHIFT          [ shift and go to state 36 ]
+  ! RSHIFT          [ shift and go to state 37 ]
+
+    binop                          shift and go to state 27
+
+state 39
+
+    (12) expr -> MINUS expr .
+    (10) expr -> expr . binop expr
+    (16) binop -> . PLUS
+    (17) binop -> . MINUS
+    (18) binop -> . TIMES
+    (19) binop -> . DIVIDE
+    (20) binop -> . MOD
+    (21) binop -> . XOR
+    (22) binop -> . AND
+    (23) binop -> . OR
+    (24) binop -> . LSHIFT
+    (25) binop -> . RSHIFT
+
+    SEMICOLON       reduce using rule 12 (expr -> MINUS expr .)
+    PLUS            reduce using rule 12 (expr -> MINUS expr .)
+    MINUS           reduce using rule 12 (expr -> MINUS expr .)
+    TIMES           reduce using rule 12 (expr -> MINUS expr .)
+    DIVIDE          reduce using rule 12 (expr -> MINUS expr .)
+    MOD             reduce using rule 12 (expr -> MINUS expr .)
+    XOR             reduce using rule 12 (expr -> MINUS expr .)
+    AND             reduce using rule 12 (expr -> MINUS expr .)
+    OR              reduce using rule 12 (expr -> MINUS expr .)
+    LSHIFT          reduce using rule 12 (expr -> MINUS expr .)
+    RSHIFT          reduce using rule 12 (expr -> MINUS expr .)
+    RPAREN          reduce using rule 12 (expr -> MINUS expr .)
+
+  ! PLUS            [ shift and go to state 28 ]
+  ! MINUS           [ shift and go to state 29 ]
+  ! TIMES           [ shift and go to state 30 ]
+  ! DIVIDE          [ shift and go to state 31 ]
+  ! MOD             [ shift and go to state 32 ]
+  ! XOR             [ shift and go to state 33 ]
+  ! AND             [ shift and go to state 34 ]
+  ! OR              [ shift and go to state 35 ]
+  ! LSHIFT          [ shift and go to state 36 ]
+  ! RSHIFT          [ shift and go to state 37 ]
+
+    binop                          shift and go to state 27
+
+state 40
+
+    (13) expr -> LPAREN expr . RPAREN
+    (10) expr -> expr . binop expr
+    (16) binop -> . PLUS
+    (17) binop -> . MINUS
+    (18) binop -> . TIMES
+    (19) binop -> . DIVIDE
+    (20) binop -> . MOD
+    (21) binop -> . XOR
+    (22) binop -> . AND
+    (23) binop -> . OR
+    (24) binop -> . LSHIFT
+    (25) binop -> . RSHIFT
+
+    RPAREN          shift and go to state 44
+    PLUS            shift and go to state 28
+    MINUS           shift and go to state 29
+    TIMES           shift and go to state 30
+    DIVIDE          shift and go to state 31
+    MOD             shift and go to state 32
+    XOR             shift and go to state 33
+    AND             shift and go to state 34
+    OR              shift and go to state 35
+    LSHIFT          shift and go to state 36
+    RSHIFT          shift and go to state 37
+
+    binop                          shift and go to state 27
+
+state 41
+
+    (6) stmt -> PRINT LPAREN expr RPAREN . SEMICOLON
+
+    SEMICOLON       shift and go to state 45
+
+
+state 42
+
+    (5) stmt -> VAR IDENT EQUALS NUMBER COLON . INT SEMICOLON
+
+    INT             shift and go to state 46
+
+
+state 43
+
+    (10) expr -> expr binop expr .
+    (10) expr -> expr . binop expr
+    (16) binop -> . PLUS
+    (17) binop -> . MINUS
+    (18) binop -> . TIMES
+    (19) binop -> . DIVIDE
+    (20) binop -> . MOD
+    (21) binop -> . XOR
+    (22) binop -> . AND
+    (23) binop -> . OR
+    (24) binop -> . LSHIFT
+    (25) binop -> . RSHIFT
+
+  ! shift/reduce conflict for PLUS resolved as shift
+  ! shift/reduce conflict for MINUS resolved as shift
+  ! shift/reduce conflict for TIMES resolved as shift
+  ! shift/reduce conflict for DIVIDE resolved as shift
+  ! shift/reduce conflict for MOD resolved as shift
+  ! shift/reduce conflict for XOR resolved as shift
+  ! shift/reduce conflict for AND resolved as shift
+  ! shift/reduce conflict for OR resolved as shift
+  ! shift/reduce conflict for LSHIFT resolved as shift
+  ! shift/reduce conflict for RSHIFT resolved as shift
+    SEMICOLON       reduce using rule 10 (expr -> expr binop expr .)
+    RPAREN          reduce using rule 10 (expr -> expr binop expr .)
+    PLUS            shift and go to state 28
+    MINUS           shift and go to state 29
+    TIMES           shift and go to state 30
+    DIVIDE          shift and go to state 31
+    MOD             shift and go to state 32
+    XOR             shift and go to state 33
+    AND             shift and go to state 34
+    OR              shift and go to state 35
+    LSHIFT          shift and go to state 36
+    RSHIFT          shift and go to state 37
+
+  ! PLUS            [ reduce using rule 10 (expr -> expr binop expr .) ]
+  ! MINUS           [ reduce using rule 10 (expr -> expr binop expr .) ]
+  ! TIMES           [ reduce using rule 10 (expr -> expr binop expr .) ]
+  ! DIVIDE          [ reduce using rule 10 (expr -> expr binop expr .) ]
+  ! MOD             [ reduce using rule 10 (expr -> expr binop expr .) ]
+  ! XOR             [ reduce using rule 10 (expr -> expr binop expr .) ]
+  ! AND             [ reduce using rule 10 (expr -> expr binop expr .) ]
+  ! OR              [ reduce using rule 10 (expr -> expr binop expr .) ]
+  ! LSHIFT          [ reduce using rule 10 (expr -> expr binop expr .) ]
+  ! RSHIFT          [ reduce using rule 10 (expr -> expr binop expr .) ]
+
+    binop                          shift and go to state 27
+
+state 44
+
+    (13) expr -> LPAREN expr RPAREN .
+
+    SEMICOLON       reduce using rule 13 (expr -> LPAREN expr RPAREN .)
+    PLUS            reduce using rule 13 (expr -> LPAREN expr RPAREN .)
+    MINUS           reduce using rule 13 (expr -> LPAREN expr RPAREN .)
+    TIMES           reduce using rule 13 (expr -> LPAREN expr RPAREN .)
+    DIVIDE          reduce using rule 13 (expr -> LPAREN expr RPAREN .)
+    MOD             reduce using rule 13 (expr -> LPAREN expr RPAREN .)
+    XOR             reduce using rule 13 (expr -> LPAREN expr RPAREN .)
+    AND             reduce using rule 13 (expr -> LPAREN expr RPAREN .)
+    OR              reduce using rule 13 (expr -> LPAREN expr RPAREN .)
+    LSHIFT          reduce using rule 13 (expr -> LPAREN expr RPAREN .)
+    RSHIFT          reduce using rule 13 (expr -> LPAREN expr RPAREN .)
+    RPAREN          reduce using rule 13 (expr -> LPAREN expr RPAREN .)
+
+
+state 45
+
+    (6) stmt -> PRINT LPAREN expr RPAREN SEMICOLON .
+
+    VAR             reduce using rule 6 (stmt -> PRINT LPAREN expr RPAREN SEMICOLON .)
+    PRINT           reduce using rule 6 (stmt -> PRINT LPAREN expr RPAREN SEMICOLON .)
+    IDENT           reduce using rule 6 (stmt -> PRINT LPAREN expr RPAREN SEMICOLON .)
+    RBRACE          reduce using rule 6 (stmt -> PRINT LPAREN expr RPAREN SEMICOLON .)
+
+
+state 46
+
+    (5) stmt -> VAR IDENT EQUALS NUMBER COLON INT . SEMICOLON
+
+    SEMICOLON       shift and go to state 47
+
+
+state 47
+
+    (5) stmt -> VAR IDENT EQUALS NUMBER COLON INT SEMICOLON .
+
+    VAR             reduce using rule 5 (stmt -> VAR IDENT EQUALS NUMBER COLON INT SEMICOLON .)
+    PRINT           reduce using rule 5 (stmt -> VAR IDENT EQUALS NUMBER COLON INT SEMICOLON .)
+    IDENT           reduce using rule 5 (stmt -> VAR IDENT EQUALS NUMBER COLON INT SEMICOLON .)
+    RBRACE          reduce using rule 5 (stmt -> VAR IDENT EQUALS NUMBER COLON INT SEMICOLON .)
+
+WARNING: 
+WARNING: Conflicts:
+WARNING: 
+WARNING: shift/reduce conflict for PLUS in state 43 resolved as shift
+WARNING: shift/reduce conflict for MINUS in state 43 resolved as shift
+WARNING: shift/reduce conflict for TIMES in state 43 resolved as shift
+WARNING: shift/reduce conflict for DIVIDE in state 43 resolved as shift
+WARNING: shift/reduce conflict for MOD in state 43 resolved as shift
+WARNING: shift/reduce conflict for XOR in state 43 resolved as shift
+WARNING: shift/reduce conflict for AND in state 43 resolved as shift
+WARNING: shift/reduce conflict for OR in state 43 resolved as shift
+WARNING: shift/reduce conflict for LSHIFT in state 43 resolved as shift
+WARNING: shift/reduce conflict for RSHIFT in state 43 resolved as shift
