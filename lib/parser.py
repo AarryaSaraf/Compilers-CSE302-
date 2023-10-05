@@ -60,16 +60,16 @@ def p_stmt_assign(p):
     p[0] = StatementAssign(p[1], p[3])
 
 
-def p_stmt_if(p):
+def p_stmt_if_then(p):
     """
-    stmt : IF LPAREN expr RPAREN block
-         | IF LPAREN expr RPAREN block ELSE block
+    stmt : IF LPAREN expr RPAREN block    
     """
-    if len(p) > 6:
-        p[0] = StatementIf(p[3], p[5], p[7])
-    else:
-        p[0] = StatementIf(p[3], p[5], None)
+    p[0] = StatementIf(p[3], p[5], None)
 
+
+def p_stmt_if_else(p):
+    "stmt : IF LPAREN expr RPAREN block ELSE block"
+    p[0] = StatementIf(p[3], p[5], p[7])
 
 def p_stmt_while(p):
     "stmt : WHILE LPAREN expr RPAREN block"
