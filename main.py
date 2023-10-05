@@ -14,7 +14,10 @@ if __name__ == "__main__":
     if errs != []:
         pp_errs(errs)
         sys.exit()
-
+    type_check = ast.type_check()
+    if not type_check:
+        print("Type checking failed")
+        sys.exit()
     vars_to_tmp = var_mapping(ast.body.stmts)
     tac = bmm(ast.body.stmts, vars_to_tmp)
 

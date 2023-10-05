@@ -99,7 +99,7 @@ class Block:
 
     def type_check(self) -> bool:
         successful = True
-        for stmt in stmts:
+        for stmt in self.stmts:
             try: 
                 stmt.type_check()
             except TypeCheckError:
