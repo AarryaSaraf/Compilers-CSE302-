@@ -20,9 +20,12 @@ precedence = (
     )
 
 def p_program(p):
-    "program : DEF IDENT LPAREN RPAREN LBRACE stmts RBRACE"
-    p[0] = Function(p[2], p[6])
+    "program : DEF IDENT LPAREN RPAREN block"
+    p[0] = Function(p[2], p[5])
 
+def p_block(p):
+    "block : LBRACE stmts RBRACE"
+    p[0] = Block(p[2])
 def p_stmts(p):
     "stmts : stmtstar"
     p[0] = p[1]
@@ -48,6 +51,20 @@ def p_stmt_assign(p):
     "stmt : IDENT EQUALS expr SEMICOLON"
     p[0] = StatementAssign(p[1], p[3])
 
+def p_stmt_if(p):
+    """
+    stmt : IF LPAREN expr RPAREN block
+         | IF LPAREN expr RPAREN block ELSE block
+    """
+    if len(p) > 6:
+        p[0] = StatementIf(p[3], p[5], p[7])
+    else:
+        p[0] = StatementIf(p[3], p[5], None)
+
+def p_stmt_while(p):
+    "stmt : WHILE LPAREN expr RPAREN block"
+    p[0] = StatementWhile(p[3], p[5])
+    
 def p_expr_number(p):
     "expr : NUMBER"
     p[0] = ExpressionInt(p[1])

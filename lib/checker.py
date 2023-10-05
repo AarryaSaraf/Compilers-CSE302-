@@ -10,7 +10,7 @@ def check_programm(program: Function)->List[SyntaxError]:
     if program.name != "main":
         errors.append(SyntaxError(f"expected function name to be 'main' but got: {program.name}"))
     vardecl = set()
-    for stmt in program.stmts:
+    for stmt in program.body.stmts:
         errors += check_stmt(stmt, vardecl)
     return errors
 

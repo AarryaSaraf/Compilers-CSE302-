@@ -36,7 +36,10 @@ tokens = (
     "GREATERTHANEQUALS",
     "OROR",
     "ANDAND",  
-    "BANG"
+    "BANG",
+    "ELSE",
+    "IF",
+    "WHILE"
 )
 t_ignore = r" "
 
@@ -72,6 +75,9 @@ t_GREATERTHANEQUALS = r">="
 t_ANDAND = r"&&"
 t_OROR = r"\|\|"
 t_BANG = r"!"
+t_IF = r"if"
+t_ELSE = r"else"
+t_WHILE = r"while"
 
 def t_COMMENT(t):
     r"//.*"

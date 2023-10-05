@@ -35,26 +35,48 @@ class ExpressionCall(Expression):
 class Statement:
     pass
 
+@dataclass 
+class Block:
+    stmts: List[Statement]
+
+
 @dataclass
 class StatementDecl(Statement):
     name: str
     type: str
     init: Expression
 
+
 @dataclass
 class StatementAssign(Statement):
     lvalue: str # TODO refactor for general grammar later
     rvalue: Expression
 
+
 @dataclass
 class StatementEval(Statement):
     expr: Expression
 
+
+@dataclass
+class StatementIf(Statement):
+    cond: Expression
+    body: Block
+    elseblock: None | Block
+
+
+@dataclass
+class StatementWhile(Statement):
+    cond: Expression
+    body: Block
+
+
 @dataclass
 class Function:
     name: str
-    stmts: List[Statement]
-    
+    body: Block
+
+
 def get_name(json):
     return json[1]["value"]
 

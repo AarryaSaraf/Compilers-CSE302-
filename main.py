@@ -15,8 +15,8 @@ if __name__ == "__main__":
         pp_errs(errs)
         sys.exit()
     
-    vars_to_tmp = var_mapping(ast.stmts)
-    tac = bmm(ast.stmts, vars_to_tmp)
+    vars_to_tmp = var_mapping(ast.body.stmts)
+    tac = bmm(ast.body.stmts, vars_to_tmp)
 
     asm_gen = AsmGen(tac)
     asm = asm_gen.compile()
