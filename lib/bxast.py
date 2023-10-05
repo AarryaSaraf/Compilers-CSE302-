@@ -1,52 +1,111 @@
 from dataclasses import dataclass
 from typing import List
+from abc import abstractmethod
 
 # TODO: Add position info for error message
+class TypeCheckError(Exception):
+    def __init__(self, expr, ty, expected_ty):
+        self.expr = expr
+        self.ty = ty
+        self.expected_ty = ty
 
 
 @dataclass
 class Expression:
-    pass
 
+    @abstractmethod
+    def type_check(self):
+        pass
 
 @dataclass
 class ExpressionVar(Expression):
     name: str
+    ty: str | None = None
+
+    def type_check(self):
+        self.ty = "int"
 
 
 @dataclass
 class ExpressionInt(Expression):
     value: int
+    ty: str | None = None
+
+    def type_check(self):
+        self.ty = "int"
 
 
 @dataclass
 class ExpressionUniOp(Expression):
     operator: str
     argument: Expression
+    ty: str | None = None
 
+    def type_check(self):
+        self.argument.type_check()
+        if self.operator in ["boolean-negation"] and self.argument.ty != "bool":
+            raise TypeCheckError(self.argument, self.argument.ty, "bool")
+        elif self.operator in ["bitwise-negation", "opposite"] and self.argument.ty != "int":
+            raise TypeCheckError(self.argument, self.argument.ty, "int")
+        self.ty = self.argument.ty
 
 @dataclass
 class ExpressionBinOp(Expression):
     operator: str
     left: Expression
     right: Expression
+    ty: str | None = None
 
-
+    def type_check(self):
+        self.left.type_check()
+        self.right.type_check
+        if self.operator in ["boolean-and", "boolean-or"]:
+            if self.left.ty != "bool":
+                raise TypeCheckError(self.left, self.left.ty, "bool")
+            elif self.right.ty != "bool":
+                raise TypeCheckError(self.right, self.right.ty, "bool")
+            self.ty = "bool"
+        if self.right.ty != "int":
+            raise TypeCheckError(self.right, self.right.ty, "int")
+        if self.left.ty != "int":
+            raise TypeCheckError(self.left, self.left.ty, "int")
+        if self.operator in ["equals", "notequals", "lt", "lte", "gt", "gte"]:
+            self.ty = "bool"
+        else:
+            self.ty = "int"
+        
 @dataclass
 class ExpressionCall(Expression):
     target: str
     arguments: List[Expression]
+    ty: str | None = None
+
+    def type_check(self):
+        # for now the only call is print which has null return
+        self.ty = "null"
 
 
 @dataclass
 class Statement:
-    pass
+    
+    @abstractmethod
+    def type_check(self):
+        pass
 
 
 @dataclass
 class Block:
     stmts: List[Statement]
 
+    def type_check(self) -> bool:
+        successful = True
+        for stmt in stmts:
+            try: 
+                stmt.type_check()
+            except TypeCheckError:
+                print(TypeCheckError)
+                successful = False
+        return successful
 
 @dataclass
 class StatementDecl(Statement):
@@ -54,17 +113,24 @@ class StatementDecl(Statement):
     type: str
     init: Expression
 
+    def type_check(self):
+        self.init.type_check()
+
 
 @dataclass
 class StatementAssign(Statement):
     lvalue: str  # TODO refactor for general grammar later
     rvalue: Expression
 
+    def type_check(self):
+        self.rvalue.type_check()
 
 @dataclass
 class StatementEval(Statement):
     expr: Expression
 
+    def type_check(self):
+        self.expr.type_check()
 
 @dataclass
 class StatementIf(Statement):
@@ -72,18 +138,32 @@ class StatementIf(Statement):
     body: Block
     elseblock: None | Block
 
+    def type_check(self):
+        self.cond.type_check()
+        if self.cond.ty != "bool":
+            raise TypeCheckError(self.cond, self.cond.ty, "bool")
+        self.body.type_check()
+        if self.elseblock is not None:
+            self.body.type_check() and self.elseblock.type_check()
 
 @dataclass
 class StatementWhile(Statement):
     cond: Expression
     body: Block
 
+    def type_check(self) -> bool:
+        self.cond.type_check()
+        if self.cond.ty != "bool":
+            raise TypeCheckError(self.cond, self.cond.ty, "bool")
+        self.body.type_check()
 
 @dataclass
 class Function:
     name: str
     body: Block
 
+    def type_check(self)->bool:
+        return self.body.type_check()
 
 def get_name(json):
     return json[1]["value"]
