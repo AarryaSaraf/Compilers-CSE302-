@@ -27,7 +27,16 @@ tokens = (
     "LBRACE",
     "RBRACE",
     "INT",
-    "DEF"
+    "DEF",
+    "EQUALSEQUALS",
+    "NOTEQUALS",
+    "LESSTHAN",
+    "LESSTHANEQUALS",
+    "GREATERTHAN",
+    "GREATERTHANEQUALS",
+    "OROR",
+    "ANDAND",  
+    "BANG"
 )
 t_ignore = r" "
 
@@ -54,10 +63,15 @@ t_RPAREN = r"\)"
 t_EQUALS = r"="
 t_COLON = r"\:"
 t_SEMICOLON = r";"
-
-
-
-
+t_EQUALSEQUALS = r"=="
+t_NOTEQUALS = r"!="
+t_LESSTHAN = r"<"
+t_LESSTHANEQUALS = r"<="
+t_GREATERTHAN = r">"
+t_GREATERTHANEQUALS = r">="
+t_ANDAND = r"&&"
+t_OROR = r"\|\|"
+t_BANG = r"!"
 
 def t_COMMENT(t):
     r"//.*"

@@ -5,14 +5,18 @@ from .bxast import *
 
 
 precedence = (
+        ('left', 'OROR'),
+        ('left', 'ANDAND'),
         ('left', 'OR'),
         ('left', 'XOR'),
         ('left', 'AND'),
+        ('nonassoc', 'EQUALSEQUALS', 'NOTEQUALS'),
+        ('nonassoc', 'LESSTHAN', 'LESSTHANEQUALS', 'GREATERTHAN', 'GREATERTHANEQUALS'),
         ('left', 'LSHIFT', 'RSHIFT'),
         ('left' , 'PLUS', 'MINUS'),
         ('left' , 'TIMES', 'DIVIDE', 'MOD'),
         ('right', 'TILDE'),
-        ('right', 'UMINUS'),
+        ('right', 'UMINUS', 'BANG'),
     )
 
 def p_program(p):
@@ -72,54 +76,61 @@ def p_unop_opp(p):
     "unop : MINUS"
     p[0] = "opposite"
 
+def p_unop_bopp(p):
+    "unop : BANG"
+    p[0] = "boolean-negation"
+
 def p_unop_neg(p):
     "unop : TILDE"
     p[0] = "bitwise-negation"
 
 def p_binop_plus(p):
-    "binop : PLUS"
-    p[0] = "addition"
-
-def p_binop_minus(p):
-    "binop : MINUS"
-    p[0] = "subtraction"
-
-def p_binop_mul(p):
-    "binop : TIMES"
-    p[0] = "multiplication"
-
-def p_binop_div(p):
-    "binop : DIVIDE"
-    p[0] = "division"
-
-def p_binop_mod(p):
-    "binop : MOD"
-    p[0] = "modulus"
-
-def p_binop_xor(p):
-    "binop : XOR"
-    p[0] = "bitwise-xor"
-
-def p_binop_and(p):
-    "binop : AND"
-    p[0] = "bitwise-and"
-
-def p_binop_or(p):
-    "binop : OR"
-    p[0] = "bitwise-or"
-
-def p_binop_lshift(p):
-    "binop : LSHIFT"
-    p[0] = "lshift"
-
-def p_binop_rshift(p):
-    "binop : RSHIFT"
-    p[0] = "rshift"
+    """
+    binop : PLUS
+          | ANDAND
+          | OROR
+          | MINUS
+          | TIMES
+          | DIVIDE
+          | MOD
+          | XOR
+          | AND
+          | OR
+          | LSHIFT
+          | RSHIFT
+          | LESSTHAN
+          | GREATERTHAN
+          | LESSTHANEQUALS
+          | GREATERTHANEQUALS
+          | EQUALSEQUALS
+          | NOTEQUALS
+    """
+    p[0] = TOKEN_TO_BINOP[p[1]]
 
 def p_error(p):
     print(f"Syntax error in input! {p}")
 
 parser = yacc.yacc(start="program")
 
-
-    
+TOKEN_TO_BINOP = {
+    "&": "bitwise-and",
+    "&&": "boolean-and",
+    "|": "bitwise-or",
+    "||": "boolean-or",
+    "<": "lt",
+    "<=": "lte",
+    ">": "gt",
+    ">=": "gte",
+    "==": "equals",
+    "!=": "notequals",
+    "+": "addition",
+    "-": "subtraction",
+    "*": "multiplication",
+    "/": "division",
+    "%": "modulus",
+    "^": "bitwise-xor",
+    "~": "bitwise-negation",
+    "!": "boolean-negation",
+    "<<": "lshift",
+    ">>": "rshift"
+}
