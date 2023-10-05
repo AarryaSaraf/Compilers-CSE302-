@@ -10,17 +10,17 @@ def tmm_block(block: Block, var_to_tmp: Dict[str, TACTemp]) -> List[TAC]:
     for stmt in block.stmts:
         match stmt:
             case StatementAssign(var, expr):
-                code += tmm_code(expr, var_to_tmp[var], var_to_tmp)
+                code += tmm_int_code(expr, var_to_tmp[var], var_to_tmp)
             case StatementEval(expr):
-                code += tmm_code(expr, None, var_to_tmp)
+                code += tmm_int_code(expr, None, var_to_tmp)
             case StatementDecl(name):
                 code += [TACOp("const", [0], var_to_tmp[name])]
             case StatementWhile(cond, block):
                 label_head, label_body, label_end = fresh_label(), fresh_label(), fresh_label()
-                code += [label_head] + tmm_bool_code(cond, label_body, label_end, var_to_tmp) +[label_body]+ tmm_block(block, var_to_tmp) + [label_end]
+                code += [label_head] + tmm_bool_code(cond, label_body, label_end, var_to_tmp) +[label_body]+ tmm_block(block, var_to_tmp) +[TACOp("jmp", [label_head], None)]+ [label_end]
             case StatementIf(cond, thenblock, elseblock):
                 label_true, label_false, label_end = fresh_label(), fresh_label(), fresh_label()
-                code += tmm_bool_code(cond, label_true, label_false, var_to_tmp) + [label_true] + tmm_block(thenblock, var_to_tmp) +[TACOp("jmp", label_end),label_false]
+                code += tmm_bool_code(cond, label_true, label_false, var_to_tmp) + [label_true] + tmm_block(thenblock, var_to_tmp) +[TACOp("jmp", [label_end], None),label_false]
                 if elseblock is not None:
                     code += tmm_block(elseblock, var_to_tmp) + [label_end]
                 else:
@@ -32,8 +32,8 @@ def tmm_bool_code(expr:Expression, lab_true: TACLabel, lab_false: TACLabel, var_
         case ExpressionBinOp("equals" | "notequals" as op, left, right, _):
             left_tmp = fresh_temp()
             right_tmp = fresh_temp()
-            left_ops = tmm_code(left, left_tmp, var_to_tmp)
-            right_ops = tmm_code(right, right_tmp, var_to_tmp)
+            left_ops = tmm_int_code(left, left_tmp, var_to_tmp)
+            right_ops = tmm_int_code(right, right_tmp, var_to_tmp)
             if op == "equals":
                 return (
                     left_ops
@@ -82,8 +82,8 @@ def tmm_int_code(
         case ExpressionBinOp(operator, left, right):
             left_tmp = fresh_temp()
             right_tmp = fresh_temp()
-            left_ops = tmm_code(left, left_tmp, var_to_tmp)
-            right_ops = tmm_code(right, right_tmp, var_to_tmp)
+            left_ops = tmm_int_code(left, left_tmp, var_to_tmp)
+            right_ops = tmm_int_code(right, right_tmp, var_to_tmp)
             return (
                 left_ops
                 + right_ops
@@ -91,11 +91,11 @@ def tmm_int_code(
             )
         case ExpressionUniOp(operator, arg):
             tmp = fresh_temp()
-            arg_op = tmm_code(arg, tmp, var_to_tmp)
+            arg_op = tmm_int_code(arg, tmp, var_to_tmp)
             return arg_op + [TACOp(OPERATOR_TO_OPCODE[operator], [tmp], result)]
         case ExpressionCall("print", [arg]):
             tmp = fresh_temp()
-            arg_op = tmm_code(arg, tmp, var_to_tmp)
+            arg_op = tmm_int_code(arg, tmp, var_to_tmp)
             return arg_op + [TACOp("print", [tmp], None)]
         case x:
             raise ValueError(f"cant translate {x}")

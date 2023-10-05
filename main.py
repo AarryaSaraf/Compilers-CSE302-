@@ -3,7 +3,7 @@ import os
 from lib.asmgen import AsmGen
 from lib.parser import parser
 from lib.checker import pp_errs, check_programm
-from lib.bmm import bmm
+from lib.tmm import tmm
 from lib.tac import var_mapping
 
 if __name__ == "__main__":
@@ -19,7 +19,7 @@ if __name__ == "__main__":
         print("Type checking failed")
         sys.exit()
     vars_to_tmp = var_mapping(ast.body.stmts)
-    tac = bmm(ast.body.stmts, vars_to_tmp)
+    tac = tmm(ast, vars_to_tmp)
 
     asm_gen = AsmGen(tac)
     asm = asm_gen.compile()

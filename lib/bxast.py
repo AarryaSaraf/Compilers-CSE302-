@@ -9,6 +9,8 @@ class TypeCheckError(Exception):
         self.ty = ty
         self.expected_ty = ty
 
+    def print(self):
+        print(f"expected type {self.expected_ty} of expression {self.expr} but got {self.ty}")
 
 @dataclass
 class Expression:
@@ -25,6 +27,8 @@ class ExpressionVar(Expression):
     def type_check(self):
         self.ty = "int"
 
+    def __str__(self):
+        return name
 
 @dataclass
 class ExpressionInt(Expression):
@@ -34,6 +38,8 @@ class ExpressionInt(Expression):
     def type_check(self):
         self.ty = "int"
 
+    def __str__(self):
+        return str(self.value)
 
 @dataclass
 class ExpressionUniOp(Expression):
@@ -49,6 +55,10 @@ class ExpressionUniOp(Expression):
             raise TypeCheckError(self.argument, self.argument.ty, "int")
         self.ty = self.argument.ty
 
+    def __str__(self):
+        return f"({self.operator} {self.argument})"
+
+
 @dataclass
 class ExpressionBinOp(Expression):
     operator: str
@@ -58,7 +68,7 @@ class ExpressionBinOp(Expression):
 
     def type_check(self):
         self.left.type_check()
-        self.right.type_check
+        self.right.type_check()
         if self.operator in ["boolean-and", "boolean-or"]:
             if self.left.ty != "bool":
                 raise TypeCheckError(self.left, self.left.ty, "bool")
@@ -73,7 +83,10 @@ class ExpressionBinOp(Expression):
             self.ty = "bool"
         else:
             self.ty = "int"
-        
+
+    def __str__(self):
+        return f"({self.operator} {self.left} {self.right})"
+
 @dataclass
 class ExpressionCall(Expression):
     target: str
@@ -84,6 +97,8 @@ class ExpressionCall(Expression):
         # for now the only call is print which has null return
         self.ty = "null"
 
+    def __str__(self):
+        return f"{self.target}({self.arguments[0]})"
 
 @dataclass
 class Statement:
@@ -102,8 +117,8 @@ class Block:
         for stmt in self.stmts:
             try: 
                 stmt.type_check()
-            except TypeCheckError:
-                print(TypeCheckError)
+            except TypeCheckError as e:
+                e.print()
                 successful = False
         return successful
 
