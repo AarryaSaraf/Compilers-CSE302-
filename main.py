@@ -14,7 +14,7 @@ if __name__ == "__main__":
     if errs != []:
         pp_errs(errs)
         sys.exit()
-    
+
     vars_to_tmp = var_mapping(ast.body.stmts)
     tac = bmm(ast.body.stmts, vars_to_tmp)
 
@@ -25,12 +25,10 @@ if __name__ == "__main__":
     else:
         if "-o" in sys.argv:
             i = sys.argv.index("-o")
-            output = sys.argv[i+1]
+            output = sys.argv[i + 1]
         else:
             output = "out"
         fp = open(f"{output}.S", "w")
         fp.write(asm)
         fp.close()
         os.system(f"gcc -o {output}.o {output}.S bx_runtime.c")
-        
-    

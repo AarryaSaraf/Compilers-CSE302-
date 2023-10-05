@@ -10,10 +10,12 @@ OPCODE_TO_ASM = {
     "not": "notq",
     "neg": "negq",
     "lshift": "salq",
-    "rshift": "sarq"
+    "rshift": "sarq",
 }
 SIMPLE_BIN_OPS = {"add", "sub", "mul", "and", "or", "xor"}
 SIMPLE_UN_OPS = {"not", "neg"}
+
+
 class AsmGen:
     def __init__(self, tacs: TAC):
         self.tac = tacs
@@ -46,7 +48,11 @@ __BODY__
                     self.body += f"{name}:"
                 case TACOp("jmp", [label], None):
                     self.body += f"    jmp {label.name}"
-                case TACOp("jz" | "jnz" | "jl" | "jle" | "jnl" | "jnle" as op, [arg, label], None):
+                case TACOp(
+                    "jz" | "jnz" | "jl" | "jle" | "jnl" | "jnle" as op,
+                    [arg, label],
+                    None,
+                ):
                     self.load_var(arg, "rax")
                     self.body += f"    cmpq %rax $0"
                     self.body += f"    {op} {label.name}"
@@ -55,7 +61,7 @@ __BODY__
                     self.body += self.load_var(tmp2, "rcx")
                     self.body += f"    {OPCODE_TO_ASM[op]} %cl, %rax\n"
                     self.body += self.store_var("rax", res)
-                case TACOp("mod" | "div" as op , [tmp1, tmp2], res):
+                case TACOp("mod" | "div" as op, [tmp1, tmp2], res):
                     self.body += self.load_var(tmp1, "rax")
                     self.body += "    cqto\n"
                     self.body += self.load_var(tmp2, "rbx")
@@ -81,15 +87,15 @@ __BODY__
                     self.body += self.load_var(arg, "rax")
                     self.body += self.store_var("rax", res)
                 case TACOp("const", [val], res):
-                    self.body += f"    movq ${val}, -{(self.tmp_alloc[res.num]+1)*8}(%rbp)\n"
+                    self.body += (
+                        f"    movq ${val}, -{(self.tmp_alloc[res.num]+1)*8}(%rbp)\n"
+                    )
                 case x:
                     print(f"WARNING: Cannot compile {x}")
         return self.skeleton.replace("__BODY__", self.body)
-    
-    def load_var(self, tmp:TACTemp, dest):
+
+    def load_var(self, tmp: TACTemp, dest):
         return f"    movq -{(self.tmp_alloc[tmp.num]+1)*8}(%rbp), %{dest}\n"
-    
-    def store_var(self, reg , tmp:TACTemp):
+
+    def store_var(self, reg, tmp: TACTemp):
         return f"    movq %{reg}, -{(self.tmp_alloc[tmp.num]+1)*8}(%rbp)\n"
-   
-    

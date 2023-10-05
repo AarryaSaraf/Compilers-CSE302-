@@ -1,6 +1,7 @@
 from .bxast import *
 from typing import Dict
 
+
 @dataclass
 class TACTemp:
     num: int
@@ -12,23 +13,29 @@ class TACTemp:
 @dataclass
 class TACOp:
     opcode: str
-    args: List[TACTemp| int]
-    result: TACTemp| None
+    args: List[TACTemp | int]
+    result: TACTemp | None
 
     def to_dict(self):
         return {
             "opcode": self.opcode,
-            "args": [str(arg) if isinstance(arg, TACTemp) else arg for arg in self.args],
-            "result": str(self.result) if isinstance(self.result, TACTemp) else self.result
+            "args": [
+                str(arg) if isinstance(arg, TACTemp) else arg for arg in self.args
+            ],
+            "result": str(self.result)
+            if isinstance(self.result, TACTemp)
+            else self.result,
         }
+
 
 @dataclass
 class TACLabel:
     name: str
 
+
 @dataclass
 class TAC:
-    ops: List [TACOp| TACLabel]
+    ops: List[TACOp | TACLabel]
 
     def get_tmps(self):
         temps = set()
@@ -43,6 +50,7 @@ class TAC:
                 if op.result is not None:
                     temps.add(op.result.num)
         return temps
+
 
 OPCODES = [
     "jmp",
@@ -66,9 +74,9 @@ OPCODES = [
     "neg",
     "print",
     "copy",
-    "const"
+    "const",
 ]
-OPERATOR_TO_OPCODE={
+OPERATOR_TO_OPCODE = {
     "addition": "add",
     "subtraction": "sub",
     "multiplication": "mul",
@@ -80,9 +88,10 @@ OPERATOR_TO_OPCODE={
     "opposite": "neg",
     "bitwise-negation": "not",
     "lshift": "lshift",
-    "rshift": "rshift"
+    "rshift": "rshift",
 }
 temporary_counter = 0
+
 
 def fresh_temp() -> TACTemp:
     global temporary_counter
@@ -90,12 +99,15 @@ def fresh_temp() -> TACTemp:
     temporary_counter += 1
     return var
 
+
 def var_mapping(statements: List[Statement]) -> Dict[str, TACTemp]:
     var_to_tmp = {}
     for stmt in statements:
         match stmt:
-            case StatementDecl(name, _, _): var_to_tmp[name] = fresh_temp()
-            case _: pass
+            case StatementDecl(name, _, _):
+                var_to_tmp[name] = fresh_temp()
+            case _:
+                pass
     return var_to_tmp
 
 
@@ -103,10 +115,12 @@ def serialize(tacops: List[TACOp]):
     ops_list = [op.to_dict() for op in tacops]
     return [{"proc": "@main", "body": ops_list}]
 
+
 def pretty_print(tacops: List[TACOp]) -> str:
     pp = ""
     for op in tacops:
-        pp+= f"{op.result} = {op.opcode} {' '.join([arg for arg in op.args])}\n"
+        pp += f"{op.result} = {op.opcode} {' '.join([arg for arg in op.args])}\n"
     return pp
+
 
 # TODO: deserialization

@@ -12,11 +12,12 @@ def main(file, method="tmm"):
         js = json.load(fp)
     statements = deserialize(js)
     var_to_tmp = var_mapping(statements)
-    if method=="tmm":
+    if method == "tmm":
         code = tmm(statements, var_to_tmp)
     else:
         code = bmm(statements, var_to_tmp)
     return serialize(code)
+
 
 if __name__ == "__main__":
     method = "bmm" if "--bmm" in sys.argv else "tmm"
