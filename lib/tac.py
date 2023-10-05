@@ -8,12 +8,14 @@ class TACTemp:
 
     def __str__(self):
         return f"%{self.num}"
-
+@dataclass
+class TACLabel:
+    name: str
 
 @dataclass
 class TACOp:
     opcode: str
-    args: List[TACTemp | int]
+    args: List[TACTemp | TACLabel | int]
     result: TACTemp | None
 
     def to_dict(self):
@@ -26,11 +28,6 @@ class TACOp:
             if isinstance(self.result, TACTemp)
             else self.result,
         }
-
-
-@dataclass
-class TACLabel:
-    name: str
 
 
 @dataclass
@@ -99,6 +96,12 @@ def fresh_temp() -> TACTemp:
     temporary_counter += 1
     return var
 
+label_counter = 1
+def fresh_label() -> TACLabel:
+    global label_counter
+    lab = TACLabel(f".L{label_counter}")
+    label_counter += 1
+    return lab
 
 def var_mapping(statements: List[Statement]) -> Dict[str, TACTemp]:
     var_to_tmp = {}
