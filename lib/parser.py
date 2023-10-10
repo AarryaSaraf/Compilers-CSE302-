@@ -46,8 +46,8 @@ def p_stmtstar(p):
 
 
 def p_stmt_vardecl(p):
-    "stmt : VAR IDENT EQUALS NUMBER COLON INT SEMICOLON"
-    p[0] = StatementDecl(p[2], "int", ExpressionInt(p[4]))
+    "stmt : VAR IDENT EQUALS expr COLON INT SEMICOLON"
+    p[0] = StatementDecl(p[2], "int", p[4])
 
 
 def p_stmt_print(p):

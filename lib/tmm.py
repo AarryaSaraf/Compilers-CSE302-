@@ -13,8 +13,8 @@ def tmm_block(block: Block, var_to_tmp: Dict[str, TACTemp]) -> List[TAC]:
                 code += tmm_int_code(expr, var_to_tmp[var], var_to_tmp)
             case StatementEval(expr):
                 code += tmm_int_code(expr, None, var_to_tmp)
-            case StatementDecl(name):
-                code += [TACOp("const", [0], var_to_tmp[name])]
+            case StatementDecl(name, ty, init):
+                code += tmm_int_code(init, var_to_tmp[name], var_to_tmp)
             case StatementWhile(cond, block):
                 label_head, label_body, label_end = fresh_label(), fresh_label(), fresh_label()
                 code += [label_head] + tmm_bool_code(cond, label_body, label_end, var_to_tmp) +[label_body]+ tmm_block(block, var_to_tmp) +[TACOp("jmp", [label_head], None)]+ [label_end]
