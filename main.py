@@ -3,8 +3,7 @@ import os
 from lib.asmgen import AsmGen
 from lib.parser import parser
 from lib.checker import pp_errs, check_programm
-from lib.tmm import tmm
-from lib.tac import var_mapping
+from lib.tmm import TMM
 
 if __name__ == "__main__":
     with open(sys.argv[1]) as fp:
@@ -18,9 +17,8 @@ if __name__ == "__main__":
     if not type_check:
         print("Type checking failed")
         sys.exit()
-    vars_to_tmp = var_mapping(ast.body.stmts)
-    tac = tmm(ast, vars_to_tmp)
-
+    lowerer = TMM(ast)
+    tac = lowerer.to_tac()
     asm_gen = AsmGen(tac)
     asm = asm_gen.compile()
     if "--nolink" in sys.argv:

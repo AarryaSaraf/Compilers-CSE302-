@@ -62,7 +62,7 @@ def p_stmt_assign(p):
 
 def p_stmt_if_then(p):
     """
-    stmt : IF LPAREN expr RPAREN block    
+    stmt : IF LPAREN expr RPAREN block
     """
     p[0] = StatementIf(p[3], p[5], None)
 
@@ -70,6 +70,7 @@ def p_stmt_if_then(p):
 def p_stmt_if_else(p):
     "stmt : IF LPAREN expr RPAREN block ELSE block"
     p[0] = StatementIf(p[3], p[5], p[7])
+
 
 def p_stmt_while(p):
     "stmt : WHILE LPAREN expr RPAREN block"

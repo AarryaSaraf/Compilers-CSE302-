@@ -1,6 +1,14 @@
 import ply.lex as lex
 
-reserved = {"def": "DEF", "var": "VAR", "print": "PRINT", "int": "INT", "if": "IF", "while": "WHILE", "else": "ELSE"}
+reserved = {
+    "def": "DEF",
+    "var": "VAR",
+    "print": "PRINT",
+    "int": "INT",
+    "if": "IF",
+    "while": "WHILE",
+    "else": "ELSE",
+}
 tokens = (
     "IDENT",
     "NUMBER",

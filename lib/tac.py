@@ -8,9 +8,12 @@ class TACTemp:
 
     def __str__(self):
         return f"%{self.num}"
+
+
 @dataclass
 class TACLabel:
     name: str
+
 
 @dataclass
 class TACOp:
@@ -87,31 +90,6 @@ OPERATOR_TO_OPCODE = {
     "lshift": "lshift",
     "rshift": "rshift",
 }
-temporary_counter = 0
-
-
-def fresh_temp() -> TACTemp:
-    global temporary_counter
-    var = TACTemp(temporary_counter)
-    temporary_counter += 1
-    return var
-
-label_counter = 1
-def fresh_label() -> TACLabel:
-    global label_counter
-    lab = TACLabel(f".L{label_counter}")
-    label_counter += 1
-    return lab
-
-def var_mapping(statements: List[Statement]) -> Dict[str, TACTemp]:
-    var_to_tmp = {}
-    for stmt in statements:
-        match stmt:
-            case StatementDecl(name, _, _):
-                var_to_tmp[name] = fresh_temp()
-            case _:
-                pass
-    return var_to_tmp
 
 
 def serialize(tacops: List[TACOp]):
@@ -127,3 +105,33 @@ def pretty_print(tacops: List[TACOp]) -> str:
 
 
 # TODO: deserialization
+class Lowerer:
+    def __init__(self, fn: Function):
+        self.fn = fn
+        self.temporary_counter = 0
+        self.label_counter = 1
+        self.var_to_tmp = self.var_mapping(fn.body.stmts)
+
+    def fresh_temp(self) -> TACTemp:
+        var = TACTemp(self.temporary_counter)
+        self.temporary_counter += 1
+        return var
+
+    def fresh_label(self) -> TACLabel:
+        lab = TACLabel(f".L{self.label_counter}")
+        self.label_counter += 1
+        return lab
+
+    def var_mapping(self, statements: List[Statement]) -> Dict[str, TACTemp]:
+        var_to_tmp = {}
+        for stmt in statements:
+            match stmt:
+                case StatementDecl(name, _, _):
+                    var_to_tmp[name] = self.fresh_temp()
+                case _:
+                    pass
+        return var_to_tmp
+
+    @abstractmethod
+    def to_tac(self):
+        pass

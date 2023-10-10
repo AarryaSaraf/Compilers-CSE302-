@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import List
 from abc import abstractmethod
 
+
 # TODO: Add position info for error message
 class TypeCheckError(Exception):
     def __init__(self, expr, ty, expected_ty):
@@ -10,14 +11,17 @@ class TypeCheckError(Exception):
         self.expected_ty = ty
 
     def print(self):
-        print(f"expected type {self.expected_ty} of expression {self.expr} but got {self.ty}")
+        print(
+            f"expected type {self.expected_ty} of expression {self.expr} but got {self.ty}"
+        )
+
 
 @dataclass
 class Expression:
-
     @abstractmethod
     def type_check(self):
         pass
+
 
 @dataclass
 class ExpressionVar(Expression):
@@ -30,6 +34,7 @@ class ExpressionVar(Expression):
     def __str__(self):
         return self.name
 
+
 @dataclass
 class ExpressionInt(Expression):
     value: int
@@ -41,6 +46,7 @@ class ExpressionInt(Expression):
     def __str__(self):
         return str(self.value)
 
+
 @dataclass
 class ExpressionUniOp(Expression):
     operator: str
@@ -51,7 +57,10 @@ class ExpressionUniOp(Expression):
         self.argument.type_check()
         if self.operator in ["boolean-negation"] and self.argument.ty != "bool":
             raise TypeCheckError(self.argument, self.argument.ty, "bool")
-        elif self.operator in ["bitwise-negation", "opposite"] and self.argument.ty != "int":
+        elif (
+            self.operator in ["bitwise-negation", "opposite"]
+            and self.argument.ty != "int"
+        ):
             raise TypeCheckError(self.argument, self.argument.ty, "int")
         self.ty = self.argument.ty
 
@@ -87,6 +96,7 @@ class ExpressionBinOp(Expression):
     def __str__(self):
         return f"({self.operator} {self.left} {self.right})"
 
+
 @dataclass
 class ExpressionCall(Expression):
     target: str
@@ -100,9 +110,9 @@ class ExpressionCall(Expression):
     def __str__(self):
         return f"{self.target}({self.arguments[0]})"
 
+
 @dataclass
 class Statement:
-    
     @abstractmethod
     def type_check(self):
         pass
@@ -115,12 +125,13 @@ class Block:
     def type_check(self) -> bool:
         successful = True
         for stmt in self.stmts:
-            try: 
+            try:
                 stmt.type_check()
             except TypeCheckError as e:
                 e.print()
                 successful = False
         return successful
+
 
 @dataclass
 class StatementDecl(Statement):
@@ -140,12 +151,14 @@ class StatementAssign(Statement):
     def type_check(self):
         self.rvalue.type_check()
 
+
 @dataclass
 class StatementEval(Statement):
     expr: Expression
 
     def type_check(self):
         self.expr.type_check()
+
 
 @dataclass
 class StatementIf(Statement):
@@ -161,6 +174,7 @@ class StatementIf(Statement):
         if self.elseblock is not None:
             self.body.type_check() and self.elseblock.type_check()
 
+
 @dataclass
 class StatementWhile(Statement):
     cond: Expression
@@ -172,13 +186,15 @@ class StatementWhile(Statement):
             raise TypeCheckError(self.cond, self.cond.ty, "bool")
         self.body.type_check()
 
+
 @dataclass
 class Function:
     name: str
     body: Block
 
-    def type_check(self)->bool:
+    def type_check(self) -> bool:
         return self.body.type_check()
+
 
 def get_name(json):
     return json[1]["value"]
