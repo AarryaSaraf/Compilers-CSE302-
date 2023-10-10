@@ -28,7 +28,7 @@ class ExpressionVar(Expression):
         self.ty = "int"
 
     def __str__(self):
-        return name
+        return self.name
 
 @dataclass
 class ExpressionInt(Expression):

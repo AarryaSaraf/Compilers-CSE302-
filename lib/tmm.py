@@ -27,33 +27,50 @@ def tmm_block(block: Block, var_to_tmp: Dict[str, TACTemp]) -> List[TAC]:
                     code += [label_end]
     return code
 
+COMPARISON_TOJMPCODE = { 
+    "lt": "jl",
+    "lte": "jle",
+    "gt": "jnle",
+    "gte": "jnl" 
+}
 def tmm_bool_code(expr:Expression, lab_true: TACLabel, lab_false: TACLabel, var_to_tmp: Dict[str, TACTemp])-> List[TACOp | TACLabel]:
     match expr:
-        case ExpressionBinOp("equals" | "notequals" as op, left, right, _):
+        case ExpressionBinOp("equals" | "notequals" | "lt" | "lte" | "gt" | "gte" as op, left, right, _):
             left_tmp = fresh_temp()
             right_tmp = fresh_temp()
             left_ops = tmm_int_code(left, left_tmp, var_to_tmp)
             right_ops = tmm_int_code(right, right_tmp, var_to_tmp)
-            if op == "equals":
-                return (
-                    left_ops
-                    + right_ops 
-                    + [
-                        TACOp("sub", [left_tmp, right_tmp], left_tmp),
-                        TACOp("jz", [left_tmp, lab_true], None),
-                        TACOp("jmp", [lab_false], None)
-                    ]
-                )
-            if op == "notequals":
-                return (
-                    left_ops
-                    + right_ops 
-                    + [
-                        TACOp("sub", [left_tmp, right_tmp], left_tmp),
-                        TACOp("jz", [left_tmp, lab_false], None),
-                        TACOp("jmp", [lab_true], None)
-                    ]
-                )
+            match op:
+                case "equals":
+                    return (
+                        left_ops
+                        + right_ops 
+                        + [
+                            TACOp("sub", [left_tmp, right_tmp], left_tmp),
+                            TACOp("jz", [left_tmp, lab_true], None),
+                            TACOp("jmp", [lab_false], None)
+                        ]
+                    )
+                case "notequals":
+                    return (
+                        left_ops
+                        + right_ops 
+                        + [
+                            TACOp("sub", [left_tmp, right_tmp], left_tmp),
+                            TACOp("jz", [left_tmp, lab_false], None),
+                            TACOp("jmp", [lab_true], None)
+                        ]
+                    )
+                case x:
+                    return (
+                        left_ops
+                        + right_ops 
+                        + [
+                            TACOp("sub", [left_tmp, right_tmp], left_tmp),
+                            TACOp(f"{COMPARISON_TOJMPCODE[x]}", [left_tmp, lab_true], None), 
+                            TACOp("jmp", [lab_false], None)
+                        ]
+                    )
         case ExpressionBinOp("boolean-and", left, right, _):
             iterim_label = fresh_label()
             return (
@@ -70,6 +87,8 @@ def tmm_bool_code(expr:Expression, lab_true: TACLabel, lab_false: TACLabel, var_
             )
         case ExpressionUniOp("boolean-negation", arg, _):
             return tmm_bool_code(expr, lab_false, lab_true, var_to_tmp)
+        case x:
+            print(f"Cannot ast2tac the expression: {x}")
         
 def tmm_int_code(
     expr: Expression, result: TACTemp, var_to_tmp: Dict[str, TACTemp]
