@@ -99,14 +99,14 @@ class TMM(Lowerer):
                             ]
                         )
             case ExpressionBinOp("boolean-and", left, right, _):
-                iterim_label = self.fresh_label()
+                interim_label = self.fresh_label()
                 return (
                     self.tmm_bool_code(left, interim_label, lab_false)
                     + [interim_label]
                     + self.tmm_bool_code(right, lab_true, lab_false)
                 )
             case ExpressionBinOp("boolean-or", left, right, _):
-                iterim_label = self.fresh_label()
+                interim_label = self.fresh_label()
                 return (
                     self.tmm_bool_code(
                         left,
@@ -117,7 +117,11 @@ class TMM(Lowerer):
                     + self.tmm_bool_code(right, lab_true, lab_false)
                 )
             case ExpressionUniOp("boolean-negation", arg, _):
-                return self.tmm_bool_code(expr, lab_false, lab_true)
+                return self.tmm_bool_code(arg, lab_false, lab_true)
+            case ExpressionBool(True, _):
+                return [TACOp("jmp", [lab_true], None)]
+            case ExpressionBool(False, _):
+                return [TACOp("jmp", [lab_false], None)]
             case x:
                 print(f"Cannot ast2tac the expression: {x}")
 

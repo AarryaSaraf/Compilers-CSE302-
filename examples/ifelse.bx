@@ -1,6 +1,6 @@
 def main() {
   var x = 0 : int;
-  if ( x == 0) {
+  if ( x >= 0 && 10 > 0) {
     print(42);
   }
 }

@@ -81,22 +81,30 @@ def p_expr_number(p):
     "expr : NUMBER"
     p[0] = ExpressionInt(p[1])
 
-
+def p_expr_bool(p):
+    """expr : TRUE
+    | FALSE
+    """
+    if p[1] == "true":
+        p[0] = ExpressionBool(True)
+    else:
+        p[0] = ExpressionBool(False)
 def p_expr_ident(p):
     "expr : IDENT"
     p[0] = ExpressionVar(p[1])
 
 
-def p_expr_binop(p):
-    "expr : expr binop expr"
-    p[0] = ExpressionBinOp(p[2], p[1], p[3])
 
 
 def p_expr_unop(p):
     """expr : TILDE expr
-    | MINUS expr %prec UMINUS"""
+    | MINUS expr %prec UMINUS
+    | BANG expr
+    """
     if p[1] == "~":
         p[0] = ExpressionUniOp("bitwise-negation", p[2])
+    elif p[1] == "!":
+        p[0] = ExpressionUniOp("boolean-negation", p[2])
     else:
         p[0] = ExpressionUniOp("opposite", p[2])
 
@@ -105,44 +113,27 @@ def p_expr_parens(p):
     "expr : LPAREN expr RPAREN"
     p[0] = p[2]
 
-
-def p_unop_opp(p):
-    "unop : MINUS"
-    p[0] = "opposite"
-
-
-def p_unop_bopp(p):
-    "unop : BANG"
-    p[0] = "boolean-negation"
-
-
-def p_unop_neg(p):
-    "unop : TILDE"
-    p[0] = "bitwise-negation"
-
-
-def p_binop_plus(p):
+def p_expr_binop(p):
+    """expr : expr ANDAND expr
+    | expr PLUS expr
+    | expr OROR expr
+    | expr MINUS expr
+    | expr TIMES expr
+    | expr DIVIDE expr
+    | expr EQUALSEQUALS expr
+    | expr MOD expr
+    | expr XOR expr
+    | expr AND expr
+    | expr OR expr
+    | expr LSHIFT expr
+    | expr RSHIFT expr
+    | expr LESSTHAN expr
+    | expr GREATERTHAN expr
+    | expr LESSTHANEQUALS expr
+    | expr GREATERTHANEQUALS expr
+    | expr NOTEQUALS expr
     """
-    binop : PLUS
-          | ANDAND
-          | OROR
-          | MINUS
-          | TIMES
-          | DIVIDE
-          | MOD
-          | XOR
-          | AND
-          | OR
-          | LSHIFT
-          | RSHIFT
-          | LESSTHAN
-          | GREATERTHAN
-          | LESSTHANEQUALS
-          | GREATERTHANEQUALS
-          | EQUALSEQUALS
-          | NOTEQUALS
-    """
-    p[0] = TOKEN_TO_BINOP[p[1]]
+    p[0] = ExpressionBinOp(TOKEN_TO_BINOP[p[2]], p[1], p[3])
 
 
 def p_error(p):

@@ -60,6 +60,7 @@ OPCODES = [
     "jle",
     "jnl",
     "jnle",
+    "ret",
     "lshift",
     "rshift",
     "mod",
@@ -76,6 +77,24 @@ OPCODES = [
     "copy",
     "const",
 ]
+JMP_OPS = [
+    "jmp",
+    "jc",
+    "jnz",
+    "jl",
+    "jle",
+    "jnl",
+    "jnle",
+    "ret"
+]
+
+UNCOND_JMP_OP = [
+    "jmp",
+    "ret"
+]
+CON_JMP_OPS = [op for op in JMP_OPS if op not in UNCOND_JMP_OP]
+
+SIMPLE_OPS = [opcode for opcode in OPCODES if opcode not in JMP_OPS]
 OPERATOR_TO_OPCODE = {
     "addition": "add",
     "subtraction": "sub",

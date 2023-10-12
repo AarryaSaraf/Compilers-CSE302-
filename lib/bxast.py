@@ -8,7 +8,7 @@ class TypeCheckError(Exception):
     def __init__(self, expr, ty, expected_ty):
         self.expr = expr
         self.ty = ty
-        self.expected_ty = ty
+        self.expected_ty = expected_ty
 
     def print(self):
         print(
@@ -38,7 +38,7 @@ class ExpressionVar(Expression):
 @dataclass
 class ExpressionInt(Expression):
     value: int
-    ty: str | None = None
+    ty: str | None = "int"
 
     def type_check(self):
         self.ty = "int"
@@ -46,6 +46,16 @@ class ExpressionInt(Expression):
     def __str__(self):
         return str(self.value)
 
+@dataclass
+class ExpressionBool(Expression):
+    value: bool
+    ty: str | None = "bool"
+
+    def type_check(self):
+        self.ty = "bool"
+    
+    def __str__(self):
+        return str(self.value)
 
 @dataclass
 class ExpressionUniOp(Expression):
@@ -84,11 +94,11 @@ class ExpressionBinOp(Expression):
             elif self.right.ty != "bool":
                 raise TypeCheckError(self.right, self.right.ty, "bool")
             self.ty = "bool"
-        if self.right.ty != "int":
+        elif self.right.ty != "int":
             raise TypeCheckError(self.right, self.right.ty, "int")
-        if self.left.ty != "int":
+        elif self.left.ty != "int":
             raise TypeCheckError(self.left, self.left.ty, "int")
-        if self.operator in ["equals", "notequals", "lt", "lte", "gt", "gte"]:
+        elif self.operator in ["equals", "notequals", "lt", "lte", "gt", "gte"]:
             self.ty = "bool"
         else:
             self.ty = "int"

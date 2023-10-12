@@ -8,10 +8,14 @@ reserved = {
     "if": "IF",
     "while": "WHILE",
     "else": "ELSE",
+    "true": "TRUE",
+    "false": "FALSE"
 }
 tokens = (
     "IDENT",
     "NUMBER",
+    "TRUE",
+    "FALSE",
     "MAIN",
     "LPAREN",
     "RPAREN",
@@ -82,7 +86,7 @@ t_LESSTHAN = r"<"
 t_LESSTHANEQUALS = r"<="
 t_GREATERTHAN = r">"
 t_GREATERTHANEQUALS = r">="
-t_ANDAND = r"&&"
+t_ANDAND = r"\&\&"
 t_OROR = r"\|\|"
 t_BANG = r"!"
 t_IF = r"if"

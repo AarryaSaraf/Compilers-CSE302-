@@ -6,7 +6,9 @@ from lib.checker import pp_errs, check_programm
 from lib.tmm import TMM
 
 if __name__ == "__main__":
-    with open(sys.argv[1]) as fp:
+    sourcefile = sys.argv[1]
+    #sourcefile= "examples/bigcondition1.bx"
+    with open(sourcefile) as fp:
         source = fp.read()
     ast = parser.parse(source)
     errs = check_programm(ast)
@@ -29,6 +31,7 @@ if __name__ == "__main__":
             output = sys.argv[i + 1]
         else:
             output = "out"
+        # output = "examples/bigcond1"
         fp = open(f"{output}.S", "w")
         fp.write(asm)
         fp.close()

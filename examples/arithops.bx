@@ -1,20 +1,8 @@
 def main() {
-  var x = 0 : int;
-  var y = 0 : int;
-  var z = 0 : int;
-
-  x = x + x;
-
-  x = 42;
-  y = 21;
-  z = 5;
+  var x = 42 : int;
+  var y = x >> 1 : int;
   print(x + y);
   print(x - y);
-  print(x * y);
-  print(x / y);
-  print(x / z);
-  print(x % z);
-  print(-x);
-  print(-x / z);
-  print(-x % z);
+  var z = x * 3 + y : int;
+  print(z % x);
 }
