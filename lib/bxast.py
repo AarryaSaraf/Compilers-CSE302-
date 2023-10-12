@@ -151,8 +151,20 @@ class StatementDecl(Statement):
 
     def type_check(self):
         self.init.type_check()
+        if not self.type == self.init.ty:
+            raise TypeCheckError(self.init, self.init.ty, self.type)
 
+@dataclass
+class StatementBreak(Statement):
+   
+    def type_check(self):
+        pass
 
+@dataclass
+class StatementContinue(Statement):
+    def type_check(self):
+        pass
+    
 @dataclass
 class StatementAssign(Statement):
     lvalue: str  # TODO refactor for general grammar later

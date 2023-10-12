@@ -9,7 +9,9 @@ reserved = {
     "while": "WHILE",
     "else": "ELSE",
     "true": "TRUE",
-    "false": "FALSE"
+    "false": "FALSE",
+    "break": "BREAK",
+    "continue": "CONTINUE",
 }
 tokens = (
     "IDENT",
@@ -52,6 +54,8 @@ tokens = (
     "ELSE",
     "IF",
     "WHILE",
+    "BREAK",
+    "CONTINUE"
 )
 t_ignore = r" "
 

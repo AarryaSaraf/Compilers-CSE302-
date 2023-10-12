@@ -49,6 +49,13 @@ def p_stmt_vardecl(p):
     "stmt : VAR IDENT EQUALS expr COLON INT SEMICOLON"
     p[0] = StatementDecl(p[2], "int", p[4])
 
+def p_stmt_continue(p):
+    "stmt : CONTINUE SEMICOLON"
+    p[0] = StatementContinue()
+
+def p_stmt_break(p):
+    "stmt : BREAK SEMICOLON"
+    p[0] = StatementBreak()
 
 def p_stmt_print(p):
     "stmt : PRINT LPAREN expr RPAREN SEMICOLON"
