@@ -4,6 +4,11 @@ from typing import Dict, List
 
 
 class TMM(Lowerer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.break_stack = []
+        self.continue_stack = []
+    
     def to_tac(self):
         return TAC(self.tmm_block(self.fn.body))
 
@@ -23,6 +28,8 @@ class TMM(Lowerer):
                         self.fresh_label(),
                         self.fresh_label(),
                     )
+                    self.continue_stack.append(label_head)
+                    self.break_stack.append(label_end)
                     code += (
                         [label_head]
                         + self.tmm_bool_code(cond, label_body, label_end)
@@ -31,6 +38,8 @@ class TMM(Lowerer):
                         + [TACOp("jmp", [label_head], None)]
                         + [label_end]
                     )
+                    self.continue_stack.pop(-1)
+                    self.break_stack.pop(-1)
                 case StatementIf(cond, thenblock, elseblock):
                     label_true, label_false, label_end = (
                         self.fresh_label(),
@@ -47,6 +56,10 @@ class TMM(Lowerer):
                         code += self.tmm_block(elseblock) + [label_end]
                     else:
                         code += [label_end]
+                case StatementBreak():
+                    code += [TACOp("jmp", [self.break_stack[0]], None)]
+                case StatementContinue():
+                    code += [TACOp("jmp", [self.continue_stack[0]], None)]
         return code
 
     def tmm_bool_code(
