@@ -14,6 +14,14 @@ class TACTemp:
 class TACLabel:
     name: str
 
+    def __hash__(self) -> int:
+        return hash(self.name)
+    
+    def __eq__(self, __value: object) -> bool:
+        return  __value.name == self.name
+            
+        
+
 
 @dataclass
 class TACOp:
@@ -77,22 +85,10 @@ OPCODES = [
     "copy",
     "const",
 ]
-JMP_OPS = [
-    "jmp",
-    "jc",
-    "jnz",
-    "jl",
-    "jle",
-    "jnl",
-    "jnle",
-    "ret"
-]
+JMP_OPS = ["jmp", "jz", "jnz", "jl", "jle", "jnl", "jnle", "ret"]
 
-UNCOND_JMP_OP = [
-    "jmp",
-    "ret"
-]
-CON_JMP_OPS = [op for op in JMP_OPS if op not in UNCOND_JMP_OP]
+UNCOND_JMP_OP = ["jmp", "ret"]
+COND_JMP_OPS = [op for op in JMP_OPS if op not in UNCOND_JMP_OP]
 
 SIMPLE_OPS = [opcode for opcode in OPCODES if opcode not in JMP_OPS]
 OPERATOR_TO_OPCODE = {

@@ -8,9 +8,9 @@ class TMM(Lowerer):
         super().__init__(*args, **kwargs)
         self.break_stack = []
         self.continue_stack = []
-    
+
     def to_tac(self):
-        return TAC(self.tmm_block(self.fn.body))
+        return TAC(self.tmm_block(self.fn.body) + [TACOp("ret", [], None)])
 
     def tmm_block(self, block: Block) -> List[TAC]:
         code = []

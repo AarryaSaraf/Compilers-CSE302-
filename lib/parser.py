@@ -49,13 +49,16 @@ def p_stmt_vardecl(p):
     "stmt : VAR IDENT EQUALS expr COLON INT SEMICOLON"
     p[0] = StatementDecl(p[2], "int", p[4])
 
+
 def p_stmt_continue(p):
     "stmt : CONTINUE SEMICOLON"
     p[0] = StatementContinue()
 
+
 def p_stmt_break(p):
     "stmt : BREAK SEMICOLON"
     p[0] = StatementBreak()
+
 
 def p_stmt_print(p):
     "stmt : PRINT LPAREN expr RPAREN SEMICOLON"
@@ -88,6 +91,7 @@ def p_expr_number(p):
     "expr : NUMBER"
     p[0] = ExpressionInt(p[1])
 
+
 def p_expr_bool(p):
     """expr : TRUE
     | FALSE
@@ -96,11 +100,11 @@ def p_expr_bool(p):
         p[0] = ExpressionBool(True)
     else:
         p[0] = ExpressionBool(False)
+
+
 def p_expr_ident(p):
     "expr : IDENT"
     p[0] = ExpressionVar(p[1])
-
-
 
 
 def p_expr_unop(p):
@@ -119,6 +123,7 @@ def p_expr_unop(p):
 def p_expr_parens(p):
     "expr : LPAREN expr RPAREN"
     p[0] = p[2]
+
 
 def p_expr_binop(p):
     """expr : expr ANDAND expr

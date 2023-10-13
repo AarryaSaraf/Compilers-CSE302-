@@ -55,7 +55,7 @@ tokens = (
     "IF",
     "WHILE",
     "BREAK",
-    "CONTINUE"
+    "CONTINUE",
 )
 t_ignore = r" "
 
