@@ -22,7 +22,16 @@ class BasicBlock:
                     lbls.append(lbl)
         return lbls
 
-    
+def coalesce_block(block1:BasicBlock, block2:BasicBlock):
+    # assumes block1's last instruction is a jump instruction that can be removed
+    return BasicBlock(
+        entry=block1.entry,
+        ops=block1.ops[:-1]+ block2.ops,
+        successors=block2.successors,
+        predecessors = block1.predecessors,
+        initial=block1.initial,
+        fallthrough=block2.fallthrough
+    )
 
 class CFGAnalyzer:
     def __init__(self):
@@ -91,14 +100,34 @@ class CFGAnalyzer:
                 block.fallthrough = self.lookup_block(block.ops[-1].args[0], blocks)
         blocks[0]
         return blocks[0]
-
+    
+    def coalesce_blocks(self, blocks: List[BasicBlock]) -> List[BasicBlock]:
+        new_blocks = []
+        len_before = -1
+        while len_before != len(blocks):
+            len_before = len(blocks)
+            new_blocks = []
+            coalesced = set()
+            for block in blocks:
+                if block.entry in coalesced:
+                    continue
+                if len(block.successors) == 1 and len(block.successors[0].predecessors) == 1:
+                    coalesced.add(block.successors[0].entry)
+                    new_blocks.append(coalesce_block(block, block.successors[0]))
+                else:
+                    new_blocks.append(block)
+            blocks = new_blocks
+        return blocks
+    
     def optimize(self, tac: TAC) :
         blocks = self.get_blocks(tac.ops)
-        initial = self.cfg(blocks)
+        self.cfg(blocks)
+        blocks = self.coalesce_blocks(blocks)
+        initial = [block for block in blocks if block.initial][0]
         serializer = Serializer()
-        # TODO: Add optimizations here
         return serializer.to_tac(initial)
-
+    
+    
 class Serializer:
 
     def __init__(self) -> None:
