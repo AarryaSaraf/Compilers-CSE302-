@@ -2,6 +2,13 @@ from typing import List, Any
 from dataclasses import field
 from .tac import *
 
+mutex_jmps = [
+    ("jz", "jnz"),
+    ("jz", "jl"),
+    ("jz", "jnle"),
+    ("jnl", "jl"),
+    ("jnle", "jle"),
+]
 
 @dataclass
 class BasicBlock:
@@ -12,6 +19,9 @@ class BasicBlock:
     initial: bool = False
     fallthrough: TACLabel | None = None
 
+    def empty(self)->bool:
+        return all([op.opcode in JMP_OPS for op in self.ops])
+    
     def successor_labels(self):
         lbls = []
         for op in self.ops:
@@ -21,6 +31,14 @@ class BasicBlock:
                 case TACOp(opcode, [_, lbl], None) if opcode in COND_JMP_OPS:
                     lbls.append(lbl)
         return lbls
+
+    def replace_jumps(self, old_label, new_label):
+        for op in self.ops:
+            match op:
+                case TACOp("jmp", [lbl]) if lbl == old_label:
+                    op.args[0] = new_label
+                case TACOp(opcode, [_, lbl]) if opcode in COND_JMP_OPS and lbl == old_label :
+                    op.args[-1] = new_label
 
 def coalesce_block(block1:BasicBlock, block2:BasicBlock):
     # assumes block1's last instruction is a jump instruction that can be removed
@@ -119,10 +137,29 @@ class CFGAnalyzer:
             blocks = new_blocks
         return blocks
     
+    def jump_unc_thread(self, blocks: List[BasicBlock]):
+        skippable_blocks = []
+        for block in blocks:
+            if len(block.successors) == 1 and block.empty():
+                skippable_blocks.append(block)
+        for skippable in skippable_blocks:
+            end_skip = self.trace_jumps(skippable)
+            for pred in skippable.predecessors:
+                pred.replace_jumps(skippable.entry, end_skip.entry)
+    
+    def trace_jumps(self, block: BasicBlock) -> BasicBlock:
+        trace = block
+        while len(trace.successors) == 1 and trace.empty():
+            trace = trace.successors[0]
+        return trace
+
     def optimize(self, tac: TAC) :
         blocks = self.get_blocks(tac.ops)
         self.cfg(blocks)
+        self.jump_unc_thread(blocks)
+        self.cfg(blocks)
         blocks = self.coalesce_blocks(blocks)
+        self.cfg(blocks)
         initial = [block for block in blocks if block.initial][0]
         serializer = Serializer()
         return serializer.to_tac(initial)

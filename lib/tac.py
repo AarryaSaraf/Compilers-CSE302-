@@ -62,7 +62,7 @@ class TAC:
 
 OPCODES = [
     "jmp",
-    "jc",
+    "jz",
     "jnz",
     "jl",
     "jle",
