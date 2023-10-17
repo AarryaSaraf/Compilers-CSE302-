@@ -208,6 +208,7 @@ class CFGAnalyzer:
             self.cfg(blocks) # update pred and succ
         initial = [block for block in blocks if block.initial][0]
         serializer = Serializer()
+        # serialization automatically does unreachable code elimination
         return serializer.to_tac(initial)
     
     

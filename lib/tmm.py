@@ -145,7 +145,7 @@ class TMM(Lowerer):
             case ExpressionInt(val):
                 return [TACOp("const", [val], result)]
             case ExpressionBinOp(operator, left, right):
-                left_tmp = self.fresh_temp()
+                left_tmp = result
                 right_tmp = self.fresh_temp()
                 left_ops = self.tmm_int_code(left, left_tmp)
                 right_ops = self.tmm_int_code(right, right_tmp)
@@ -159,7 +159,7 @@ class TMM(Lowerer):
                     ]
                 )
             case ExpressionUniOp(operator, arg):
-                tmp = self.fresh_temp()
+                tmp = result
                 arg_op = self.tmm_int_code(arg, tmp)
                 return arg_op + [TACOp(OPERATOR_TO_OPCODE[operator], [tmp], result)]
             case ExpressionCall("print", [arg]):

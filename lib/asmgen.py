@@ -72,14 +72,21 @@ __BODY__
                         self.body += self.store_var("rax", res)
                 case TACOp(op, [tmp1, tmp2], res) if op in SIMPLE_BIN_OPS:
                     # TODO: these can be optimized with dereference
-                    self.body += self.load_var(tmp1, "rax")
-                    self.body += self.load_var(tmp2, "rbx")
-                    self.body += f"    {OPCODE_TO_ASM[op]} %rbx, %rax\n"
-                    self.body += self.store_var("rax", res)
+                    if tmp1 == res:
+                        self.body += self.load_var(tmp2, "rbx")
+                        self.body += f"    {OPCODE_TO_ASM[op]} %rbx, {self.to_addr(tmp1)}\n"
+                    else:
+                        self.body += self.load_var(tmp1, "rax")
+                        self.body += self.load_var(tmp2, "rbx")
+                        self.body += f"    {OPCODE_TO_ASM[op]} %rbx, %rax\n"
+                        self.body += self.store_var("rax", res)
                 case TACOp(op, [tmp], res) if op in SIMPLE_UN_OPS:
-                    self.body += self.load_var(tmp, "rax")
-                    self.body += f"    {OPCODE_TO_ASM[op]} %rax\n"
-                    self.body += self.store_var("rax", res)
+                    if tmp == res:
+                        self.body += f"    {OPCODE_TO_ASM[op]} {self.to_addr(tmp)}\n"
+                    else:
+                        self.body += self.load_var(tmp, "rax")
+                        self.body += f"    {OPCODE_TO_ASM[op]} %rax\n"
+                        self.body += self.store_var("rax", res)
                 case TACOp("print", [tmp], _):
                     self.body += self.load_var(tmp, "rdi")
                     self.body += "    callq bx_print_int\n"
@@ -99,3 +106,6 @@ __BODY__
 
     def store_var(self, reg, tmp: TACTemp):
         return f"    movq %{reg}, -{(self.tmp_alloc[tmp.num]+1)*8}(%rbp)\n"
+
+    def to_addr(self, tmp: TACTemp):
+        return f"-{(self.tmp_alloc[tmp.num]+1)*8}(%rbp)"
