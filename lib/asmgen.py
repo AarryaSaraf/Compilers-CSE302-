@@ -43,6 +43,8 @@ __BODY__
 
     def compile(self):
         for op in self.tac.ops:
+            if not isinstance(op, TACLabel):
+                self.body += "    /* " + op.pretty()+ "*/\n"
             match op:
                 case TACLabel(name):
                     self.body += f"{name}:\n"
@@ -72,21 +74,13 @@ __BODY__
                         self.body += self.store_var("rax", res)
                 case TACOp(op, [tmp1, tmp2], res) if op in SIMPLE_BIN_OPS:
                     # TODO: these can be optimized with dereference
-                    if tmp1 == res:
-                        self.body += self.load_var(tmp2, "rbx")
-                        self.body += f"    {OPCODE_TO_ASM[op]} %rbx, {self.to_addr(tmp1)}\n"
-                    else:
-                        self.body += self.load_var(tmp1, "rax")
-                        self.body += self.load_var(tmp2, "rbx")
-                        self.body += f"    {OPCODE_TO_ASM[op]} %rbx, %rax\n"
-                        self.body += self.store_var("rax", res)
+                    self.body += self.load_var(tmp1, "rax")
+                    self.body += f"    {OPCODE_TO_ASM[op]} {self.to_addr(tmp2)}, %rax\n"
+                    self.body += self.store_var("rax", res)
                 case TACOp(op, [tmp], res) if op in SIMPLE_UN_OPS:
-                    if tmp == res:
-                        self.body += f"    {OPCODE_TO_ASM[op]} {self.to_addr(tmp)}\n"
-                    else:
-                        self.body += self.load_var(tmp, "rax")
-                        self.body += f"    {OPCODE_TO_ASM[op]} %rax\n"
-                        self.body += self.store_var("rax", res)
+                    self.body += self.load_var(tmp, "rax")
+                    self.body += f"    {OPCODE_TO_ASM[op]} %rax\n"
+                    self.body += self.store_var("rax", res)
                 case TACOp("print", [tmp], _):
                     self.body += self.load_var(tmp, "rdi")
                     self.body += "    callq bx_print_int\n"

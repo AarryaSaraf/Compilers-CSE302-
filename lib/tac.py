@@ -21,7 +21,9 @@ class TACLabel:
     
     def __eq__(self, __value: object) -> bool:
         return  __value.name == self.name
-            
+    
+    def __str__(self):
+        return f"%{self.name}"
         
 
 
@@ -42,6 +44,8 @@ class TACOp:
             else self.result,
         }
 
+    def pretty(self):
+        return f"{self.result} = {self.opcode} {' '.join([str(arg) for arg in self.args])}"
 
 @dataclass
 class TAC:
@@ -114,11 +118,12 @@ def serialize(tacops: List[TACOp]):
     return [{"proc": "@main", "body": ops_list}]
 
 
-def pretty_print(tacops: List[TACOp]) -> str:
-    pp = ""
-    for op in tacops:
-        pp += f"{op.result} = {op.opcode} {' '.join([arg for arg in op.args])}\n"
-    return pp
+def pretty_print(tac: TAC) -> str:
+    for op in tac.ops:
+        if isinstance(op, TACOp):
+            print(f"\t {op.result} = {op.opcode} {' '.join([str(arg) for arg in op.args])}")
+        else:
+            print(f"{op.name}")
 
 
 # TODO: deserialization
