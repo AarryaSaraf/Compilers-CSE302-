@@ -5,6 +5,7 @@ reserved = {
     "var": "VAR",
     "print": "PRINT",
     "int": "INT",
+    "bool": "BOOL",
     "if": "IF",
     "while": "WHILE",
     "else": "ELSE",
@@ -41,6 +42,8 @@ tokens = (
     "LBRACE",
     "RBRACE",
     "INT",
+    "BOOL",
+    "COMMA",
     "DEF",
     "EQUALSEQUALS",
     "NOTEQUALS",
@@ -82,6 +85,7 @@ t_RBRACE = r"}"
 t_LPAREN = r"\("
 t_RPAREN = r"\)"
 t_EQUALS = r"="
+t_COMMA = r","
 t_COLON = r"\:"
 t_SEMICOLON = r";"
 t_EQUALSEQUALS = r"=="
@@ -104,7 +108,7 @@ def t_COMMENT(t):
 
 
 def t_NUMBER(t):
-    r"0|[1-9][0-9]*"
+    r"0|-?[1-9][0-9]*"
     t.value = int(t.value)
     return t
 

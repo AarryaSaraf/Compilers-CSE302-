@@ -18,17 +18,96 @@ precedence = (
     ("right", "TILDE"),
     ("right", "UMINUS", "BANG"),
 )
-
-
 def p_program(p):
-    "program : DEF IDENT LPAREN RPAREN block"
-    p[0] = Function(p[2], p[5])
+    "program : declstar"
+    p[0] = p[1]
 
+
+def p_decl(p):
+    """
+    decl : function 
+         | vardecl
+    """
+    p[0] = p[1]
+
+def p_declstar(p):
+    """
+    declstar : decl
+             | declstar decl
+    """
+    if len(p) == 1:
+        p[0] = []
+    elif len(p) == 2:
+        p[0] = [p[1]]
+    else:
+        p[0] = p[1]
+        p[0].append(p[2])
+
+def p_ty(p):
+    """
+    ty : BOOL 
+       | INT
+    """
+    p[0] = p[1]
+
+def p_function_param(p):
+    """
+    function : DEF IDENT LPAREN paramlist RPAREN block
+            | DEF IDENT LPAREN paramlist RPAREN COLON ty block
+    """
+    if len(p) > 7:
+        p[0] = Function(p[2], p[6], return_ty=p[5], params=p[4])
+    else:
+        p[0] = Function(p[2], p[8], return_ty="void", params=p[4])
+
+def p_function_unparam(p):
+    """
+    function : DEF IDENT LPAREN  RPAREN block
+            | DEF IDENT LPAREN  RPAREN COLON ty block
+    """
+    if len(p) > 6:
+        p[0] = Function(p[2], p[7], return_ty=p[5], params=[])
+    else:
+        p[0] = Function(p[2], p[5], return_ty="void", params=[])
+def p_identlist(p):
+    """
+    identlist : IDENT
+              | IDENT COMMA identlist
+    """
+    if len(p) == 1:
+        p[0] = []
+    else:
+        p[0] = p[3]
+        p[0].append(p[1])
+
+def p_param_identlist(p):
+    """
+    param : identlist COLON ty
+    """
+    p[0] = [(ident, p[3]) for ident in p[1]]
+
+def p_param_ident(p):
+    """
+    param : IDENT COLON ty
+    """
+    p[0] = [p[1], p[3]]
+
+def p_paramlist(p):
+    """
+    paramlist : param
+          | param COMMA paramlist
+    """
+    if len(p) == 1:
+        p[0] = []
+    elif len(p) == 2:
+        p[0] = [p[1]]
+    else:
+        p[0] = p[3]
+        p[0] += p[1]
 
 def p_block(p):
     "block : LBRACE stmts RBRACE"
     p[0] = Block(p[2])
-
 
 def p_stmts(p):
     "stmts : stmtstar"
@@ -45,11 +124,13 @@ def p_stmtstar(p):
         p[0].append(p[2])
 
 
-def p_stmt_vardecl(p):
-    "stmt : VAR IDENT EQUALS expr COLON INT SEMICOLON"
+def p_vardecl(p):
+    "vardecl : VAR IDENT EQUALS expr COLON INT SEMICOLON"
     p[0] = StatementDecl(p[2], "int", p[4])
 
-
+def p_stmt_vardecl(p):
+    "stmt : vardecl"
+    p[0] = p[1]
 def p_stmt_continue(p):
     "stmt : CONTINUE SEMICOLON"
     p[0] = StatementContinue()

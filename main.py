@@ -5,13 +5,15 @@ from lib.parser import parser
 from lib.checker import pp_errs, check_programm
 from lib.tmm import TMM
 from lib.cfg import CFGAnalyzer
+from lib.tac import pretty_print
 if __name__ == "__main__":
-    #sourcefile = sys.argv[1]
-    sourcefile= "examples/collatz.bx"
+    sourcefile = sys.argv[1]
+    #sourcefile= "examples/bigcondition2.bx"
     with open(sourcefile) as fp:
         source = fp.read()
-
-    ast = parser.parse(source)
+    
+    decls = parser.parse(source)
+    ast = decls[0]
     errs = check_programm(ast)
     if errs != []:
         pp_errs(errs)
@@ -24,7 +26,7 @@ if __name__ == "__main__":
 
     lowerer = TMM(ast)
     tac = lowerer.to_tac()
-
+    pretty_print(tac)
     cfg_analyzer = CFGAnalyzer()
     optim_tac = cfg_analyzer.optimize(tac)
 
@@ -40,7 +42,7 @@ if __name__ == "__main__":
             output = sys.argv[i + 1]
         else:
             output = "out"
-        output = "examples/collatz"
+        #output = "examples/bigcond2_opt"
         fp = open(f"{output}.S", "w")
         fp.write(asm)
         fp.close()

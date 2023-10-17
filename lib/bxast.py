@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Tuple
 from abc import abstractmethod
 
 
@@ -217,7 +217,8 @@ class StatementWhile(Statement):
 class Function:
     name: str
     body: Block
-
+    return_ty: str
+    params: List[Tuple[str, str]]
     def type_check(self) -> bool:
         return self.body.type_check()
 
