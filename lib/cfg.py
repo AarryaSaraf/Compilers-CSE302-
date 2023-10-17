@@ -157,15 +157,14 @@ class CFGAnalyzer:
         for block in blocks:
             for op in block.get_cond_jumps():
                 target = lookup_block(op.args[1], blocks)
-                if target.empty(): # todo replace this with a smarter condition
-                    eliminated = self.eliminate_cond_jumps(target, (op.args[1], op.opcode))
-                    if eliminated is not None:
-                        # we insert a new block with the changed instructions
-                        # this can apply the optimization more often at the cost of maybe producing more code
-                        # if block was the only predecessor the old target will be removed by UCE
-                        op.args[1] = eliminated.entry
-                        blocks.append(eliminated)
-                    
+                eliminated = self.eliminate_cond_jumps(target, (op.args[0], op.opcode))
+                if eliminated is not None:
+                    # we insert a new block with the changed instructions
+                    # this can apply the optimization more often at the cost of maybe producing more code
+                    # if block was the only predecessor the old target will be removed by UCE
+                    op.args[1] = eliminated.entry
+                    blocks.append(eliminated)
+                
     def eliminate_cond_jumps(self, block:BasicBlock, condition: Tuple[TACTemp, str]):
         new_ops = []
         changed = False
@@ -178,8 +177,11 @@ class CFGAnalyzer:
                 elif (op.opcode, condition[1]) in mutex_jmps or (condition[1], op.opcode) in mutex_jmps:
                     changed = False
                     pass # this condition can be deleted
-                else:
-                    new_ops.append(op)
+            elif op.result is not None and op.result == condition[0]:
+                # the jump condition variable has been changed we can't say anything anymore
+                return None
+            else:
+                new_ops.append(op)
         if changed:
             return BasicBlock(
                 entry=self.fresh_entry_label(),
