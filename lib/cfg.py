@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List, Any, Tuple
 from dataclasses import field
 from .tac import *
 
@@ -40,6 +40,13 @@ class BasicBlock:
                 case TACOp(opcode, [_, lbl]) if opcode in COND_JMP_OPS and lbl == old_label :
                     op.args[-1] = new_label
 
+    def get_jmp_ops(self)-> List[TACOp]:
+        return [op for op in self.ops if op.opcode in JMP_OPS]
+    
+    def get_cond_jumps(self) -> List[TACOp]:
+        return [op for op in self.ops if op.opcode in COND_JMP_OPS]
+
+
 def coalesce_block(block1:BasicBlock, block2:BasicBlock):
     # assumes block1's last instruction is a jump instruction that can be removed
     return BasicBlock(
@@ -50,6 +57,10 @@ def coalesce_block(block1:BasicBlock, block2:BasicBlock):
         initial=block1.initial,
         fallthrough=block2.fallthrough
     )
+def lookup_block(label:TACLabel, blocks: List[BasicBlock]):
+        for block in blocks:
+            if block.entry == label:
+                return block
 
 class CFGAnalyzer:
     def __init__(self):
@@ -101,28 +112,23 @@ class CFGAnalyzer:
         self.add_fallthroughs(blocks)
         return blocks
 
-    def lookup_block(self, label, blocks):
-        for block in blocks:
-            if block.entry == label:
-                return block
-
     def cfg(self, blocks) -> BasicBlock:
         blocks[0].initial = True
         for block in blocks:
             successor_labels = block.successor_labels()
-            successors = [self.lookup_block(lbl, blocks) for lbl in successor_labels]
+            successors = [lookup_block(lbl, blocks) for lbl in successor_labels]
             block.successors = successors
             for succ in successors:
                 succ.predecessors.append(block)
             if block.ops[-1].opcode == "jmp":
-                block.fallthrough = self.lookup_block(block.ops[-1].args[0], blocks)
+                block.fallthrough = lookup_block(block.ops[-1].args[0], blocks)
         blocks[0]
         return blocks[0]
     
     def coalesce_blocks(self, blocks: List[BasicBlock]) -> List[BasicBlock]:
         new_blocks = []
         len_before = -1
-        while len_before != len(blocks):
+        while len_before != len(blocks): # coalesce while there are still things to coalesce
             len_before = len(blocks)
             new_blocks = []
             coalesced = set()
@@ -137,7 +143,7 @@ class CFGAnalyzer:
             blocks = new_blocks
         return blocks
     
-    def jump_unc_thread(self, blocks: List[BasicBlock]):
+    def unc_thread(self, blocks: List[BasicBlock]):
         skippable_blocks = []
         for block in blocks:
             if len(block.successors) == 1 and block.empty():
@@ -147,19 +153,57 @@ class CFGAnalyzer:
             for pred in skippable.predecessors:
                 pred.replace_jumps(skippable.entry, end_skip.entry)
     
+    def cond_thread(self, blocks: List[BasicBlock]):
+        for block in blocks:
+            for op in block.get_cond_jumps():
+                target = lookup_block(op.args[1], blocks)
+                if target.empty(): # todo replace this with a smarter condition
+                    eliminated = self.eliminate_cond_jumps(target, (op.args[1], op.opcode))
+                    if eliminated is not None:
+                        # we insert a new block with the changed instructions
+                        # this can apply the optimization more often at the cost of maybe producing more code
+                        # if block was the only predecessor the old target will be removed by UCE
+                        op.args[1] = eliminated.entry
+                        blocks.append(eliminated)
+                    
+    def eliminate_cond_jumps(self, block:BasicBlock, condition: Tuple[TACTemp, str]):
+        new_ops = []
+        changed = False
+        for op in block.ops:
+            if op.opcode in COND_JMP_OPS and op.args[0] == condition[0]:
+                if op.opcode == condition[1]:
+                    new_ops.append(TACOp("jmp", [op.args[1]], None)) 
+                    changed = True
+                    break # we can replace with an unconditional jump and end the block
+                elif (op.opcode, condition[1]) in mutex_jmps or (condition[1], op.opcode) in mutex_jmps:
+                    changed = False
+                    pass # this condition can be deleted
+                else:
+                    new_ops.append(op)
+        if changed:
+            return BasicBlock(
+                entry=self.fresh_entry_label(),
+                ops=new_ops
+            )
+        return None
     def trace_jumps(self, block: BasicBlock) -> BasicBlock:
         trace = block
         while len(trace.successors) == 1 and trace.empty():
             trace = trace.successors[0]
         return trace
 
-    def optimize(self, tac: TAC) :
+    def optimize(self, tac: TAC, unc_thread=True, cond_thread=True, coalesce=True) :
         blocks = self.get_blocks(tac.ops)
-        self.cfg(blocks)
-        self.jump_unc_thread(blocks)
-        self.cfg(blocks)
-        blocks = self.coalesce_blocks(blocks)
-        self.cfg(blocks)
+        self.cfg(blocks) 
+        if cond_thread:
+            self.cond_thread(blocks)
+            self.cfg(blocks)
+        if unc_thread:
+            self.unc_thread(blocks)
+            self.cfg(blocks) # update pred and succ
+        if coalesce:
+            blocks = self.coalesce_blocks(blocks)
+            self.cfg(blocks) # update pred and succ
         initial = [block for block in blocks if block.initial][0]
         serializer = Serializer()
         return serializer.to_tac(initial)

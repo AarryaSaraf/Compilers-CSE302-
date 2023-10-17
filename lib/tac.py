@@ -9,6 +9,8 @@ class TACTemp:
     def __str__(self):
         return f"%{self.num}"
 
+    def __eq__(self, __value: object) -> bool:
+        return self.num == __value.num
 
 @dataclass
 class TACLabel:
