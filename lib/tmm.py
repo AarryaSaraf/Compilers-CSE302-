@@ -21,9 +21,21 @@ class TMM(Lowerer):
                     code += self.tmm_int_code(expr, self.lookup_scope(var))
                 case StatementEval(expr):
                     code += self.tmm_int_code(expr, None)
-                case StatementDecl(name, "int", init):
-                    self.add_var(name)
-                    code += self.tmm_int_code(init, self.lookup_scope(name))
+                case StatementDecl(name, ty, init):
+                    if ty == PrimiType("int"):
+                        self.add_var(name)
+                        code += self.tmm_int_code(init, self.lookup_scope(name))
+                    if ty == PrimiType("bool"):
+                        self.add_var(name)
+                        var_tmp = self.lookup_scope(name)
+                        lbl_true, lbl_false = self.fresh_label(), self.fresh_label()
+                        code += [
+                            self.tmm_bool_code(init, lbl_true,lbl_false),
+                            lbl_true,
+                            TACOp("const", [1], var_tmp),
+                            lbl_false,
+                            TACOp("const", [0], var_tmp)
+                        ]
                 case StatementWhile(cond, block):
                     label_head, label_body, label_end = (
                         self.fresh_label(),
@@ -75,7 +87,6 @@ class TMM(Lowerer):
                 "equals" | "notequals" | "lt" | "lte" | "gt" | "gte" as op,
                 left,
                 right,
-                _,
             ):
                 left_tmp = self.fresh_temp()
                 right_tmp = self.fresh_temp()
@@ -116,14 +127,14 @@ class TMM(Lowerer):
                                 TACOp("jmp", [lab_false], None),
                             ]
                         )
-            case ExpressionBinOp("boolean-and", left, right, _):
+            case ExpressionBinOp("boolean-and", left, right):
                 interim_label = self.fresh_label()
                 return (
                     self.tmm_bool_code(left, interim_label, lab_false)
                     + [interim_label]
                     + self.tmm_bool_code(right, lab_true, lab_false)
                 )
-            case ExpressionBinOp("boolean-or", left, right, _):
+            case ExpressionBinOp("boolean-or", left, right):
                 interim_label = self.fresh_label()
                 return (
                     self.tmm_bool_code(
@@ -134,11 +145,11 @@ class TMM(Lowerer):
                     + [interim_label]
                     + self.tmm_bool_code(right, lab_true, lab_false)
                 )
-            case ExpressionUniOp("boolean-negation", arg, _):
+            case ExpressionUniOp("boolean-negation", arg):
                 return self.tmm_bool_code(arg, lab_false, lab_true)
-            case ExpressionBool(True, _):
+            case ExpressionBool(True):
                 return [TACOp("jmp", [lab_true], None)]
-            case ExpressionBool(False, _):
+            case ExpressionBool(False):
                 return [TACOp("jmp", [lab_false], None)]
             case x:
                 print(f"Cannot ast2tac the expression: {x}")

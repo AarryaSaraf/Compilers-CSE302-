@@ -2,7 +2,7 @@ import sys
 import os
 from lib.asmgen import AsmGen
 from lib.parser import parser
-from lib.checker import pp_errs, check_programm
+from lib.checker import SyntaxChecker, TypeChecker
 from lib.tmm import TMM
 from lib.cfg import CFGAnalyzer
 from lib.tac import pretty_print
@@ -14,19 +14,19 @@ if __name__ == "__main__":
     
     decls = parser.parse(source)
     ast = decls[0]
-    errs = check_programm(ast)
+    s_checker = SyntaxChecker()
+    errs = s_checker.check_program(decls)
     if errs != []:
-        pp_errs(errs)
+        s_checker.pp_errs(errs)
         sys.exit()
-
-    type_check = ast.type_check()
-    if not type_check:
+    t_checker = TypeChecker()
+    type_check = t_checker.check(decls)
+    if len(type_check) > 0:
         print("Type checking failed")
         sys.exit()
 
     lowerer = TMM(ast)
     tac = lowerer.to_tac()
-    pretty_print(tac)
     cfg_analyzer = CFGAnalyzer()
     optim_tac = cfg_analyzer.optimize(tac)
 

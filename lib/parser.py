@@ -48,7 +48,7 @@ def p_ty(p):
     ty : BOOL 
        | INT
     """
-    p[0] = p[1]
+    p[0] = PrimiType(p[1])
 
 def p_function_param(p):
     """
@@ -58,7 +58,7 @@ def p_function_param(p):
     if len(p) > 7:
         p[0] = Function(p[2], p[6], return_ty=p[5], params=p[4])
     else:
-        p[0] = Function(p[2], p[8], return_ty="void", params=p[4])
+        p[0] = Function(p[2], p[8], return_ty=VoidType(), params=p[4])
 
 def p_function_unparam(p):
     """
@@ -68,7 +68,7 @@ def p_function_unparam(p):
     if len(p) > 6:
         p[0] = Function(p[2], p[7], return_ty=p[5], params=[])
     else:
-        p[0] = Function(p[2], p[5], return_ty="void", params=[])
+        p[0] = Function(p[2], p[5], return_ty=VoidType(), params=[])
 def p_identlist(p):
     """
     identlist : IDENT
@@ -125,8 +125,8 @@ def p_stmtstar(p):
 
 
 def p_vardecl(p):
-    "vardecl : VAR IDENT EQUALS expr COLON INT SEMICOLON"
-    p[0] = StatementDecl(p[2], "int", p[4])
+    "vardecl : VAR IDENT EQUALS expr COLON ty SEMICOLON"
+    p[0] = StatementDecl(p[2], p[6], p[4])
 
 def p_stmt_vardecl(p):
     "stmt : vardecl"
@@ -143,6 +143,15 @@ def p_stmt_break(p):
     "stmt : BREAK SEMICOLON"
     p[0] = StatementBreak()
 
+def p_stmt_return(p):
+    """
+    stmt : RETURN expr
+         | RETURN
+    """
+    if len(p) == 3:
+        p[0] = StatementReturn(p[2])
+    else:
+        p[0] = StatementReturn(None)
 
 def p_stmt_print(p):
     "stmt : PRINT LPAREN expr RPAREN SEMICOLON"
