@@ -3,7 +3,6 @@ import ply.lex as lex
 reserved = {
     "def": "DEF",
     "var": "VAR",
-    "print": "PRINT",
     "int": "INT",
     "bool": "BOOL",
     "if": "IF",
@@ -27,7 +26,6 @@ tokens = (
     "EQUALS",
     "COLON",
     "SEMICOLON",
-    "PRINT",
     "PLUS",
     "MINUS",
     "TIMES",
@@ -110,7 +108,7 @@ def t_COMMENT(t):
 
 
 def t_NUMBER(t):
-    r"0|-?[1-9][0-9]*"
+    r"0|[1-9][0-9]*"
     t.value = int(t.value)
     return t
 

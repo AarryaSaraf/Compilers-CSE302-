@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Tuple
 from abc import abstractmethod
-from .types import *
+from .bxtypes import *
 
 # TODO: Add position info for error message
 
@@ -58,7 +58,6 @@ class ExpressionBinOp(Expression):
 class ExpressionCall(Expression):
     target: str
     arguments: List[Expression]
-    ty: Type | None = None
 
     def __str__(self):
         return f"{self.target}({self.arguments[0]})"

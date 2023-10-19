@@ -1,0 +1,15 @@
+
+def foo(x: int) : int {
+    print(x);
+    return bar(x);
+}
+
+def bar(x: int) : int {
+    if (x == 0){
+        return z;
+    } else {
+        return foo(x - 1);
+    }
+}
+
+//var z = 5: int;

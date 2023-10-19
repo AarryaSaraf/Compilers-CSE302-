@@ -1,6 +1,6 @@
 from .bxast import *
 from typing import Set
-from .types import *
+from .bxtypes import *
 
 class TypeCheckFail:
     def __init__(self, expr, ty: Type, expected_ty: Type):

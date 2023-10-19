@@ -145,23 +145,45 @@ def p_stmt_break(p):
 
 def p_stmt_return(p):
     """
-    stmt : RETURN expr
-         | RETURN
+    stmt : RETURN expr SEMICOLON
+         | RETURN SEMICOLON
     """
-    if len(p) == 3:
+    if len(p) == 4:
         p[0] = StatementReturn(p[2])
     else:
         p[0] = StatementReturn(None)
 
-def p_stmt_print(p):
-    "stmt : PRINT LPAREN expr RPAREN SEMICOLON"
-    p[0] = StatementEval(ExpressionCall("print", [p[3]]))
-
+def p_stmt_eval(p):
+    "stmt : call SEMICOLON"
+    p[0] = StatementEval(p[1])
 
 def p_stmt_assign(p):
     "stmt : IDENT EQUALS expr SEMICOLON"
     p[0] = StatementAssign(p[1], p[3])
 
+
+def p_call(p):
+    """call : IDENT LPAREN arglist RPAREN
+            | IDENT LPAREN RPAREN"""
+    if len(p) == 5:
+        p[0] = ExpressionCall(p[1], p[3])
+    else:
+        p[0] = ExpressionCall(p[1], [])
+def p_expr_call(p):
+    """expr : call"""
+    p[0] = p[1]
+def p_arglist(p):
+    """
+    arglist : expr
+          | expr COMMA arglist
+    """
+    if len(p) == 1:
+        p[0] = []
+    elif len(p) == 2:
+        p[0] = [p[1]]
+    else:
+        p[0] = p[3]
+        p[0] += p[1]
 
 def p_stmt_if_then(p):
     """
@@ -245,7 +267,7 @@ def p_error(p):
     print(f"Syntax error in input! {p}")
 
 
-parser = yacc.yacc(start="program")
+parser = yacc.yacc(start="program", debug=True)
 
 TOKEN_TO_BINOP = {
     "&": "bitwise-and",
