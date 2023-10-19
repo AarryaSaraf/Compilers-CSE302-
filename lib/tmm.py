@@ -30,11 +30,11 @@ class TMM(Lowerer):
                         var_tmp = self.lookup_scope(name)
                         lbl_true, lbl_false = self.fresh_label(), self.fresh_label()
                         code += [
-                            self.tmm_bool_code(init, lbl_true,lbl_false),
+                            self.tmm_bool_code(init, lbl_true, lbl_false),
                             lbl_true,
                             TACOp("const", [1], var_tmp),
                             lbl_false,
-                            TACOp("const", [0], var_tmp)
+                            TACOp("const", [0], var_tmp),
                         ]
                 case StatementWhile(cond, block):
                     label_head, label_body, label_end = (

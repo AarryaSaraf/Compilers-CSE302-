@@ -44,7 +44,7 @@ __BODY__
     def compile(self):
         for op in self.tac.ops:
             if not isinstance(op, TACLabel):
-                self.body += "    /* " + op.pretty()+ "*/\n"
+                self.body += "    /* " + op.pretty() + "*/\n"
             match op:
                 case TACLabel(name):
                     self.body += f"{name}:\n"

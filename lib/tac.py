@@ -12,19 +12,19 @@ class TACTemp:
     def __eq__(self, __value: object) -> bool:
         return self.num == __value.num
 
+
 @dataclass
 class TACLabel:
     name: str
 
     def __hash__(self) -> int:
         return hash(self.name)
-    
+
     def __eq__(self, __value: object) -> bool:
-        return  __value.name == self.name
-    
+        return __value.name == self.name
+
     def __str__(self):
         return f"%{self.name}"
-        
 
 
 @dataclass
@@ -45,7 +45,10 @@ class TACOp:
         }
 
     def pretty(self):
-        return f"{self.result} = {self.opcode} {' '.join([str(arg) for arg in self.args])}"
+        return (
+            f"{self.result} = {self.opcode} {' '.join([str(arg) for arg in self.args])}"
+        )
+
 
 @dataclass
 class TAC:
@@ -121,7 +124,9 @@ def serialize(tacops: List[TACOp]):
 def pretty_print(tac: TAC) -> str:
     for op in tac.ops:
         if isinstance(op, TACOp):
-            print(f"\t {op.result} = {op.opcode} {' '.join([str(arg) for arg in op.args])}")
+            print(
+                f"\t {op.result} = {op.opcode} {' '.join([str(arg) for arg in op.args])}"
+            )
         else:
             print(f"{op.name}")
 

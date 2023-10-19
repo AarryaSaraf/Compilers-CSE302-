@@ -5,8 +5,10 @@ from .tmm import TMM
 from .cfg import CFGAnalyzer
 from bxast import Function, StatementDecl
 
+
 def compile(src: str):
     pass
+
 
 def compile_unit(ast: Function | StatementDecl) -> str:
     if isinstance(ast, Function):

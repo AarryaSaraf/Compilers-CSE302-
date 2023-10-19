@@ -10,6 +10,7 @@ from .bxtypes import *
 class Expression:
     pass
 
+
 @dataclass
 class ExpressionVar(Expression):
     name: str
@@ -48,7 +49,6 @@ class ExpressionBinOp(Expression):
     operator: str
     left: Expression
     right: Expression
-
 
     def __str__(self):
         return f"({self.operator} {self.left} {self.right})"
@@ -98,10 +98,10 @@ class StatementAssign(Statement):
     rvalue: Expression
 
 
-
 @dataclass
 class StatementEval(Statement):
     expr: Expression
+
 
 @dataclass
 class StatementBlock(Statement):
@@ -120,9 +120,12 @@ class StatementWhile(Statement):
     cond: Expression
     body: Block
 
+
 @dataclass
 class StatementReturn(Statement):
     var: Expression | None
+
+
 @dataclass
 class Function:
     name: str

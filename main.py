@@ -6,12 +6,13 @@ from lib.checker import SyntaxChecker, TypeChecker
 from lib.tmm import TMM
 from lib.cfg import CFGAnalyzer
 from lib.tac import pretty_print
+
 if __name__ == "__main__":
     sourcefile = sys.argv[1]
-    #sourcefile= "examples/bigcondition2.bx"
+    # sourcefile= "examples/bigcondition2.bx"
     with open(sourcefile) as fp:
         source = fp.read()
-    
+
     decls = parser.parse(source)
     ast = decls[0]
     s_checker = SyntaxChecker()
@@ -33,7 +34,6 @@ if __name__ == "__main__":
     asm_gen = AsmGen(optim_tac)
     asm = asm_gen.compile()
 
-
     if "--nolink" in sys.argv:
         print(asm)
     else:
@@ -42,7 +42,7 @@ if __name__ == "__main__":
             output = sys.argv[i + 1]
         else:
             output = "out"
-        #output = "examples/bigcond2_opt"
+        # output = "examples/bigcond2_opt"
         fp = open(f"{output}.S", "w")
         fp.write(asm)
         fp.close()

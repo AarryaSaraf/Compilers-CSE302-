@@ -12,7 +12,7 @@ reserved = {
     "false": "FALSE",
     "break": "BREAK",
     "continue": "CONTINUE",
-    "return": "RETURN"
+    "return": "RETURN",
 }
 tokens = (
     "IDENT",
@@ -58,7 +58,7 @@ tokens = (
     "WHILE",
     "BREAK",
     "CONTINUE",
-    "RETURN"
+    "RETURN",
 )
 t_ignore = r" "
 

@@ -18,6 +18,8 @@ precedence = (
     ("right", "TILDE"),
     ("right", "UMINUS", "BANG"),
 )
+
+
 def p_program(p):
     "program : declstar"
     p[0] = p[1]
@@ -25,10 +27,11 @@ def p_program(p):
 
 def p_decl(p):
     """
-    decl : function 
+    decl : function
          | vardecl
     """
     p[0] = p[1]
+
 
 def p_declstar(p):
     """
@@ -43,12 +46,14 @@ def p_declstar(p):
         p[0] = p[1]
         p[0].append(p[2])
 
+
 def p_ty(p):
     """
-    ty : BOOL 
+    ty : BOOL
        | INT
     """
     p[0] = PrimiType(p[1])
+
 
 def p_function_param(p):
     """
@@ -60,6 +65,7 @@ def p_function_param(p):
     else:
         p[0] = Function(p[2], p[8], return_ty=VoidType(), params=p[4])
 
+
 def p_function_unparam(p):
     """
     function : DEF IDENT LPAREN  RPAREN block
@@ -69,6 +75,8 @@ def p_function_unparam(p):
         p[0] = Function(p[2], p[7], return_ty=p[5], params=[])
     else:
         p[0] = Function(p[2], p[5], return_ty=VoidType(), params=[])
+
+
 def p_identlist(p):
     """
     identlist : IDENT
@@ -80,17 +88,20 @@ def p_identlist(p):
         p[0] = p[3]
         p[0].append(p[1])
 
+
 def p_param_identlist(p):
     """
     param : identlist COLON ty
     """
     p[0] = [(ident, p[3]) for ident in p[1]]
 
+
 def p_param_ident(p):
     """
     param : IDENT COLON ty
     """
     p[0] = [p[1], p[3]]
+
 
 def p_paramlist(p):
     """
@@ -105,9 +116,11 @@ def p_paramlist(p):
         p[0] = p[3]
         p[0] += p[1]
 
+
 def p_block(p):
     "block : LBRACE stmts RBRACE"
     p[0] = Block(p[2])
+
 
 def p_stmts(p):
     "stmts : stmtstar"
@@ -128,20 +141,26 @@ def p_vardecl(p):
     "vardecl : VAR IDENT EQUALS expr COLON ty SEMICOLON"
     p[0] = StatementDecl(p[2], p[6], p[4])
 
+
 def p_stmt_vardecl(p):
     "stmt : vardecl"
     p[0] = p[1]
+
+
 def p_stmt_continue(p):
     "stmt : CONTINUE SEMICOLON"
     p[0] = StatementContinue()
+
 
 def p_stmt_block(p):
     "stmt :  block"
     p[0] = StatementBlock(p[1])
 
+
 def p_stmt_break(p):
     "stmt : BREAK SEMICOLON"
     p[0] = StatementBreak()
+
 
 def p_stmt_return(p):
     """
@@ -153,9 +172,11 @@ def p_stmt_return(p):
     else:
         p[0] = StatementReturn(None)
 
+
 def p_stmt_eval(p):
     "stmt : call SEMICOLON"
     p[0] = StatementEval(p[1])
+
 
 def p_stmt_assign(p):
     "stmt : IDENT EQUALS expr SEMICOLON"
@@ -164,14 +185,18 @@ def p_stmt_assign(p):
 
 def p_call(p):
     """call : IDENT LPAREN arglist RPAREN
-            | IDENT LPAREN RPAREN"""
+    | IDENT LPAREN RPAREN"""
     if len(p) == 5:
         p[0] = ExpressionCall(p[1], p[3])
     else:
         p[0] = ExpressionCall(p[1], [])
+
+
 def p_expr_call(p):
     """expr : call"""
     p[0] = p[1]
+
+
 def p_arglist(p):
     """
     arglist : expr
@@ -184,6 +209,7 @@ def p_arglist(p):
     else:
         p[0] = p[3]
         p[0] += p[1]
+
 
 def p_stmt_if_then(p):
     """
