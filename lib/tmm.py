@@ -14,14 +14,16 @@ class TMM(Lowerer):
 
     def tmm_block(self, block: Block) -> List[TAC]:
         code = []
+        self.scope_stack.append({})
         for stmt in block.stmts:
             match stmt:
                 case StatementAssign(var, expr):
-                    code += self.tmm_int_code(expr, self.var_to_tmp[var])
+                    code += self.tmm_int_code(expr, self.lookup_scope(var))
                 case StatementEval(expr):
                     code += self.tmm_int_code(expr, None)
-                case StatementDecl(name, ty, init):
-                    code += self.tmm_int_code(init, self.var_to_tmp[name])
+                case StatementDecl(name, "int", init):
+                    self.add_var(name)
+                    code += self.tmm_int_code(init, self.lookup_scope(name))
                 case StatementWhile(cond, block):
                     label_head, label_body, label_end = (
                         self.fresh_label(),
@@ -60,6 +62,9 @@ class TMM(Lowerer):
                     code += [TACOp("jmp", [self.break_stack[0]], None)]
                 case StatementContinue():
                     code += [TACOp("jmp", [self.continue_stack[0]], None)]
+                case StatementBlock(block):
+                    code += self.tmm_block(block)
+        self.scope_stack = self.scope_stack[:-1]
         return code
 
     def tmm_bool_code(
@@ -141,7 +146,7 @@ class TMM(Lowerer):
     def tmm_int_code(self, expr: Expression, result: TACTemp) -> List[TACOp]:
         match expr:
             case ExpressionVar(name):
-                return [TACOp("copy", [self.var_to_tmp[name]], result)]
+                return [TACOp("copy", [self.lookup_scope(name)], result)]
             case ExpressionInt(val):
                 return [TACOp("const", [val], result)]
             case ExpressionBinOp(operator, left, right):

@@ -132,7 +132,16 @@ class Lowerer:
         self.fn = fn
         self.temporary_counter = 0
         self.label_counter = 1
-        self.var_to_tmp = self.var_mapping(fn.body.stmts)
+        self.scope_stack = [{}]
+
+    def lookup_scope(self, var: str):
+        for scope in reversed(self.scope_stack):
+            if var in scope:
+                return scope[var]
+        raise Exception(f"Variable {var} undefined")
+
+    def add_var(self, var: str):
+        self.scope_stack[-1][var] = self.fresh_temp()
 
     def fresh_temp(self) -> TACTemp:
         var = TACTemp(self.temporary_counter)

@@ -1,0 +1,7 @@
+def main(){
+    var x = 1 : int;
+    {
+        var x = 4 : int;
+        print(x);
+    }
+}

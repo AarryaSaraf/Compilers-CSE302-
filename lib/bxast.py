@@ -185,6 +185,12 @@ class StatementEval(Statement):
     def type_check(self):
         self.expr.type_check()
 
+@dataclass
+class StatementBlock(Statement):
+    block: Block
+
+    def type_check(self):
+        return self.block.type_check()
 
 @dataclass
 class StatementIf(Statement):

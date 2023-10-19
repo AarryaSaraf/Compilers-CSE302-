@@ -135,6 +135,9 @@ def p_stmt_continue(p):
     "stmt : CONTINUE SEMICOLON"
     p[0] = StatementContinue()
 
+def p_stmt_block(p):
+    "stmt :  block"
+    p[0] = StatementBlock(p[1])
 
 def p_stmt_break(p):
     "stmt : BREAK SEMICOLON"
