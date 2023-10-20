@@ -15,6 +15,9 @@ class FunctionType(Type):
         super().__init__()
         self.input_type = input_types
         self.out_type = out_type
+    
+    def __str__(self) -> str:
+        return " ".join(map(str, self.input_type)) + f"-> {self.out_type}"
 
 
 class PrimiType(Type):
@@ -27,3 +30,6 @@ class PrimiType(Type):
 
     def __str__(self) -> str:
         return self.name
+    
+    def __repr__(self) -> str:
+        return f"PrimiType('{self.name}')"

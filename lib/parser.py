@@ -61,9 +61,9 @@ def p_function_param(p):
             | DEF IDENT LPAREN paramlist RPAREN COLON ty block
     """
     if len(p) > 7:
-        p[0] = Function(p[2], p[6], return_ty=p[5], params=p[4])
+        p[0] = Function(p[2], p[8], return_ty=p[7], params=p[4])
     else:
-        p[0] = Function(p[2], p[8], return_ty=VoidType(), params=p[4])
+        p[0] = Function(p[2], p[6], return_ty=VoidType(), params=p[4])
 
 
 def p_function_unparam(p):

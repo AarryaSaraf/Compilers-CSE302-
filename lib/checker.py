@@ -23,8 +23,14 @@ class SyntaxError:
 class SyntaxChecker:
     def __init__(self) -> None:
         self.errors = []
+        self.scope_stack: List[Set] = []
+        self.loop_depth = 0
+        self.functions = {}
 
     def check_program(self, program: List[Function | StatementDecl]):
+        self.scope_stack = [set([decl.name for decl in program if isinstance(decl, StatementDecl)])]
+        self.functions = {fun.name: fun for fun in program if isinstance(fun, Function)}
+        self.functions["print"] = Function("print", None, VoidType, [("x", PrimiType("any"))])
         for glob in program:
             match glob:
                 case Function():
@@ -37,68 +43,98 @@ class SyntaxChecker:
                             f"Global variable {name} can only take static expressions as input"
                         )
                     )
+        if not any([fun.name == "main" for fun in program if isinstance(fun, Function)]):
+            self.errors.append(SyntaxError("Expected a main function"))
         return self.errors
 
     def check_function(self, fun: Function) -> List[SyntaxError]:
-        if fun.name != "main":
-            self.errors.append(
-                SyntaxError(f"expected function name to be 'main' but got: {fun.name}")
-            )
-        vardecl = set()
+        self.scope_stack.append(set([p[0] for p in fun.params]))
         for stmt in fun.body.stmts:
-            self.check_stmt(stmt, vardecl)
-
-    def check_stmt(self, stmt: Statement, vardecl: Set[str]) -> List[SyntaxError]:
+            self.check_stmt(stmt)
+        self.scope_stack.pop(-1)
+    
+    def defined(self, varname: str):
+        for scope in reversed(self.scope_stack):
+            if varname in scope:
+                return True
+        return False
+    def check_stmt(self, stmt: Statement) -> List[SyntaxError]:
         match stmt:
             case StatementAssign(lvalue, rvalue):
-                if lvalue not in vardecl:
+                if not self.defined(rvalue):
                     self.errors.append(
                         SyntaxError(
                             f"Variable {lvalue} undefined, must declare before write"
                         )
                     )
-                self.check_expr(rvalue, vardecl)
+                self.check_expr(rvalue)
             case StatementDecl(name, _, expr):
-                self.check_expr(expr, vardecl)
-                vardecl.add(name)
+                self.check_expr(expr)
+                self.scope_stack[-1].add(name)
             case StatementEval(expr):
-                self.check_expr(expr, vardecl)
+                self.check_expr(expr)
+            case StatementBlock(block):
+                self.scope_stack.append(set())
+                for stmt in block.stmts:
+                    self.check_stmt(stmt)
+                self.scope_stack.pop(-1)
+            case StatementBreak():
+                if self.loop_depth == 0:
+                    self.errors.append(SyntaxError("Cannot use break statement outside of loop"))
+            case StatementContinue():
+                if self.loop_depth == 0:
+                    self.errors.append(SyntaxError("Cannot use continue statement outside of loop"))
+            case StatementReturn(expr):
+                if expr is not None:
+                    self.check_expr(expr)
+            case StatementWhile(cond, body):
+                self.check_expr(cond)
+                self.loop_depth += 1
+                self.scope_stack.append(set())
+                for stmt in body.stmts:
+                    self.check_stmt(stmt)
+                self.scope_stack.pop(-1)
+                self.loop_depth -= 1
+            case StatementIf(cond, body, elseblock):
+                self.check_expr(cond)
+                self.scope_stack.append(set())
+                for stmt in body.stmts:
+                    self.check_stmt(stmt)
+                self.scope_stack.pop(-1)
+                if elseblock is not None:
+                    self.scope_stack.append(set())
+                    for stmt in body.stmts:
+                        self.check_stmt(stmt)
+                    self.scope_stack.pop(-1)
 
-    def check_expr(self, expr: Expression, vardecl: Set[str]) -> List[SyntaxError]:
+    def check_expr(self, expr: Expression):
         match expr:
             case ExpressionVar(name):
-                if name not in vardecl:
+                if not self.defined(name):
                     self.errors.append(
                         SyntaxError(
                             f"Variable {name} undefined, must declare before read"
                         )
                     )
-                return []
             case ExpressionInt(n):
                 if n < 0 or n > 2**63:
                     self.errors.append(
                         SyntaxError(f"Integer value {n} is out of bounds")
                     )
-                return []
             case ExpressionBinOp(_, left, right):
-                return self.check_expr(left, vardecl) + self.check_expr(right, vardecl)
+                self.check_expr(left) 
+                self.check_expr(right)
             case ExpressionCall(target, args):
-                if target != "print":
-                    self.errors.append(
-                        [
-                            SyntaxError(
-                                f"We currently don't support any call to {target}, only 'print' is allowed"
-                            )
-                        ]
-                    )
+                if target not in self.functions:
+                    self.errors.append(SyntaxError(f"Function {target} is not defined"))
+                elif len(args) != len(self.functions[target].params):
+                    self.errors.append(SyntaxError(f"Function {target} takes {len(self.functions[target].params)} arguments but {len(args)} where given"))
                 for arg in args:
-                    self.check_expr(arg, vardecl)
+                    self.check_expr(arg)
             case ExpressionUniOp(_, arg):
-                return self.check_expr(arg, vardecl)
-            case _:
-                return []
+                self.check_expr(arg)
 
-    def pp_errs(errors: List[SyntaxError]):
+    def pp_errs(self, errors: List[SyntaxError]):
         for err in errors:
             print(f"\x1b[31mError:\x1b[0m {err.msg}")
 
@@ -130,10 +166,10 @@ class TypeChecker:
             case ExpressionCall(target, args):
                 if target == "print":
                     return VoidType()
-                fty = self.function_signatures[target].ty
-                for exp_ty, arg in zip(fty.input_types, args):
+                fty = self.function_signatures[target]
+                for exp_ty, arg in zip(fty.input_type, args):
                     self.assert_type(exp_ty, arg)
-                return PrimiType(fty.out_type)
+                return fty.out_type
             case ExpressionBinOp(op, left, right):
                 if op.startswith("boolean"):
                     self.assert_type(PrimiType("bool"), left)
