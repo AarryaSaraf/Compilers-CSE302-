@@ -8,24 +8,28 @@ class TACTemp:
 
     def __str__(self):
         return f"%{self.id}"
+
     def __repr__(self):
         return f"%{self.id}"
+
     def __eq__(self, __value: object) -> bool:
         return self.id == __value.id
 
     def __hash__(self) -> int:
         return hash(self.id)
-    
+
+
 @dataclass
 class TACGlobal:
     name: str
 
     def __str__(self) -> str:
         return f"@{self.name}"
-    
+
     def __eq__(self, __value: object) -> bool:
         return self.name == __value.name
-    
+
+
 @dataclass
 class TACGlobalDecl:
     glob: TACGlobal
@@ -33,6 +37,7 @@ class TACGlobalDecl:
 
     def __str__(self) -> str:
         return f"{self.glob} = {self.init}"
+
 
 @dataclass
 class TACLabel:
@@ -71,7 +76,6 @@ class TACOp:
         )
 
 
-
 @dataclass
 class TAC:
     ops: List[TACOp | TACLabel]
@@ -80,14 +84,19 @@ class TAC:
         temps = set()
         for op in self.ops:
             if isinstance(op, TACOp):
-                if op.result is not None: # only results can that are written to can be tacops
+                if (
+                    op.result is not None
+                ):  # only results can that are written to can be tacops
                     temps.add(op.result)
         return temps
+
 
 @dataclass
 class TACProc:
     name: str
     body: TAC
+    params: List[TACTemp]
+
 
 OPCODES = [
     "jmp",
@@ -114,7 +123,7 @@ OPCODES = [
     "copy",
     "const",
     "param",
-    "call"
+    "call",
 ]
 
 JMP_OPS = ["jmp", "jz", "jnz", "jl", "jle", "jnl", "jnle", "ret"]
@@ -160,7 +169,8 @@ class Lowerer:
         self.fn = fn
         self.temporary_counter = 0
         self.label_counter = 1
-        self.scope_stack = [{}]
+        self.params = [TACTemp(p[0]) for p in fn.params]
+        self.scope_stack = [{p[0]: TACTemp(p[0]) for p in fn.params}]
         self.globals = {}
 
     def lookup_scope(self, var: str):
@@ -195,5 +205,8 @@ class Lowerer:
         return var_to_tmp
 
     @abstractmethod
-    def to_tac(self) -> TACProc:
+    def to_tac(self) -> TAC:
         pass
+
+    def lower(self) -> TACProc:
+        return TACProc(self.fn.name, self.to_tac(), self.params)

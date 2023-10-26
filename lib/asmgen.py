@@ -15,22 +15,27 @@ OPCODE_TO_ASM = {
 SIMPLE_BIN_OPS = {"add", "sub", "mul", "and", "or", "xor"}
 SIMPLE_UN_OPS = {"not", "neg"}
 
-def global_symbs(decls: List[StatementDecl| Function]):
+
+def global_symbs(decls: List[StatementDecl | Function]):
     globs = ""
     for decl in decls:
         globs += f".globl {decl.name}\n"
     return globs
 
+
 def make_data_section(globvars: List[StatementDecl]):
     data_section = ".data\n"
     for decl in globvars:
         data_section += f"{decl.name}:\t .quad {decl.init}\n"
-    return data_section 
+    return data_section
+
+
 def make_text_section(asms: List[str]):
     text_section = ".text\n"
     for asm in asms:
         text_section += asm
     return text_section
+
 
 class AsmGen:
     def __init__(self, proc: TACProc):
@@ -103,36 +108,41 @@ __BODY__
                         f"    movq ${val}, -{(self.tmp_alloc[res]+1)*8}(%rbp)\n"
                     )
                 case TACOp("ret", [val], None) if isinstance(val, int):
-                    self.body += (f"    movq ${val}, %rax "+
-                                   "    movq %rbp, %rsp # restore old RSP"+
-                                   "    popq %rbp # restore old RBP"+
-                                   "    retq ")
+                    self.body += (
+                        f"    movq ${val}, %rax "
+                        + "    movq %rbp, %rsp # restore old RSP"
+                        + "    popq %rbp # restore old RBP"
+                        + "    retq "
+                    )
                 case TACOp("ret", [val], None) if isinstance(val, (TACTemp, TACGlobal)):
                     self.body += self.load_var(val, "rax") + (
-                                   "    movq %rbp, %rsp # restore old RSP"+
-                                   "    popq %rbp # restore old RBP"+
-                                   "    retq ")
+                        "    movq %rbp, %rsp # restore old RSP"
+                        + "    popq %rbp # restore old RBP"
+                        + "    retq "
+                    )
                 case TACOp("ret", [], None):
-                    self.body += (f"    movq $0, %rax # set return code to 0"+
-                                   "    movq %rbp, %rsp # restore old RSP"+
-                                   "    popq %rbp # restore old RBP"+
-                                   "    retq ")
+                    self.body += (
+                        f"    movq $0, %rax # set return code to 0"
+                        + "    movq %rbp, %rsp # restore old RSP"
+                        + "    popq %rbp # restore old RBP"
+                        + "    retq "
+                    )
                 case x:
                     print(f"WARNING: Cannot compile {x}")
         return self.skeleton.replace("__BODY__", self.body)
 
-    def load_var(self, tmp: TACTemp| TACGlobal, dest):
+    def load_var(self, tmp: TACTemp | TACGlobal, dest):
         if isinstance(tmp, TACTemp):
             return f"    movq -{(self.tmp_alloc[tmp]+1)*8}(%rbp), %{dest}\n"
         elif isinstance(tmp, TACGlobal):
             return f"    movq {tmp.name}(%rip) , %{dest}\n"
-        
+
     def store_var(self, reg, tmp: TACTemp | TACGlobal):
         if isinstance(tmp, TACTemp):
             return f"    movq %{reg}, -{(self.tmp_alloc[tmp]+1)*8}(%rbp)\n"
         if isinstance(tmp, TACGlobal):
             return f"    movq %{reg}, -{tmp.name}(%rip)\n"
-        
+
     def to_addr(self, tmp: TACTemp):
         if isinstance(tmp, TACTemp):
             return f"-{(self.tmp_alloc[tmp]+1)*8}(%rbp)"

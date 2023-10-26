@@ -8,6 +8,7 @@ from .cfg import CFGAnalyzer
 from .bxast import Function, StatementDecl
 from .checker import SyntaxChecker, TypeChecker
 
+
 def compile(src: str):
     decls = parser.parse(src)
     s_checker = SyntaxChecker()
@@ -23,14 +24,16 @@ def compile(src: str):
     globvars = [decl for decl in decls if isinstance(decl, StatementDecl)]
     funs = [fun for fun in decls if isinstance(fun, Function)]
     globalmap = {var.name: TACGlobal(var.name) for var in globvars}
-    
+
     symbs = global_symbs(decls)
     data_section = make_data_section(globvars)
     text_section = make_text_section([compile_unit(fun, globalmap) for fun in funs])
     return symbs + data_section + text_section
-def compile_unit(ast: Function, globalmap : Dict[str, TACGlobal]) -> str:
+
+
+def compile_unit(ast: Function, globalmap: Dict[str, TACGlobal]) -> str:
     lowerer = TMM(ast, globalmap)
-    tacproc = lowerer.to_tac()
+    tacproc = lowerer.lower()
 
     cfg_analyzer = CFGAnalyzer()
     tacproc.body = cfg_analyzer.optimize(tacproc.body)
@@ -38,4 +41,3 @@ def compile_unit(ast: Function, globalmap : Dict[str, TACGlobal]) -> str:
     asm_gen = AsmGen(tacproc)
     asm = asm_gen.compile()
     return asm
-

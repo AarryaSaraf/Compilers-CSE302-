@@ -7,6 +7,7 @@ from lib.tmm import TMM
 from lib.cfg import CFGAnalyzer
 from lib.tac import pretty_print
 from lib.compile import compile
+
 if __name__ == "__main__":
     sourcefile = sys.argv[1]
     # sourcefile= "examples/bigcondition2.bx"

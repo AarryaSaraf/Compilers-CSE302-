@@ -10,10 +10,8 @@ class TMM(Lowerer):
         self.continue_stack = []
 
     def to_tac(self):
-        return TACProc(
-            self.fn.name,
-            TAC(self.tmm_block(self.fn.body) + [TACOp("ret", [], None)])
-        )
+        return TAC(self.tmm_block(self.fn.body) + [TACOp("ret", [], None)])
+
     def tmm_block(self, block: Block) -> List[TAC]:
         code = []
         self.scope_stack.append({})
@@ -22,7 +20,9 @@ class TMM(Lowerer):
                 case StatementAssign(var, expr):
                     code += self.tmm_int_code(expr, self.lookup_scope(var))
                 case StatementEval(expr):
-                    if isinstance(expr.ty, VoidType) and isinstance(expr, ExpressionCall):
+                    if isinstance(expr.ty, VoidType) and isinstance(
+                        expr, ExpressionCall
+                    ):
                         code += self.tmm_call(expr, None)
                     elif expr.ty == PrimiType("int"):
                         code += self.tmm_int_code(expr, None)
@@ -92,7 +92,7 @@ class TMM(Lowerer):
                             lab_true,
                             TACOp("ret", [1], None),
                             lab_false,
-                            TACOp("ret", [0], None)
+                            TACOp("ret", [0], None),
                         ]
                     else:
                         rettmp = self.fresh_temp()
@@ -103,7 +103,7 @@ class TMM(Lowerer):
                     code += [TACOp("ret", [], None)]
         self.scope_stack = self.scope_stack[:-1]
         return code
-    
+
     def tmm_call(self, callexpr: ExpressionCall, res: TACLabel):
         code = []
         arg_temps = []
@@ -119,13 +119,13 @@ class TMM(Lowerer):
                     lab_true,
                     TACOp("const", [1], tmp),
                     lab_false,
-                    TACOp("const", [0], tmp)
+                    TACOp("const", [0], tmp),
                 ]
         for i, argtmp in enumerate(arg_temps):
-            code += [TACOp("param", [i+1, argtmp], None)]
+            code += [TACOp("param", [i + 1, argtmp], None)]
         code += [TACOp("call", [callexpr.target], res)]
         return code
-    
+
     def tmm_bool_code(
         self, expr: Expression, lab_true: TACLabel, lab_false: TACLabel
     ) -> List[TACOp | TACLabel]:
@@ -134,9 +134,9 @@ class TMM(Lowerer):
                 tmp = self.fresh_tmp()
                 return self.tmm_call(expr, tmp) + [
                     TACOp("jz", [tmp, lab_false]),
-                    TACOp("jmp", [lab_true])
+                    TACOp("jmp", [lab_true]),
                 ]
-                
+
             case ExpressionBinOp(
                 "equals" | "notequals" | "lt" | "lte" | "gt" | "gte" as op,
                 left,

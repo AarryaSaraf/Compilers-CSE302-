@@ -28,9 +28,13 @@ class SyntaxChecker:
         self.functions = {}
 
     def check_program(self, program: List[Function | StatementDecl]):
-        self.scope_stack = [set([decl.name for decl in program if isinstance(decl, StatementDecl)])]
+        self.scope_stack = [
+            set([decl.name for decl in program if isinstance(decl, StatementDecl)])
+        ]
         self.functions = {fun.name: fun for fun in program if isinstance(fun, Function)}
-        self.functions["print"] = Function("print", None, VoidType, [("x", PrimiType("any"))])
+        self.functions["print"] = Function(
+            "print", None, VoidType, [("x", PrimiType("any"))]
+        )
         for glob in program:
             match glob:
                 case Function():
@@ -43,7 +47,9 @@ class SyntaxChecker:
                             f"Global variable {name} can only take static expressions as input"
                         )
                     )
-        if not any([fun.name == "main" for fun in program if isinstance(fun, Function)]):
+        if not any(
+            [fun.name == "main" for fun in program if isinstance(fun, Function)]
+        ):
             self.errors.append(SyntaxError("Expected a main function"))
         return self.errors
 
@@ -52,12 +58,13 @@ class SyntaxChecker:
         for stmt in fun.body.stmts:
             self.check_stmt(stmt)
         self.scope_stack.pop(-1)
-    
+
     def defined(self, varname: str):
         for scope in reversed(self.scope_stack):
             if varname in scope:
                 return True
         return False
+
     def check_stmt(self, stmt: Statement) -> List[SyntaxError]:
         match stmt:
             case StatementAssign(lvalue, rvalue):
@@ -80,10 +87,14 @@ class SyntaxChecker:
                 self.scope_stack.pop(-1)
             case StatementBreak():
                 if self.loop_depth == 0:
-                    self.errors.append(SyntaxError("Cannot use break statement outside of loop"))
+                    self.errors.append(
+                        SyntaxError("Cannot use break statement outside of loop")
+                    )
             case StatementContinue():
                 if self.loop_depth == 0:
-                    self.errors.append(SyntaxError("Cannot use continue statement outside of loop"))
+                    self.errors.append(
+                        SyntaxError("Cannot use continue statement outside of loop")
+                    )
             case StatementReturn(expr):
                 if expr is not None:
                     self.check_expr(expr)
@@ -122,13 +133,17 @@ class SyntaxChecker:
                         SyntaxError(f"Integer value {n} is out of bounds")
                     )
             case ExpressionBinOp(_, left, right):
-                self.check_expr(left) 
+                self.check_expr(left)
                 self.check_expr(right)
             case ExpressionCall(target, args):
                 if target not in self.functions:
                     self.errors.append(SyntaxError(f"Function {target} is not defined"))
                 elif len(args) != len(self.functions[target].params):
-                    self.errors.append(SyntaxError(f"Function {target} takes {len(self.functions[target].params)} arguments but {len(args)} where given"))
+                    self.errors.append(
+                        SyntaxError(
+                            f"Function {target} takes {len(self.functions[target].params)} arguments but {len(args)} where given"
+                        )
+                    )
                 for arg in args:
                     self.check_expr(arg)
             case ExpressionUniOp(_, arg):
@@ -197,7 +212,7 @@ class TypeChecker:
                     self.assert_type(PrimiType("int"), arg)
                     expr.ty = PrimiType("int")
         return expr.ty
-    
+
     def assert_type(self, expected: Type, expr: Expression):
         got = self.infer_type(expr)
         if got != expected:
