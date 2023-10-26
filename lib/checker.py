@@ -166,10 +166,16 @@ class TypeChecker:
             case ExpressionCall(target, args):
                 if target == "print":
                     expr.ty = VoidType()
-                fty = self.function_signatures[target]
-                for exp_ty, arg in zip(fty.input_type, args):
-                    self.assert_type(exp_ty, arg)
-                expr.ty = fty.out_type
+                    argty = self.infer_type(args[0])
+                    if argty == PrimiType("int"):
+                        expr.target = "__bx_print_int"
+                    if argty == PrimiType("bool"):
+                        expr.target = "__bx_print_bool"
+                else:
+                    fty = self.function_signatures[target]
+                    for exp_ty, arg in zip(fty.input_type, args):
+                        self.assert_type(exp_ty, arg)
+                    expr.ty = fty.out_type
             case ExpressionBinOp(op, left, right):
                 if op.startswith("boolean"):
                     self.assert_type(PrimiType("bool"), left)
@@ -182,8 +188,7 @@ class TypeChecker:
                 else:
                     self.assert_type(PrimiType("int"), left)
                     self.assert_type(PrimiType("int"), right)
-
-                    return PrimiType("int")
+                    expr.ty = PrimiType("int")
             case ExpressionUniOp(op, arg):
                 if op == "boolean-negation":
                     self.assert_type(PrimiType("bool"), arg)

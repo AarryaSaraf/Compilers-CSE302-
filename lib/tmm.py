@@ -22,7 +22,14 @@ class TMM(Lowerer):
                 case StatementAssign(var, expr):
                     code += self.tmm_int_code(expr, self.lookup_scope(var))
                 case StatementEval(expr):
-                    code += self.tmm_int_code(expr, None)
+                    if isinstance(expr.ty, VoidType) and isinstance(expr, ExpressionCall):
+                        code += self.tmm_call(expr, None)
+                    elif expr.ty == PrimiType("int"):
+                        code += self.tmm_int_code(expr, None)
+                    elif expr.ty == PrimiType("int"):
+                        code += self.tmm_bool_code(expr, None, None)
+                    else:
+                        raise ValueError(f"cannot compile eval: {expr}")
                 case StatementDecl(name, ty, init):
                     if ty == PrimiType("int"):
                         self.add_var(name)
@@ -117,7 +124,8 @@ class TMM(Lowerer):
         for i, argtmp in enumerate(arg_temps):
             code += [TACOp("param", [i+1, argtmp], None)]
         code += [TACOp("call", [callexpr.target], res)]
-
+        return code
+    
     def tmm_bool_code(
         self, expr: Expression, lab_true: TACLabel, lab_false: TACLabel
     ) -> List[TACOp | TACLabel]:

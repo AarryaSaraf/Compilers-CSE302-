@@ -2,16 +2,20 @@ from .bxast import *
 from typing import Dict
 
 
-@dataclass
 class TACTemp:
-    num: int
+    def __init__(self, id: str | int) -> None:
+        self.id = id
 
     def __str__(self):
-        return f"%{self.num}"
-
+        return f"%{self.id}"
+    def __repr__(self):
+        return f"%{self.id}"
     def __eq__(self, __value: object) -> bool:
-        return self.num == __value.num
+        return self.id == __value.id
 
+    def __hash__(self) -> int:
+        return hash(self.id)
+    
 @dataclass
 class TACGlobal:
     name: str
@@ -76,14 +80,8 @@ class TAC:
         temps = set()
         for op in self.ops:
             if isinstance(op, TACOp):
-                for arg in op.args:
-                    match arg:
-                        case TACTemp(n):
-                            temps.add(n)
-                        case _:
-                            pass
-                if op.result is not None:
-                    temps.add(op.result.num)
+                if op.result is not None: # only results can that are written to can be tacops
+                    temps.add(op.result)
         return temps
 
 @dataclass

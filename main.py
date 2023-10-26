@@ -6,33 +6,14 @@ from lib.checker import SyntaxChecker, TypeChecker
 from lib.tmm import TMM
 from lib.cfg import CFGAnalyzer
 from lib.tac import pretty_print
-
+from lib.compile import compile
 if __name__ == "__main__":
     sourcefile = sys.argv[1]
     # sourcefile= "examples/bigcondition2.bx"
     with open(sourcefile) as fp:
         source = fp.read()
 
-    decls = parser.parse(source)
-    ast = decls[0]
-    s_checker = SyntaxChecker()
-    errs = s_checker.check_program(decls)
-    if errs != []:
-        s_checker.pp_errs(errs)
-        sys.exit()
-    t_checker = TypeChecker()
-    type_check = t_checker.check(decls)
-    if len(type_check) > 0:
-        print("Type checking failed")
-        sys.exit()
-
-    lowerer = TMM(ast)
-    tac = lowerer.to_tac()
-    cfg_analyzer = CFGAnalyzer()
-    optim_tac = cfg_analyzer.optimize(tac)
-
-    asm_gen = AsmGen(optim_tac)
-    asm = asm_gen.compile()
+    asm = compile(source)
 
     if "--nolink" in sys.argv:
         print(asm)
