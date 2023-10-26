@@ -10,8 +10,10 @@ class TMM(Lowerer):
         self.continue_stack = []
 
     def to_tac(self):
-        return TAC(self.tmm_block(self.fn.body) + [TACOp("ret", [], None)])
-
+        return TACProc(
+            self.fn.name,
+            TAC(self.tmm_block(self.fn.body) + [TACOp("ret", [], None)])
+        )
     def tmm_block(self, block: Block) -> List[TAC]:
         code = []
         self.scope_stack.append({})
@@ -76,13 +78,57 @@ class TMM(Lowerer):
                     code += [TACOp("jmp", [self.continue_stack[0]], None)]
                 case StatementBlock(block):
                     code += self.tmm_block(block)
+                case StatementReturn(expr) if expr is not None:
+                    if expr.ty == PrimiType("bool"):
+                        lab_true, lab_false = self.fresh_label(), self.fresh_label()
+                        code += self.tmm_bool_code(expr, lab_true, lab_false) + [
+                            lab_true,
+                            TACOp("ret", [1], None),
+                            lab_false,
+                            TACOp("ret", [0], None)
+                        ]
+                    else:
+                        rettmp = self.fresh_temp()
+                        code += self.tmm_int_code(expr, rettmp) + [
+                            TACOp("ret", [rettmp], None)
+                        ]
+                case StatementReturn(None):
+                    code += [TACOp("ret", [], None)]
         self.scope_stack = self.scope_stack[:-1]
         return code
+    
+    def tmm_call(self, callexpr: ExpressionCall, res: TACLabel):
+        code = []
+        arg_temps = []
+        for argexpr in callexpr.arguments:
+            tmp = self.fresh_temp()
+            arg_temps.append(tmp)
+            if argexpr.ty == PrimiType("int"):
+                code += self.tmm_int_code(argexpr, tmp)
+            else:
+                lab_true, lab_false = self.fresh_label(), self.fresh_label()
+                code += [
+                    self.tmm_bool_code(argexpr, lab_true, lab_false),
+                    lab_true,
+                    TACOp("const", [1], tmp),
+                    lab_false,
+                    TACOp("const", [0], tmp)
+                ]
+        for i, argtmp in enumerate(arg_temps):
+            code += [TACOp("param", [i+1, argtmp], None)]
+        code += [TACOp("call", [callexpr.target], res)]
 
     def tmm_bool_code(
         self, expr: Expression, lab_true: TACLabel, lab_false: TACLabel
     ) -> List[TACOp | TACLabel]:
         match expr:
+            case ExpressionCall():
+                tmp = self.fresh_tmp()
+                return self.tmm_call(expr, tmp) + [
+                    TACOp("jz", [tmp, lab_false]),
+                    TACOp("jmp", [lab_true])
+                ]
+                
             case ExpressionBinOp(
                 "equals" | "notequals" | "lt" | "lte" | "gt" | "gte" as op,
                 left,
@@ -160,6 +206,8 @@ class TMM(Lowerer):
                 return [TACOp("copy", [self.lookup_scope(name)], result)]
             case ExpressionInt(val):
                 return [TACOp("const", [val], result)]
+            case ExpressionCall():
+                return self.tmm_call(expr, result)
             case ExpressionBinOp(operator, left, right):
                 left_tmp = self.fresh_temp()
                 right_tmp = result

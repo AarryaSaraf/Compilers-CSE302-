@@ -14,6 +14,7 @@ class Expression:
 @dataclass
 class ExpressionVar(Expression):
     name: str
+    ty: Type | None = None
 
     def __str__(self):
         return self.name
@@ -22,6 +23,7 @@ class ExpressionVar(Expression):
 @dataclass
 class ExpressionInt(Expression):
     value: int
+    ty: Type | None = None
 
     def __str__(self):
         return str(self.value)
@@ -30,6 +32,7 @@ class ExpressionInt(Expression):
 @dataclass
 class ExpressionBool(Expression):
     value: bool
+    ty: Type | None = None
 
     def __str__(self):
         return str(self.value)
@@ -39,6 +42,7 @@ class ExpressionBool(Expression):
 class ExpressionUniOp(Expression):
     operator: str
     argument: Expression
+    ty: Type | None = None
 
     def __str__(self):
         return f"({self.operator} {self.argument})"
@@ -49,6 +53,7 @@ class ExpressionBinOp(Expression):
     operator: str
     left: Expression
     right: Expression
+    ty: Type | None = None
 
     def __str__(self):
         return f"({self.operator} {self.left} {self.right})"
@@ -58,7 +63,7 @@ class ExpressionBinOp(Expression):
 class ExpressionCall(Expression):
     target: str
     arguments: List[Expression]
-
+    ty: Type | None = None
     def __str__(self):
         return f"{self.target}({self.arguments[0]})"
 
@@ -125,7 +130,6 @@ class StatementWhile(Statement):
 class StatementReturn(Statement):
     var: Expression | None
 
-
 @dataclass
 class Function:
     name: str
@@ -133,6 +137,7 @@ class Function:
     return_ty: Type
     params: List[Tuple[str, Type]]
     ty: FunctionType
+
 
     def __init__(self, name, body, return_ty, params):
         self.name = name

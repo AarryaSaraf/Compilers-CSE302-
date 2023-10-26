@@ -158,27 +158,27 @@ class TypeChecker:
     def infer_type(self, expr: Expression):
         match expr:
             case ExpressionInt():
-                return PrimiType("int")
+                expr.ty = PrimiType("int")
             case ExpressionBool():
-                return PrimiType("bool")
+                expr.ty = PrimiType("bool")
             case ExpressionVar(name):
-                return self.lookup_type(name)
+                expr.ty = self.lookup_type(name)
             case ExpressionCall(target, args):
                 if target == "print":
-                    return VoidType()
+                    expr.ty = VoidType()
                 fty = self.function_signatures[target]
                 for exp_ty, arg in zip(fty.input_type, args):
                     self.assert_type(exp_ty, arg)
-                return fty.out_type
+                expr.ty = fty.out_type
             case ExpressionBinOp(op, left, right):
                 if op.startswith("boolean"):
                     self.assert_type(PrimiType("bool"), left)
                     self.assert_type(PrimiType("bool"), right)
-                    return PrimiType("bool")
+                    expr.ty = PrimiType("bool")
                 if op in ["lt", "lte", "gt", "gte", "equals", "notequals"]:
                     self.assert_type(PrimiType("int"), left)
                     self.assert_type(PrimiType("int"), right)
-                    return PrimiType("bool")
+                    expr.ty = PrimiType("bool")
                 else:
                     self.assert_type(PrimiType("int"), left)
                     self.assert_type(PrimiType("int"), right)
@@ -187,11 +187,12 @@ class TypeChecker:
             case ExpressionUniOp(op, arg):
                 if op == "boolean-negation":
                     self.assert_type(PrimiType("bool"), arg)
-                    return PrimiType("bool")
+                    expr.ty = PrimiType("bool")
                 else:
                     self.assert_type(PrimiType("int"), arg)
-                    return PrimiType("int")
-
+                    expr.ty = PrimiType("int")
+        return expr.ty
+    
     def assert_type(self, expected: Type, expr: Expression):
         got = self.infer_type(expr)
         if got != expected:

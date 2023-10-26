@@ -10,19 +10,14 @@ def compile(src: str):
     pass
 
 
-def compile_unit(ast: Function | StatementDecl) -> str:
-    if isinstance(ast, Function):
-        type_check = ast.type_check()
-        if not type_check:
-            raise Exception("Type Checking Failed, see above")
-        lowerer = TMM(ast)
-        tac = lowerer.to_tac()
+def compile_unit(ast: Function, globals) -> str:
+    lowerer = TMM(ast, globals)
+    tac = lowerer.to_tac()
 
-        cfg_analyzer = CFGAnalyzer()
-        optim_tac = cfg_analyzer.optimize(tac)
+    cfg_analyzer = CFGAnalyzer()
+    optim_tac = cfg_analyzer.optimize(tac)
 
-        asm_gen = AsmGen(optim_tac)
-        asm = asm_gen.compile()
-        return asm
-    else:
-        raise NotImplementedError("Cannot compile globals yet")
+    asm_gen = AsmGen(optim_tac)
+    asm = asm_gen.compile()
+    return asm
+

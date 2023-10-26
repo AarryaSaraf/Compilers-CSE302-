@@ -12,6 +12,23 @@ class TACTemp:
     def __eq__(self, __value: object) -> bool:
         return self.num == __value.num
 
+@dataclass
+class TACGlobal:
+    name: str
+
+    def __str__(self) -> str:
+        return f"@{self.name}"
+    
+    def __eq__(self, __value: object) -> bool:
+        return self.name == __value.name
+    
+@dataclass
+class TACGlobalDecl:
+    glob: TACGlobal
+    init: int
+
+    def __str__(self) -> str:
+        return f"{self.glob} = {self.init}"
 
 @dataclass
 class TACLabel:
@@ -30,8 +47,8 @@ class TACLabel:
 @dataclass
 class TACOp:
     opcode: str
-    args: List[TACTemp | TACLabel | int]
-    result: TACTemp | None
+    args: List[TACTemp | TACLabel | int | TACGlobal]
+    result: TACTemp | TACGlobal | None
 
     def to_dict(self):
         return {
@@ -48,6 +65,7 @@ class TACOp:
         return (
             f"{self.result} = {self.opcode} {' '.join([str(arg) for arg in self.args])}"
         )
+
 
 
 @dataclass
@@ -68,6 +86,10 @@ class TAC:
                     temps.add(op.result.num)
         return temps
 
+@dataclass
+class TACProc:
+    name: str
+    body: TAC
 
 OPCODES = [
     "jmp",
@@ -93,7 +115,10 @@ OPCODES = [
     "print",
     "copy",
     "const",
+    "param",
+    "call"
 ]
+
 JMP_OPS = ["jmp", "jz", "jnz", "jl", "jle", "jnl", "jnle", "ret"]
 
 UNCOND_JMP_OP = ["jmp", "ret"]
@@ -133,16 +158,19 @@ def pretty_print(tac: TAC) -> str:
 
 # TODO: deserialization
 class Lowerer:
-    def __init__(self, fn: Function):
+    def __init__(self, fn: Function, globals: Dict[str, TACGlobal]):
         self.fn = fn
         self.temporary_counter = 0
         self.label_counter = 1
         self.scope_stack = [{}]
+        self.globals = {}
 
     def lookup_scope(self, var: str):
         for scope in reversed(self.scope_stack):
             if var in scope:
                 return scope[var]
+        if var in self.globals:
+            return self.globals[var]
         raise Exception(f"Variable {var} undefined")
 
     def add_var(self, var: str):
@@ -169,5 +197,5 @@ class Lowerer:
         return var_to_tmp
 
     @abstractmethod
-    def to_tac(self):
+    def to_tac(self) -> TACProc:
         pass
