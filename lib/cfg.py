@@ -69,11 +69,12 @@ def lookup_block(label: TACLabel, blocks: List[BasicBlock]):
 
 
 class CFGAnalyzer:
-    def __init__(self):
+    def __init__(self, proc: TACProc):
+        self.proc = proc
         self.entry_label_counter = 0
 
     def fresh_entry_label(self):
-        lbl = TACLabel(f".Lentry{self.entry_label_counter}")
+        lbl = TACLabel(f".Ltmp.{self.proc.name}.{self.entry_label_counter}")
         self.entry_label_counter += 1
         return lbl
 
@@ -203,10 +204,13 @@ class CFGAnalyzer:
         while len(trace.successors) == 1 and trace.empty():
             trace = trace.successors[0]
         return trace
-
-    def optimize(self, tac: TAC, unc_thread=True, cond_thread=True, coalesce=True):
-        blocks = self.get_blocks(tac.ops)
+    
+    # TODO: remove jmps after rets
+    
+    def optimize(self, unc_thread=True, cond_thread=True, coalesce=True):
+        blocks = self.get_blocks(self.proc.body.ops)
         self.cfg(blocks)
+
         if cond_thread:
             self.cond_thread(blocks)
             self.cfg(blocks)

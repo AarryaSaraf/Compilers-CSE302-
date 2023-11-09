@@ -171,7 +171,7 @@ class Lowerer:
         self.label_counter = 1
         self.params = [TACTemp(p[0]) for p in fn.params]
         self.scope_stack = [{p[0]: TACTemp(p[0]) for p in fn.params}]
-        self.globals = {}
+        self.globals = globals
 
     def lookup_scope(self, var: str):
         for scope in reversed(self.scope_stack):
@@ -190,7 +190,7 @@ class Lowerer:
         return var
 
     def fresh_label(self) -> TACLabel:
-        lab = TACLabel(f".L{self.label_counter}")
+        lab = TACLabel(f".L{self.fn.name}.{self.label_counter}")
         self.label_counter += 1
         return lab
 

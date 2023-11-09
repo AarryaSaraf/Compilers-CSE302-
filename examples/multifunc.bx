@@ -1,16 +1,21 @@
 def main(){
-    print(foo(10));
+    var x = 2: int;
+    var y = 2: int;
+    y = x + y;
+    //print(foo(10));
 }
 def foo(x: int) : int {
-    print(x);
-    return bar(x);
+    //print(x);
+    //return bar(x);
+    return 1;
 }
 
 def bar(x: int) : int {
     if (x == 0){
         return z;
     } else {
-        return foo(x - 1);
+        return 3;
+        // return foo(x - 1);
     }
 }
 

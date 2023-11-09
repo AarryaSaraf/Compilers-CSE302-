@@ -68,7 +68,7 @@ class SyntaxChecker:
     def check_stmt(self, stmt: Statement) -> List[SyntaxError]:
         match stmt:
             case StatementAssign(lvalue, rvalue):
-                if not self.defined(rvalue):
+                if not self.defined(lvalue):
                     self.errors.append(
                         SyntaxError(
                             f"Variable {lvalue} undefined, must declare before write"

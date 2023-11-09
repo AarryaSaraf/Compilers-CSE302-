@@ -12,6 +12,14 @@ OPCODE_TO_ASM = {
     "lshift": "salq",
     "rshift": "sarq",
 }
+CC_REG_ORDER = [
+    "rdi",
+    "rsi",
+    "rdx",
+    "rcx",
+    "r8",
+    "r9"
+]
 SIMPLE_BIN_OPS = {"add", "sub", "mul", "and", "or", "xor"}
 SIMPLE_UN_OPS = {"not", "neg"}
 
@@ -39,24 +47,34 @@ def make_text_section(asms: List[str]):
 
 class AsmGen:
     def __init__(self, proc: TACProc):
+        self.proc = proc
         self.tac = proc.body
         self.temps = proc.body.get_tmps()
-        self.tmp_alloc = {tmp: i for i, tmp in enumerate(self.temps)}
+        self.tmp_alloc = {param: i for i, param in enumerate(self.proc.params)} | {tmp: i for i, tmp in enumerate(self.temps)} 
         self.skeleton = f"""
-{proc.name}:
+{proc.name}: 
     pushq %rbp # store old RBP at top of the stack
     movq %rsp, %rbp # make RBP point to just after stack slots
     # At that point, we are 16-byte aligned
     # - return address (8 bytes) + copy of old RBP (8 bytes)
     # Now we allocate stack slots in units of 8 bytes (= 64 bits)
     # E.g., for 8 slots, i.e., 8 * 8 = 64 bytes
-    # -- MODIFY AS NEEDED --
     subq ${8*len(self.tmp_alloc)}, %rsp
+{self.compile_proc_head()}
 __BODY__
 
         """
-        self.body = ""
-
+        # TODO: add handling for passed arguments
+        self.body = "" 
+    def compile_proc_head(self):
+        head_code = ""
+        for i, param in enumerate(self.proc.params):
+            if i < 6:
+                head_code += self.store_var(CC_REG_ORDER[i], param)
+            else: 
+                head_code += f"    movq {16+(i-6)*8}(%rbp) -{(self.tmp_alloc[param]+1)*8}(%rbp)"
+        return head_code
+    
     def compile(self):
         for op in self.tac.ops:
             if not isinstance(op, TACLabel):
@@ -64,6 +82,21 @@ __BODY__
             match op:
                 case TACLabel(name):
                     self.body += f"{name}:\n"
+                case TACOp("ret", [val], None) if isinstance(val, int):
+                    self.body += f"   movq ${val}, %rax \n"
+                    self.body += "    movq %rbp, %rsp # restore old RSP\n"
+                    self.body += "    popq %rbp # restore old RBP\n"
+                    self.body += "    retq \n"                    
+                case TACOp("ret", [val], None) if isinstance(val, (TACTemp, TACGlobal)):
+                    self.body += self.load_var(val, "rax") 
+                    self.body += "    movq %rbp, %rsp # restore old RSP\n"
+                    self.body += "    popq %rbp # restore old RBP\n"
+                    self.body += "    retq \n"                   
+                case TACOp("ret", [], None):
+                    self.body += f"    movq $0, %rax # set return code to 0\n"
+                    self.body += "    movq %rbp, %rsp # restore old RSP\n"
+                    self.body += "    popq %rbp # restore old RBP\n"
+                    self.body += "    retq\n "                    
                 case TACOp("jmp", [label], None):
                     self.body += f"    jmp {label.name}\n"
                 case TACOp(
@@ -107,26 +140,7 @@ __BODY__
                     self.body += (
                         f"    movq ${val}, -{(self.tmp_alloc[res]+1)*8}(%rbp)\n"
                     )
-                case TACOp("ret", [val], None) if isinstance(val, int):
-                    self.body += (
-                        f"    movq ${val}, %rax "
-                        + "    movq %rbp, %rsp # restore old RSP"
-                        + "    popq %rbp # restore old RBP"
-                        + "    retq "
-                    )
-                case TACOp("ret", [val], None) if isinstance(val, (TACTemp, TACGlobal)):
-                    self.body += self.load_var(val, "rax") + (
-                        "    movq %rbp, %rsp # restore old RSP"
-                        + "    popq %rbp # restore old RBP"
-                        + "    retq "
-                    )
-                case TACOp("ret", [], None):
-                    self.body += (
-                        f"    movq $0, %rax # set return code to 0"
-                        + "    movq %rbp, %rsp # restore old RSP"
-                        + "    popq %rbp # restore old RBP"
-                        + "    retq "
-                    )
+                # TODO: Add param and call
                 case x:
                     print(f"WARNING: Cannot compile {x}")
         return self.skeleton.replace("__BODY__", self.body)
