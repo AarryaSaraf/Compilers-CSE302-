@@ -115,7 +115,6 @@ def p_paramlist(p):
         p[0] = [p[1]]
     else:
         p[0] = [p[1]] + p[3]
-    print(p[0])
 
 
 def p_block(p):

@@ -141,7 +141,6 @@ class Function:
     ty: FunctionType
 
     def __init__(self, name, body, return_ty, params):
-        print(params)
         self.name = name
         self.body = body
         self.return_ty = return_ty
