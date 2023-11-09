@@ -93,12 +93,23 @@ __BODY__
                     self.body += "    popq %rbp # restore old RBP\n"
                     self.body += "    retq \n"                   
                 case TACOp("ret", [], None):
-                    self.body += f"    movq $0, %rax # set return code to 0\n"
+                    self.body += "    xorq %rax, %rax# set return code to 0\n"
                     self.body += "    movq %rbp, %rsp # restore old RSP\n"
                     self.body += "    popq %rbp # restore old RBP\n"
                     self.body += "    retq\n "                    
                 case TACOp("jmp", [label], None):
                     self.body += f"    jmp {label.name}\n"
+                case TACOp("param", [i, arg], None) if i < 7:
+                    self.body += self.load_var(arg, CC_REG_ORDER[i-1])   
+                case TACOp("param", [i, arg], None) if i >= 7:  
+                    self.body += self.load_var(arg, "rax")
+                    self.body += "    pushq %rax\n"
+                case TACOp("call", [callee, num_args], res):
+                    self.body += f"    callq {callee}\n"
+                    if num_args > 6:
+                        self.body += f"    addq ${(num_args-6)*8} %rsp"
+                    if res is not None:
+                        self.body += self.store_var("rax", res)
                 case TACOp(
                     "jz" | "jnz" | "jl" | "jle" | "jnl" | "jnle" as op,
                     [arg, label],

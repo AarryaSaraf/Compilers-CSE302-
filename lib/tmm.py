@@ -121,9 +121,9 @@ class TMM(Lowerer):
                     lab_false,
                     TACOp("const", [0], tmp),
                 ]
-        for i, argtmp in enumerate(arg_temps):
+        for i, argtmp in reversed(list(enumerate(arg_temps))): # push them in reverse order to make the calling easier
             code += [TACOp("param", [i + 1, argtmp], None)]
-        code += [TACOp("call", [callexpr.target], res)]
+        code += [TACOp("call", [callexpr.target, len(callexpr.arguments)], res)]
         return code
 
     def tmm_bool_code(

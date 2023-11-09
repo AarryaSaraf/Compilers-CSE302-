@@ -1,7 +1,8 @@
 def main(){
     var x = 2: int;
     var y = 2: int;
-    y = x + y;
+    y = x -y;
+    print(bar(y));
     //print(foo(10));
 }
 def foo(x: int) : int {
