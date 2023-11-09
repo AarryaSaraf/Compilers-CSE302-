@@ -50,7 +50,7 @@ class AsmGen:
         self.proc = proc
         self.tac = proc.body
         self.temps = proc.body.get_tmps()
-        self.tmp_alloc = {param: i for i, param in enumerate(self.proc.params)} | {tmp: i for i, tmp in enumerate(self.temps)} 
+        self.tmp_alloc = {param: i for i, param in enumerate(self.proc.params)} | {tmp: i+len(proc.params) for i, tmp in enumerate(self.temps)} 
         self.skeleton = f"""
 {proc.name}: 
     pushq %rbp # store old RBP at top of the stack
@@ -72,7 +72,8 @@ __BODY__
             if i < 6:
                 head_code += self.store_var(CC_REG_ORDER[i], param)
             else: 
-                head_code += f"    movq {16+(i-6)*8}(%rbp) -{(self.tmp_alloc[param]+1)*8}(%rbp)"
+                head_code += f"    movq +{16+(i-6)*8}(%rbp), %rax\n"
+                head_code += self.store_var("rax", param)
         return head_code
     
     def compile(self):
@@ -101,13 +102,13 @@ __BODY__
                     self.body += f"    jmp {label.name}\n"
                 case TACOp("param", [i, arg], None) if i < 7:
                     self.body += self.load_var(arg, CC_REG_ORDER[i-1])   
-                case TACOp("param", [i, arg], None) if i >= 7:  
+                case TACOp("param", [i, arg], None) if i >= 7:  # This assumes that we order the param calls in reverse during TAC generation
                     self.body += self.load_var(arg, "rax")
                     self.body += "    pushq %rax\n"
                 case TACOp("call", [callee, num_args], res):
                     self.body += f"    callq {callee}\n"
                     if num_args > 6:
-                        self.body += f"    addq ${(num_args-6)*8} %rsp"
+                        self.body += f"    addq ${(num_args-6)*8}, %rsp\n"
                     if res is not None:
                         self.body += self.store_var("rax", res)
                 case TACOp(
@@ -151,7 +152,6 @@ __BODY__
                     self.body += (
                         f"    movq ${val}, -{(self.tmp_alloc[res]+1)*8}(%rbp)\n"
                     )
-                # TODO: Add param and call
                 case x:
                     print(f"WARNING: Cannot compile {x}")
         return self.skeleton.replace("__BODY__", self.body)

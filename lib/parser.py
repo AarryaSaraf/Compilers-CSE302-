@@ -100,7 +100,7 @@ def p_param_ident(p):
     """
     param : IDENT COLON ty
     """
-    p[0] = [p[1], p[3]]
+    p[0] = (p[1], p[3])
 
 
 def p_paramlist(p):
@@ -108,13 +108,14 @@ def p_paramlist(p):
     paramlist : param
           | param COMMA paramlist
     """
+    
     if len(p) == 1:
         p[0] = []
     elif len(p) == 2:
         p[0] = [p[1]]
     else:
-        p[0] = p[3]
-        p[0] += p[1]
+        p[0] = [p[1]] + p[3]
+    print(p[0])
 
 
 def p_block(p):
@@ -207,8 +208,7 @@ def p_arglist(p):
     elif len(p) == 2:
         p[0] = [p[1]]
     else:
-        p[0] = p[3]
-        p[0] += p[1]
+        p[0] = [p[1]] + p[3]
 
 
 def p_stmt_if_then(p):

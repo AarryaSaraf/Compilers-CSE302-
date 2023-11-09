@@ -218,7 +218,7 @@ class TMM(Lowerer):
                 return self.tmm_call(expr, result)
             case ExpressionBinOp(operator, left, right):
                 left_tmp = self.fresh_temp()
-                right_tmp = result
+                right_tmp = self.fresh_temp()
                 left_ops = self.tmm_int_code(left, left_tmp)
                 right_ops = self.tmm_int_code(right, right_tmp)
                 return (
