@@ -196,7 +196,7 @@ class TypeChecker:
                     self.assert_type(PrimiType("bool"), left)
                     self.assert_type(PrimiType("bool"), right)
                     expr.ty = PrimiType("bool")
-                if op in ["lt", "lte", "gt", "gte", "equals", "notequals"]:
+                elif op in ["lt", "lte", "gt", "gte", "equals", "notequals"]:
                     self.assert_type(PrimiType("int"), left)
                     self.assert_type(PrimiType("int"), right)
                     expr.ty = PrimiType("bool")
