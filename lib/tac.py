@@ -182,7 +182,7 @@ class Lowerer:
         raise Exception(f"Variable {var} undefined")
 
     def add_var(self, var: str):
-        self.scope_stack[-1][var] = self.fresh_temp()
+        self.scope_stack[-1][var] = TACTemp(var)
 
     def fresh_temp(self) -> TACTemp:
         var = TACTemp(self.temporary_counter)
@@ -199,7 +199,7 @@ class Lowerer:
         for stmt in statements:
             match stmt:
                 case StatementDecl(name, _, _):
-                    var_to_tmp[name] = self.fresh_temp()
+                    var_to_tmp[name] = TACTemp(name)
                 case _:
                     pass
         return var_to_tmp

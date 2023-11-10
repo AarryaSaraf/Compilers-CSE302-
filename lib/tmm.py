@@ -37,13 +37,14 @@ class TMM(Lowerer):
                     if ty == PrimiType("bool"):
                         self.add_var(name)
                         var_tmp = self.lookup_scope(name)
-                        lbl_true, lbl_false = self.fresh_label(), self.fresh_label()
-                        code += [
-                            self.tmm_bool_code(init, lbl_true, lbl_false),
+                        lbl_true, lbl_false, lbl_end = self.fresh_label(), self.fresh_label(), self.fresh_label()
+                        code += self.tmm_bool_code(init, lbl_true, lbl_false)+[
                             lbl_true,
                             TACOp("const", [1], var_tmp),
+                            TACOp("jmp", [lbl_end], None),
                             lbl_false,
                             TACOp("const", [0], var_tmp),
+                            lbl_end
                         ]
                 case StatementWhile(cond, block):
                     label_head, label_body, label_end = (
@@ -113,13 +114,15 @@ class TMM(Lowerer):
             if argexpr.ty == PrimiType("int"):
                 code += self.tmm_int_code(argexpr, tmp)
             else:
-                lab_true, lab_false = self.fresh_label(), self.fresh_label()
-                code += [
-                    self.tmm_bool_code(argexpr, lab_true, lab_false),
+                # TODO: if argexpr is already a boolean var then we don't need this step
+                lab_true, lab_false, lab_end = self.fresh_label(), self.fresh_label(), self.fresh_label()
+                code += self.tmm_bool_code(argexpr, lab_true, lab_false) + [
                     lab_true,
                     TACOp("const", [1], tmp),
+                    TACOp("jmp", [lab_end], None),
                     lab_false,
                     TACOp("const", [0], tmp),
+                    lab_end
                 ]
         for i, argtmp in reversed(list(enumerate(arg_temps))): # push them in reverse order to make the calling easier
             code += [TACOp("param", [i + 1, argtmp], None)]
@@ -205,6 +208,8 @@ class TMM(Lowerer):
                 return [TACOp("jmp", [lab_true], None)]
             case ExpressionBool(False):
                 return [TACOp("jmp", [lab_false], None)]
+            case ExpressionVar(x):
+                return [TACOp("jz", [self.lookup_scope(x), lab_false], None), TACOp("jmp", [lab_true], None)]
             case x:
                 print(f"Cannot ast2tac the expression: {x}")
 

@@ -116,7 +116,7 @@ __BODY__
                     [arg, label],
                     None,
                 ):
-                    self.load_var(arg, "rax")
+                    self.body += self.load_var(arg, "rax")
                     self.body += f"    cmpq $0, %rax\n"
                     self.body += f"    {op} {label.name}\n"
                 case TACOp("lshift" | "rshift" as op, [tmp1, tmp2], res):
