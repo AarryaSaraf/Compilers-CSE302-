@@ -1,4 +1,4 @@
 def main() {
     var x = 10 : int;
-    print(x == 10);
+    print((x == 10) && (30 != 20));
 }

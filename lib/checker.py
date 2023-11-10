@@ -26,15 +26,19 @@ class SyntaxChecker:
         self.scope_stack: List[Set] = []
         self.loop_depth = 0
         self.functions = {}
+        self.set_runtime_functions()
+    def set_runtime_functions(self):
+        self.functions["print"] = Function(
+            "print", None, VoidType, [("x", PrimiType("any"))]
+        )
+        self.functions["readint"] = Function("readint", None, PrimiType("int"), [])
 
     def check_program(self, program: List[Function | StatementDecl]):
         self.scope_stack = [
             set([decl.name for decl in program if isinstance(decl, StatementDecl)])
         ]
-        self.functions = {fun.name: fun for fun in program if isinstance(fun, Function)}
-        self.functions["print"] = Function(
-            "print", None, VoidType, [("x", PrimiType("any"))]
-        )
+        self.functions = self.functions | {fun.name: fun for fun in program if isinstance(fun, Function)}
+        
         for glob in program:
             match glob:
                 case Function():
@@ -169,6 +173,10 @@ class TypeChecker:
         self.function_signatures = {
             fun.name: fun.ty for fun in program if isinstance(fun, Function)
         }
+        self.set_runtime_functions()
+    
+    def set_runtime_functions(self):
+        self.function_signatures["readint"] = FunctionType(input_types=[], out_type=PrimiType("int"))
 
     def infer_type(self, expr: Expression):
         match expr:

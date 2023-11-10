@@ -5,3 +5,9 @@
 This is because C int is usually only 32 bits. */
 void __bx_print_int(int64_t x) { printf("%ld\n", x); }
 void __bx_print_bool(int64_t b) { printf(b == 0 ? "false\n" : "true\n"); }
+int readint() {
+    int a;
+    printf("Enter number: ");
+    scanf("%d", &a);
+    return a;
+}
