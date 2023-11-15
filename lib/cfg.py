@@ -1,4 +1,4 @@
-from typing import List, Any, Tuple
+from typing import List, Any, Tuple, Set
 from dataclasses import field
 from .tac import *
 
@@ -15,10 +15,13 @@ mutex_jmps = [
 class BasicBlock:
     entry: TACLabel
     ops: List[TACOp] = field(default_factory=list)
-    successors: List[Any] = field(default_factory=list)
-    predecessors: List[Any] = field(default_factory=list)
+    successors: Set[Any] = field(default_factory=set)
+    predecessors: Set[Any] = field(default_factory=set)
     initial: bool = False
     fallthrough: TACLabel | None = None
+    
+    def final(self) -> bool:
+        return self.ops[-1].opcode == "ret"
 
     def empty(self) -> bool:
         return all([op.opcode in JMP_OPS for op in self.ops])
@@ -48,6 +51,13 @@ class BasicBlock:
 
     def get_cond_jumps(self) -> List[TACOp]:
         return [op for op in self.ops if op.opcode in COND_JMP_OPS]
+    
+    # Comparison and hashing is done 
+    def __hash__(self) -> int:
+        return hash(self.entry)
+    
+    def __eq__(self, __value: object) -> bool:
+        return self.entry == self
 
 
 def coalesce_block(block1: BasicBlock, block2: BasicBlock):
@@ -124,7 +134,7 @@ class CFGAnalyzer:
             successors = [lookup_block(lbl, blocks) for lbl in successor_labels]
             block.successors = successors
             for succ in successors:
-                succ.predecessors.append(block)
+                succ.predecessors.add(block)
             if block.ops[-1].opcode == "jmp":
                 block.fallthrough = lookup_block(block.ops[-1].args[0], blocks)
         blocks[0]
@@ -221,12 +231,22 @@ class CFGAnalyzer:
             if isinstance(op, TACOp) and op.opcode in COND_JMP_OPS:
                 labels_used.add(op.args[1])
         return TAC([op for op in tac.ops if not (isinstance(op, TACLabel) and op not in labels_used)])
-    # TODO: remove jmps after rets
+    
+    def remove_inst_after_ret(self, blocks: List[BasicBlock]):
+        for block in blocks:
+            for i, op in enumerate(block.ops):
+                if isinstance(op, TACOp) and op.opcode == "ret":
+                    block.successors = set()
+                    for succ in block.successors:
+                        succ.predecessors.remove(block)
+                    break
+            block.ops = block.ops[:i+1] # cut off after ret
+        return blocks
     
     def optimize(self, unc_thread=True, cond_thread=True, coalesce=True):
         blocks = self.get_blocks(self.proc.body.ops)
         self.cfg(blocks)
-
+        blocks = self.remove_inst_after_ret(blocks)
         if cond_thread:
             self.cond_thread(blocks)
             self.cfg(blocks)
