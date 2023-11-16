@@ -115,7 +115,7 @@ class SSACrudeGenerator:
         # this converts everything into basic SSA with Phony defs that will be turned into phi functions in step2
         ssa_blocks = []
         for block in self.blocks:
-            self.insert_phony(block)
+            block = self.insert_phony(block)
             ssa_blocks.append(self.versioning(block))
         self.update_pred_succ(ssa_blocks)
         for block in ssa_blocks:
@@ -123,10 +123,21 @@ class SSACrudeGenerator:
         return ssa_blocks
     
     def insert_phony(self, block: BasicBlock):
+        new_block = BasicBlock(
+            deepcopy(block.entry),
+            deepcopy(block.ops),
+            block.successors,
+            block.predecessors,
+            block.initial,
+            block.fallthrough,
+            deepcopy(block.live_in),
+            deepcopy(block.live_out) 
+        )
         phony_defs = []
         for tmp in block.live_in:
             phony_defs.append(TACOp("phony", [], tmp))
-        block.ops = phony_defs + block.ops
+        new_block.ops = phony_defs + block.ops
+        return new_block
 
     def versioning(self, block: BasicBlock) -> SSABasicBlock:
         new_ops = []
