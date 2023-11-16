@@ -20,6 +20,10 @@ class BasicBlock:
     initial: bool = False
     fallthrough: TACLabel | None = None
     
+    # for liveness analysis
+    live_in: Set[TACTemp] = field(default_factory=set)
+    live_out: Set[TACTemp] = field(default_factory=set)
+    
     def final(self) -> bool:
         return self.ops[-1].opcode == "ret"
 

@@ -19,13 +19,16 @@ class LivenessAnalyzer:
         return inst.live_in
     
     def liveness_block(self, live_out: Set[TACTemp], block: BasicBlock):
+        block.live_out = block.live_out.union(live_out)
         for inst in reversed(block.ops):
             live_out = self.liveness_inst(live_out, inst)
+        block.live_in = block.live_in.union(live_out)
         
         for pred in block.predecessors:
             if (block.entry, pred.entry) not in self.edges_covered:
                 self.liveness_block(live_out, pred)
                 self.edges_covered.add((block.entry, pred.entry))
+        
     
     def liveness(self):
         for block in self.cfg:
