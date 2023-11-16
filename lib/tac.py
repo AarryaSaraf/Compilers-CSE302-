@@ -1,6 +1,6 @@
+from dataclasses import field
 from .bxast import *
-from typing import Dict
-
+from typing import Dict, Set
 
 class TACTemp:
     def __init__(self, id: str | int) -> None:
@@ -59,6 +59,10 @@ class TACOp:
     args: List[TACTemp | TACLabel | int | TACGlobal]
     result: TACTemp | TACGlobal | None
 
+    # for liveness analysis
+    live_in: Set[TACTemp] = field(default_factory=set)
+    live_out: Set[TACTemp] = field(default_factory=set)
+
     def to_dict(self):
         return {
             "opcode": self.opcode,
@@ -71,10 +75,16 @@ class TACOp:
         }
 
     def pretty(self):
+        if self.result is not None:
+            return (
+                f"{self.result} = {self.opcode} {' '.join([str(arg) for arg in self.args])}"
+            )
         return (
-            f"{self.result} = {self.opcode} {' '.join([str(arg) for arg in self.args])}"
-        )
+               f"{self.opcode} {' '.join([str(arg) for arg in self.args])}"
+            )
 
+    def detailed(self) -> str:
+        return f"\t{str(self.live_in)} \n\t{self.pretty()}\n \t{str(self.live_out)}"
 
 @dataclass
 class TAC:
@@ -157,11 +167,19 @@ def pretty_print(tac: TAC) -> str:
     for op in tac.ops:
         if isinstance(op, TACOp):
             print(
-                f"\t {op.result} = {op.opcode} {' '.join([str(arg) for arg in op.args])}"
+               f"\t {op.pretty()}"
             )
         else:
             print(f"{op.name}")
 
+def print_detailed(tac: TAC):
+      for op in tac.ops:
+        if isinstance(op, TACOp):
+            print(
+               f"{op.detailed()}"
+            )
+        else:
+            print(f"{op.name}")
 
 # TODO: deserialization
 class Lowerer:

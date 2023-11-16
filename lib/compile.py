@@ -3,7 +3,7 @@ from typing import Dict
 from .asmgen import AsmGen, make_data_section, make_text_section, global_symbs
 from .parser import parser
 from .tmm import TMM
-from .tac import TACGlobal, TACProc, pretty_print
+from .tac import TACGlobal, TACProc, pretty_print, print_detailed
 from .cfg import CFGAnalyzer
 from .bxast import Function, StatementDecl
 from .checker import SyntaxChecker, TypeChecker
@@ -36,6 +36,8 @@ def compile_unit(ast: Function, globalmap: Dict[str, TACGlobal]) -> str:
     tacproc = lowerer.lower()
     cfg_analyzer = CFGAnalyzer(tacproc)
     tacproc.body = cfg_analyzer.optimize()
+    print(ast.name)
+    print_detailed(tacproc.body)
     asm_gen = AsmGen(tacproc)
     asm = asm_gen.compile()
     return asm

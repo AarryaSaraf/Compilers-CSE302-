@@ -76,7 +76,8 @@ def lookup_block(label: TACLabel, blocks: List[BasicBlock]):
     for block in blocks:
         if block.entry == label:
             return block
-
+        
+from .liveness import LivenessAnalyzer
 
 class CFGAnalyzer:
     def __init__(self, proc: TACProc):
@@ -256,6 +257,11 @@ class CFGAnalyzer:
         if coalesce:
             blocks = self.coalesce_blocks(blocks)
             self.cfg(blocks)  # update pred and succ
+        # Compute liveness while in CFG form WIP MUST REMOVE AND REFACTOR!!!!!!!!!!!!!
+        liveness_analyzer = LivenessAnalyzer(blocks)
+        liveness_analyzer.liveness()
+
+
         initial = [block for block in blocks if block.initial][0]
         serializer = Serializer()
         # serialization automatically does unreachable code elimination
