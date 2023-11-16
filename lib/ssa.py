@@ -72,6 +72,9 @@ class SSAOp:
                f"{self.opcode} {' '.join([str(arg) for arg in self.args])}"
             )
 
+    def is_jmp(self) -> bool:
+        return self.opcode in JMP_OPS
+
 @dataclass
 class Phi:
     defined: SSATemp
@@ -91,7 +94,7 @@ class SSABasicBlock:
     predecessors: Set[Any] = field(default_factory=set)
     versions_out: Dict[TACTemp, SSATemp] | None = None
     initial: bool = False
-    fallthrough: SSALabel | None = None
+    fallthrough: Any | None = None
     
     # for liveness analysis
     live_in: Set[SSATemp] = field(default_factory=set)
@@ -160,6 +163,7 @@ class SSACrudeGenerator:
             new_ops,
             block.successors,
             block.predecessors,
+            initial=block.initial,
             versions_out=self.current_version.copy()
         )
 
@@ -169,6 +173,8 @@ class SSACrudeGenerator:
         for block in blocks:
             block.predecessors = [label_to_ssablock[pred.entry] for pred in block.predecessors]
             block.successors = [label_to_ssablock[succ.entry] for succ in block.successors]
+            if block.fallthrough is not None:
+                block.fallthrough = label_to_ssablock[block.fallthrough.entry]
 
     def convert_phony_to_phi(self, block: SSABasicBlock) -> SSABasicBlock:
         if block.initial:
@@ -191,6 +197,65 @@ class SSACrudeGenerator:
 class SSAOptimizer():
     def __init__(self, blocks: List[SSABasicBlock]) -> None:
         self.blocks = blocks
+
+
+class SSADeconstructor():
+    def __init__(self, blocks: List[SSABasicBlock]):
+        self.blocks = blocks
+        print(blocks)
+        self.initial = [block for block in blocks if block.initial][0]
+        self.already_serialized = set()
+        self.serialization = []
+        self.ssa_to_tac = {} 
+        self.tactmp_counter = 0
+
+    def ssatmp_to_tac(self, tmp: SSATemp) -> TACTemp:
+        if tmp in self.ssa_to_tac:
+            return self.ssa_to_tac[tmp]
+        if isinstance(tmp.id, str) and tmp.version == 0:
+            self.ssa_to_tac[tmp] = TACTemp(tmp.id) # this is done for parameter passing
+        else:
+            self.ssa_to_tac[tmp] = TACTemp(self.tactmp_counter)
+            self.tactmp_counter += 1
+        return self.ssa_to_tac[tmp]
+
+    def ssaop_to_tac(self, op:SSAOp) -> TACOp:
+        return TACOp(
+            op.opcode,
+            [self.ssatmp_to_tac(arg) if isinstance(arg, SSATemp) else arg for arg in op.args],
+            self.ssatmp_to_tac(op.result) if op.result is not None else None
+        )
+
+    def to_tac(self) -> TAC:
+        self.resolve_phis()
+        self.serialize(self.initial)
+        return TAC(self.serialization)
+    
+    def resolve_phis(self):
+        copies_to_insert = {block.entry: set() for block in self.blocks}
+        # gather the copies to be inserted
+        for block in self.blocks:
+            for phi in block.defs:
+                for lab, tmp in phi.sources.items():
+                    copies_to_insert[lab].add((phi.defined, tmp))
+        # insert the copies
+        for block in self.blocks:
+            copies = [TACOp("copy", [src], res) for res, src in copies_to_insert[block.entry]]
+            pre_jump = [op for op in block.ops if not op.is_jmp()]
+            jumps = block.ops[len(pre_jump):]
+            block.ops = pre_jump + copies + jumps
+    
+    def serialize(self, block: SSABasicBlock) -> TAC:
+        if block.entry in self.already_serialized:
+            return
+        self.already_serialized.add(block.entry)
+        self.serialization.append(block.entry)
+        self.serialization += [self.ssaop_to_tac(op) for op in block.ops]
+        if block.fallthrough is not None:
+            self.serialize(block.fallthrough)
+        for succ in block.successors:
+            self.serialize(succ)
+
 
 def ssa_print(block: SSABasicBlock) -> str:
     print(str(block.entry)+ ":")

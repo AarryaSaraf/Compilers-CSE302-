@@ -18,7 +18,7 @@ class BasicBlock:
     successors: Set[Any] = field(default_factory=set)
     predecessors: Set[Any] = field(default_factory=set)
     initial: bool = False
-    fallthrough: TACLabel | None = None
+    fallthrough: Any | None = None
     
     # for liveness analysis
     live_in: Set[TACTemp] = field(default_factory=set)

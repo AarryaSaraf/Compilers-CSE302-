@@ -85,6 +85,9 @@ class TACOp:
 
     def detailed(self) -> str:
         return f"\t{str(self.live_in)} \n\t{self.pretty()}\n \t{str(self.live_out)}"
+    
+    def is_jmp(self) -> bool:
+        return self.opcode in JMP_OPS
 
 @dataclass
 class TAC:
