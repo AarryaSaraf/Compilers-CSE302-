@@ -216,23 +216,6 @@ class CFGAnalyzer:
             trace = trace.successors[0]
         return trace
     
-    def remove_fallthrough_jmps(self, tac: TAC) -> TAC:
-        new_ops = []
-        for op, next in zip(tac.ops[:-1], tac.ops[1:]):
-            if not(isinstance(op, TACOp) and op.opcode == "jmp" and isinstance(next, TACLabel) and op.args[0] == next):
-                new_ops.append(op)
-        new_ops.append(tac.ops[-1]) # append the last one as it hasn't been iterated over
-        return TAC(new_ops)
-
-    def remove_unused_labels(self, tac):
-        labels_used = set()
-        for op in tac.ops:
-            if isinstance(op, TACOp) and op.opcode == "jmp":
-                labels_used.add(op.args[0])
-            if isinstance(op, TACOp) and op.opcode in COND_JMP_OPS:
-                labels_used.add(op.args[1])
-        return TAC([op for op in tac.ops if not (isinstance(op, TACLabel) and op not in labels_used)])
-    
     def remove_inst_after_ret(self, blocks: List[BasicBlock]):
         for block in blocks:
             for i, op in enumerate(block.ops):
@@ -257,25 +240,18 @@ class CFGAnalyzer:
         if coalesce:
             blocks = self.coalesce_blocks(blocks)
             self.cfg(blocks)  # update pred and succ
-        # Compute liveness while in CFG form WIP MUST REMOVE AND REFACTOR!!!!!!!!!!!!!
-        liveness_analyzer = LivenessAnalyzer(blocks)
-        liveness_analyzer.liveness()
+        return blocks
 
-
-        initial = [block for block in blocks if block.initial][0]
-        serializer = Serializer()
-        # serialization automatically does unreachable code elimination
-        tac = serializer.to_tac(initial)
-        tac = self.remove_fallthrough_jmps(tac)
-        tac = self.remove_unused_labels(tac)
-        return tac
+        
 
 
 class Serializer:
-    def __init__(self) -> None:
+    def __init__(self, blocks) -> None:
         self.already_serialized = set()
         self.serialization: List[TACLabel | TACOp] = []
-
+        self.blocks = blocks
+        self.initial = [block for block in blocks if block.initial][0]
+        
     def serialize(self, block: BasicBlock):
         if block.entry in self.already_serialized:
             return
@@ -287,6 +263,27 @@ class Serializer:
         for succ in block.successors:
             self.serialize(succ)
 
-    def to_tac(self, initial: Block) -> TAC:
-        self.serialize(initial)
-        return TAC(self.serialization)
+
+    def to_tac(self) -> TAC:
+        self.serialize(self.initial)
+        tac = TAC(self.serialization)
+        tac = self.remove_fallthrough_jmps(tac)
+        tac = self.remove_unused_labels(tac)
+        return tac
+
+    def remove_fallthrough_jmps(self, tac: TAC) -> TAC:
+        new_ops = []
+        for op, next in zip(tac.ops[:-1], tac.ops[1:]):
+            if not(isinstance(op, TACOp) and op.opcode == "jmp" and isinstance(next, TACLabel) and op.args[0] == next):
+                new_ops.append(op)
+        new_ops.append(tac.ops[-1]) # append the last one as it hasn't been iterated over
+        return TAC(new_ops)
+
+    def remove_unused_labels(self, tac):
+        labels_used = set()
+        for op in tac.ops:
+            if isinstance(op, TACOp) and op.opcode == "jmp":
+                labels_used.add(op.args[0])
+            if isinstance(op, TACOp) and op.opcode in COND_JMP_OPS:
+                labels_used.add(op.args[1])
+        return TAC([op for op in tac.ops if not (isinstance(op, TACLabel) and op not in labels_used)])

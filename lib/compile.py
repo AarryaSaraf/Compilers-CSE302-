@@ -4,7 +4,8 @@ from .asmgen import AsmGen, make_data_section, make_text_section, global_symbs
 from .parser import parser
 from .tmm import TMM
 from .tac import TACGlobal, TACProc, pretty_print, print_detailed
-from .cfg import CFGAnalyzer
+from .liveness import LivenessAnalyzer
+from .cfg import CFGAnalyzer, Serializer
 from .bxast import Function, StatementDecl
 from .checker import SyntaxChecker, TypeChecker
 
@@ -35,9 +36,11 @@ def compile_unit(ast: Function, globalmap: Dict[str, TACGlobal]) -> str:
     lowerer = TMM(ast, globalmap)
     tacproc = lowerer.lower()
     cfg_analyzer = CFGAnalyzer(tacproc)
-    tacproc.body = cfg_analyzer.optimize()
-    print(ast.name)
-    print_detailed(tacproc.body)
+    blocks = cfg_analyzer.optimize()
+    liveness_analyzer = LivenessAnalyzer(blocks)
+    liveness_analyzer.liveness()
+    serializer = Serializer(blocks)
+    tacproc.body = serializer.to_tac()
     asm_gen = AsmGen(tacproc)
     asm = asm_gen.compile()
     return asm
