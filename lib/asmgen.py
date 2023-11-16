@@ -59,7 +59,6 @@ class AsmGen:
     # - return address (8 bytes) + copy of old RBP (8 bytes)
     # Now we allocate stack slots in units of 8 bytes (= 64 bits)
     # E.g., for 8 slots, i.e., 8 * 8 = 64 bytes
-    subq ${8*len(self.tmp_alloc)}, %rsp
 {self.compile_proc_head()}
 __BODY__
 
@@ -68,6 +67,12 @@ __BODY__
         self.body = "" 
     def compile_proc_head(self):
         head_code = ""
+        #  Ensure 16-bit alignment
+        if len(self.tmp_alloc) % 2 == 0:
+            head_code += f"    subq ${8*len(self.tmp_alloc)}, %rsp\n"
+        else:
+            # allocate an additional stack slot if not even
+            head_code += f"    subq ${8*(len(self.tmp_alloc)+1)}, %rsp\n"
         for i, param in enumerate(self.proc.params):
             if i < 6:
                 head_code += self.store_var(CC_REG_ORDER[i], param)
@@ -106,6 +111,8 @@ __BODY__
                     self.body += self.load_var(arg, "rax")
                     self.body += "    pushq %rax\n"
                 case TACOp("call", [callee, num_args], res):
+                    if num_args > 6 and num_args % 2 != 0:
+                        self.body += f"    pushq $0\n"
                     self.body += f"    callq {callee}\n"
                     if num_args > 6:
                         self.body += f"    addq ${(num_args-6)*8}, %rsp\n"
