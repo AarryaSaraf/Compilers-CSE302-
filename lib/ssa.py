@@ -197,12 +197,68 @@ class SSACrudeGenerator:
 class SSAOptimizer():
     def __init__(self, blocks: List[SSABasicBlock]) -> None:
         self.blocks = blocks
+    
+    def optimize(self, copy_propagate=True, rename_and_dead_choice=True) -> List[SSABasicBlock]:
+        if copy_propagate:
+            self.copy_propagate()
+        if rename_and_dead_choice:
+            self.rename_simpl()
+            self.no_choice_elim()
+        return self.blocks
+    
+    def copy_propagate_block(self, block: SSABasicBlock):
+        copy_continuations = {}
+        new_ops = []
+        for op in block.ops:
+            if op.opcode == "copy":
+                copy_continuations[op.result] = op.args[0]
+                self.rename_var(op.result, op.args[0])
+            else:
+                new_ops.append(op)
+        block.ops = new_ops
+    
+    def copy_propagate(self):
+        for block in self.blocks:
+            self.copy_propagate_block(block)
+    
+    def rename_var(self, old, new):
+        for block in self.blocks:
+            for phi in block.defs:
+                phi.sources = {lbl: new if tmp == old else tmp for lbl, tmp in phi.sources.items()}
+                phi.defined = new if phi.defined == old else phi.defined
+            for op in block.ops:
+                op.args = [new if isinstance(arg, SSATemp) and arg == old else arg for arg in op.args]
+                op.result = new if op.result is not None and op.result == old else op.result
 
+    def rename_simpl(self):
+        simpls = self.find_renames()
+        while len(simpls) != 0:
+            for old, new in simpls:
+                self.rename_var(old, new)
+            self.no_choice_elim()
+            simpls = self.find_renames()
+            print(simpls)
+    
+    def find_renames(self):
+        renames = []
+        for block in self.blocks:
+            for phi in block.defs:
+                unique_args = list(set(phi.sources.values())) # get unique values in the arguments
+                if len(unique_args) == 1:
+                    renames.append((phi.defined, unique_args[0]))
+        return renames
+    
+    def no_choice_elim(self):
+        for block in self.blocks:
+            new_defs = []
+            for phi in block.defs:
+                if not all([phi.defined == arg for arg in phi.sources.values()]):
+                    new_defs.append(phi)
+            block.defs = new_defs
 
 class SSADeconstructor():
     def __init__(self, blocks: List[SSABasicBlock]):
         self.blocks = blocks
-        print(blocks)
         self.initial = [block for block in blocks if block.initial][0]
         self.already_serialized = set()
         self.serialization = []

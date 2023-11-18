@@ -8,7 +8,7 @@ from .liveness import LivenessAnalyzer
 from .cfg import CFGAnalyzer, Serializer
 from .bxast import Function, StatementDecl
 from .checker import SyntaxChecker, TypeChecker
-from .ssa import SSACrudeGenerator, SSADeconstructor, ssa_print
+from .ssa import SSACrudeGenerator, SSADeconstructor, ssa_print, SSAOptimizer
 
 def compile(src: str):
     decls = parser.parse(src)
@@ -44,6 +44,8 @@ def compile_unit(ast: Function, globalmap: Dict[str, TACGlobal]) -> str:
     print(ast.name)
     for block in ssa_blocks:
         ssa_print(block)
+    ssa_optim = SSAOptimizer(ssa_blocks)
+    ssa_blocks = ssa_optim.optimize()
     serializer = SSADeconstructor(ssa_blocks)
     tacproc.body = serializer.to_tac()
     asm_gen = AsmGen(tacproc)
