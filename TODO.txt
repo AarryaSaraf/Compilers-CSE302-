@@ -18,6 +18,12 @@ Deadline Last Day
 
 
 
-Now 23rd Nov 
+ETAC 
+allocrecord :
+int stacksize
+dict :: Temp/SSA Temp -> Register/Stack
 
- - Settle on ETAC datastructure  
+Inference graph
+IGraph:
+SSA Temp id
+[Igraph] nbh
