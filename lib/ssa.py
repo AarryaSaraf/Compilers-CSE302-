@@ -72,6 +72,9 @@ class SSAOp:
             return f"{self.result} = {self.opcode} {' '.join([str(arg) for arg in self.args])}"
         return f"{self.opcode} {' '.join([str(arg) for arg in self.args])}"
 
+    def detailed(self) -> str:
+        return f"\t{str(self.live_in)} \n\t{self.pretty()}\n \t{str(self.live_out)}"
+    
     def is_jmp(self) -> bool:
         return self.opcode in JMP_OPS
 
@@ -111,7 +114,8 @@ class SSABasicBlock:
 
 
 class SSACrudeGenerator:
-    def __init__(self, blocks: List[BasicBlock]) -> None:
+    def __init__(self, blocks: List[BasicBlock], proc: TACProc) -> None:
+        self.proc = proc
         self.blocks = blocks
         self.initial = [block for block in blocks if block.initial][0]
         self.current_version = {}
@@ -145,23 +149,28 @@ class SSACrudeGenerator:
         new_block.ops = phony_defs + block.ops
         return new_block
 
+    def convert_op(self, op: TACOp) -> SSAOp:
+        args_versioned = [
+            self.current_version[arg] if isinstance(arg, TACTemp) else arg
+            for arg in op.args
+        ]
+        if op.result is not None:
+            self.inc_version(op.result)
+            result_versioned = self.current_version[op.result]
+        else:
+            result_versioned = None
+        new_op = SSAOp(
+            op.opcode,
+            args_versioned,
+            result_versioned,
+        )
+        return new_op
+    
     def versioning(self, block: BasicBlock) -> SSABasicBlock:
         new_ops = []
+        # I don't know about this... No this should be set from the phis
         for op in block.ops:
-            args_versioned = [
-                self.current_version[arg] if isinstance(arg, TACTemp) else arg
-                for arg in op.args
-            ]
-            if op.result is not None:
-                self.inc_version(op.result)
-                result_versioned = self.current_version[op.result]
-            else:
-                result_versioned = None
-            new_op = SSAOp(
-                op.opcode,
-                args_versioned,
-                result_versioned,
-            )
+            new_op = self.convert_op(op)
             new_ops.append(new_op)
         return SSABasicBlock(
             block.entry,
@@ -187,21 +196,22 @@ class SSACrudeGenerator:
                 block.fallthrough = label_to_ssablock[block.fallthrough.entry]
 
     def convert_phony_to_phi(self, block: SSABasicBlock) -> SSABasicBlock:
-        if block.initial:
-            return  # Figure out how to handle function parameters
         defs = [op for op in block.ops if op.opcode == "phony"]
         non_defs = block.ops[len(defs) :]
-        phis = [
-            Phi(
-                phony.result,
-                {
-                    pred.entry: pred.versions_out[TACTemp(phony.result.id)]
-                    for pred in block.predecessors
-                },
-            )
-            for phony in defs
-        ]
-        block.defs = phis
+        if block.initial:
+            pass  # Figure out how to handle function parameters
+        else:
+            phis = [
+                Phi(
+                    phony.result,
+                    {
+                        pred.entry: pred.versions_out[TACTemp(phony.result.id)]
+                        for pred in block.predecessors
+                    },
+                )
+                for phony in defs
+            ]
+            block.defs = phis
         block.ops = non_defs
 
     def inc_version(self, tmp: TACTemp):
@@ -265,7 +275,6 @@ class SSAOptimizer:
                 self.rename_var(old, new)
             self.no_choice_elim()
             simpls = self.find_renames()
-            print(simpls)
 
     def find_renames(self):
         renames = []
@@ -349,12 +358,22 @@ class SSADeconstructor:
             self.serialize(succ)
 
 
-def ssa_print(block: SSABasicBlock) -> str:
+def ssa_print(block: SSABasicBlock):
     print(str(block.entry) + ":")
     for phi in block.defs:
         print("\t" + phi.pretty())
     for op in block.ops:
         if isinstance(op, SSAOp):
             print(f"\t{op.pretty()}")
+        else:
+            print(f"{op.name}")
+
+def ssa_print_detailed(block: SSABasicBlock):
+    print(str(block.entry) + ":")
+    for phi in block.defs:
+        print("\t" + phi.pretty())
+    for op in block.ops:
+        if isinstance(op, SSAOp):
+            print(op.detailed())
         else:
             print(f"{op.name}")
