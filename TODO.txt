@@ -1,10 +1,29 @@
-- Carry Liveness information to SSA
-- Settle on ETAC datastructure
-- Build inference graph
-- Precolor graph (mul, div, mod, shr, shl etc.)
-- Max Cardinality Search
-- Greedy Coloring
-- Implement Spilling
-- Implement Allocation Record
-- Register Coalescing
-- Adjust asmgen to include alloc info
+        Jonas                                                                         Aarrya                                                               Antonia
+
+- Carry Liveness information to SSA                                       - Greedy Coloring                                                          - Register Coalescing                            
+- Adjust asmgen to include alloc info                                     - Implement Spilling                                                       - Build inference graph
+- Code Formatting                                                         - Max Cardinality Search                                                   - Precolor graph (mul, div, mod, shr, shl etc.)
+- Integration                                                             
+
+Deadline 8th Dec
+ ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Phase 2:
+- Testing 
+Deadline 15 Dec
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Phase 3:
+- Writing the report
+Deadline Last Day 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+ETAC 
+allocrecord :
+int stacksize
+dict :: Temp/SSA Temp -> Register/Stack
+
+Inference graph
+IGraph:
+SSA Temp id
+[Igraph] nbh
