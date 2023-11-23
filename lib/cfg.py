@@ -19,11 +19,11 @@ class BasicBlock:
     predecessors: Set[Any] = field(default_factory=set)
     initial: bool = False
     fallthrough: Any | None = None
-    
+
     # for liveness analysis
     live_in: Set[TACTemp] = field(default_factory=set)
     live_out: Set[TACTemp] = field(default_factory=set)
-    
+
     def final(self) -> bool:
         return self.ops[-1].opcode == "ret"
 
@@ -55,11 +55,11 @@ class BasicBlock:
 
     def get_cond_jumps(self) -> List[TACOp]:
         return [op for op in self.ops if op.opcode in COND_JMP_OPS]
-    
-    # Comparison and hashing is done 
+
+    # Comparison and hashing is done
     def __hash__(self) -> int:
         return hash(self.entry)
-    
+
     def __eq__(self, __value: object) -> bool:
         return self.entry == self
 
@@ -80,8 +80,10 @@ def lookup_block(label: TACLabel, blocks: List[BasicBlock]):
     for block in blocks:
         if block.entry == label:
             return block
-        
+
+
 from .liveness import LivenessAnalyzer
+
 
 class CFGAnalyzer:
     def __init__(self, proc: TACProc):
@@ -219,7 +221,7 @@ class CFGAnalyzer:
         while len(trace.successors) == 1 and trace.empty():
             trace = trace.successors[0]
         return trace
-    
+
     def remove_inst_after_ret(self, blocks: List[BasicBlock]):
         for block in blocks:
             for i, op in enumerate(block.ops):
@@ -228,9 +230,9 @@ class CFGAnalyzer:
                     for succ in block.successors:
                         succ.predecessors.remove(block)
                     break
-            block.ops = block.ops[:i+1] # cut off after ret
+            block.ops = block.ops[: i + 1]  # cut off after ret
         return blocks
-    
+
     def optimize(self, unc_thread=True, cond_thread=True, coalesce=True):
         blocks = self.get_blocks(self.proc.body.ops)
         self.cfg(blocks)
@@ -246,8 +248,6 @@ class CFGAnalyzer:
             self.cfg(blocks)  # update pred and succ
         return blocks
 
-        
-
 
 class Serializer:
     def __init__(self, blocks) -> None:
@@ -255,7 +255,7 @@ class Serializer:
         self.serialization: List[TACLabel | TACOp] = []
         self.blocks = blocks
         self.initial = [block for block in blocks if block.initial][0]
-        
+
     def serialize(self, block: BasicBlock):
         if block.entry in self.already_serialized:
             return
@@ -267,7 +267,6 @@ class Serializer:
         for succ in block.successors:
             self.serialize(succ)
 
-
     def to_tac(self) -> TAC:
         self.serialize(self.initial)
         tac = TAC(self.serialization)
@@ -278,9 +277,16 @@ class Serializer:
     def remove_fallthrough_jmps(self, tac: TAC) -> TAC:
         new_ops = []
         for op, next in zip(tac.ops[:-1], tac.ops[1:]):
-            if not(isinstance(op, TACOp) and op.opcode == "jmp" and isinstance(next, TACLabel) and op.args[0] == next):
+            if not (
+                isinstance(op, TACOp)
+                and op.opcode == "jmp"
+                and isinstance(next, TACLabel)
+                and op.args[0] == next
+            ):
                 new_ops.append(op)
-        new_ops.append(tac.ops[-1]) # append the last one as it hasn't been iterated over
+        new_ops.append(
+            tac.ops[-1]
+        )  # append the last one as it hasn't been iterated over
         return TAC(new_ops)
 
     def remove_unused_labels(self, tac):
@@ -290,4 +296,10 @@ class Serializer:
                 labels_used.add(op.args[0])
             if isinstance(op, TACOp) and op.opcode in COND_JMP_OPS:
                 labels_used.add(op.args[1])
-        return TAC([op for op in tac.ops if not (isinstance(op, TACLabel) and op not in labels_used)])
+        return TAC(
+            [
+                op
+                for op in tac.ops
+                if not (isinstance(op, TACLabel) and op not in labels_used)
+            ]
+        )

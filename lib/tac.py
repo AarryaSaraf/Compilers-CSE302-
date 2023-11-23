@@ -2,6 +2,7 @@ from dataclasses import field
 from .bxast import *
 from typing import Dict, Set
 
+
 class TACTemp:
     def __init__(self, id: str | int) -> None:
         self.id = id
@@ -76,18 +77,15 @@ class TACOp:
 
     def pretty(self):
         if self.result is not None:
-            return (
-                f"{self.result} = {self.opcode} {' '.join([str(arg) for arg in self.args])}"
-            )
-        return (
-               f"{self.opcode} {' '.join([str(arg) for arg in self.args])}"
-            )
+            return f"{self.result} = {self.opcode} {' '.join([str(arg) for arg in self.args])}"
+        return f"{self.opcode} {' '.join([str(arg) for arg in self.args])}"
 
     def detailed(self) -> str:
         return f"\t{str(self.live_in)} \n\t{self.pretty()}\n \t{str(self.live_out)}"
-    
+
     def is_jmp(self) -> bool:
         return self.opcode in JMP_OPS
+
 
 @dataclass
 class TAC:
@@ -169,20 +167,18 @@ def serialize(tacops: List[TACOp]):
 def pretty_print(tac: TAC) -> str:
     for op in tac.ops:
         if isinstance(op, TACOp):
-            print(
-               f"\t {op.pretty()}"
-            )
+            print(f"\t {op.pretty()}")
         else:
             print(f"{op.name}")
 
+
 def print_detailed(tac: TAC):
-      for op in tac.ops:
+    for op in tac.ops:
         if isinstance(op, TACOp):
-            print(
-               f"{op.detailed()}"
-            )
+            print(f"{op.detailed()}")
         else:
             print(f"{op.name}")
+
 
 # TODO: deserialization
 class Lowerer:

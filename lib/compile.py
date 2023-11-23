@@ -10,6 +10,7 @@ from .bxast import Function, StatementDecl
 from .checker import SyntaxChecker, TypeChecker
 from .ssa import SSACrudeGenerator, SSADeconstructor, ssa_print, SSAOptimizer
 
+
 def compile(src: str):
     decls = parser.parse(src)
     s_checker = SyntaxChecker()

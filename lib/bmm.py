@@ -2,6 +2,7 @@ from .bxast import *
 from .tac import *
 from typing import Dict, List, Tuple
 
+
 # THIS is legacy code and doesn't work anymore with the new architecture...
 def bmm(statments: List[Statement], var_to_tmp: Dict[str, TACTemp]) -> TAC:
     code = []

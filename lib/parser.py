@@ -108,7 +108,7 @@ def p_paramlist(p):
     paramlist : param
           | param COMMA paramlist
     """
-    
+
     if len(p) == 1:
         p[0] = []
     elif len(p) == 2:

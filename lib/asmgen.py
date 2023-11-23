@@ -12,14 +12,7 @@ OPCODE_TO_ASM = {
     "lshift": "salq",
     "rshift": "sarq",
 }
-CC_REG_ORDER = [
-    "rdi",
-    "rsi",
-    "rdx",
-    "rcx",
-    "r8",
-    "r9"
-]
+CC_REG_ORDER = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"]
 SIMPLE_BIN_OPS = {"add", "sub", "mul", "and", "or", "xor"}
 SIMPLE_UN_OPS = {"not", "neg"}
 
@@ -50,7 +43,9 @@ class AsmGen:
         self.proc = proc
         self.tac = proc.body
         self.temps = proc.body.get_tmps()
-        self.tmp_alloc = {param: i for i, param in enumerate(self.proc.params)} | {tmp: i+len(proc.params) for i, tmp in enumerate(self.temps)} 
+        self.tmp_alloc = {param: i for i, param in enumerate(self.proc.params)} | {
+            tmp: i + len(proc.params) for i, tmp in enumerate(self.temps)
+        }
         self.skeleton = f"""
 {proc.name}: 
     pushq %rbp # store old RBP at top of the stack
@@ -64,7 +59,8 @@ __BODY__
 
         """
         # TODO: add handling for passed arguments
-        self.body = "" 
+        self.body = ""
+
     def compile_proc_head(self):
         head_code = ""
         #  Ensure 16-bit alignment
@@ -76,11 +72,11 @@ __BODY__
         for i, param in enumerate(self.proc.params):
             if i < 6:
                 head_code += self.store_var(CC_REG_ORDER[i], param)
-            else: 
+            else:
                 head_code += f"    movq +{16+(i-6)*8}(%rbp), %rax\n"
                 head_code += self.store_var("rax", param)
         return head_code
-    
+
     def compile(self):
         for op in self.tac.ops:
             if not isinstance(op, TACLabel):
@@ -92,22 +88,24 @@ __BODY__
                     self.body += f"   movq ${val}, %rax \n"
                     self.body += "    movq %rbp, %rsp # restore old RSP\n"
                     self.body += "    popq %rbp # restore old RBP\n"
-                    self.body += "    retq \n"                    
+                    self.body += "    retq \n"
                 case TACOp("ret", [val], None) if isinstance(val, (TACTemp, TACGlobal)):
-                    self.body += self.load_var(val, "rax") 
+                    self.body += self.load_var(val, "rax")
                     self.body += "    movq %rbp, %rsp # restore old RSP\n"
                     self.body += "    popq %rbp # restore old RBP\n"
-                    self.body += "    retq \n"                   
+                    self.body += "    retq \n"
                 case TACOp("ret", [], None):
                     self.body += "    xorq %rax, %rax# set return code to 0\n"
                     self.body += "    movq %rbp, %rsp # restore old RSP\n"
                     self.body += "    popq %rbp # restore old RBP\n"
-                    self.body += "    retq\n "                    
+                    self.body += "    retq\n "
                 case TACOp("jmp", [label], None):
                     self.body += f"    jmp {label.name}\n"
                 case TACOp("param", [i, arg], None) if i < 7:
-                    self.body += self.load_var(arg, CC_REG_ORDER[i-1])   
-                case TACOp("param", [i, arg], None) if i >= 7:  # This assumes that we order the param calls in reverse during TAC generation
+                    self.body += self.load_var(arg, CC_REG_ORDER[i - 1])
+                case TACOp(
+                    "param", [i, arg], None
+                ) if i >= 7:  # This assumes that we order the param calls in reverse during TAC generation
                     self.body += self.load_var(arg, "rax")
                     self.body += "    pushq %rax\n"
                 case TACOp("call", [callee, num_args], res):
