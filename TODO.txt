@@ -1,9 +1,9 @@
         Jonas                                                                         Aarrya                                                               Antonia
 
-- Carry Liveness information to SSA                                       - Greedy Coloring                                                          - Register Coalescing                            
-- Adjust asmgen to include alloc info                                     - Implement Spilling                                                       - Build inference graph
-- Code Formatting                                                         - Max Cardinality Search                                                   - Precolor graph (mul, div, mod, shr, shl etc.)
-- Integration                                                             
+- Carry Liveness information to SSA                                           - Build interference graph                                             - Register Coalescing                            
+- Adjust asmgen to include alloc info                                         - Max Cardinality Search                                               - Greedy Coloring 
+- Code Formatting                                                                                                                                    - Precolor graph (mul, div, mod, shr, shl etc.)
+- Integration                                                                                                                                        - Implement Spilling                                                           
 
 Deadline 8th Dec
  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ int stacksize
 dict :: Temp/SSA Temp -> Register/Stack
 
 Inference graph
-IGraph:
+IGraphNode:
 SSA Temp id
 [Igraph] nbh
+int       value  which is none if visited or the value if not. Initialised to 0.
