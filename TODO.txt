@@ -1,0 +1,10 @@
+- Carry Liveness information to SSA
+- Settle on ETAC datastructure
+- Build inference graph
+- Precolor graph (mul, div, mod, shr, shl etc.)
+- Max Cardinality Search
+- Greedy Coloring
+- Implement Spilling
+- Implement Allocation Record
+- Register Coalescing
+- Adjust asmgen to include alloc info
