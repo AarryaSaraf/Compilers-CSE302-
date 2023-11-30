@@ -32,7 +32,7 @@ class StackSlot(MemorySlot):
 class InterferenceGraphNode:
     tmp: SSATemp | TACTemp
     nbh: List[Any]
-    value : Int # none if visited and the integer value if not. 
+    value : int # none if visited and the integer value if not. 
                 # initially set all of them to 0 
 
 @dataclass
@@ -46,8 +46,10 @@ def buildIG(temps):
     """
     Parameters
     ----------
-    temps : list of sets containing SSATemps
-    live in
+    temps : list[set[SSATemps]]
+            in each set we have the variables which interfere with one another for 1 line
+            the list just collects all such for 1 function
+            
     
     Returns
     -------
@@ -73,8 +75,12 @@ def mcs(igraph):
     """
     Function to return a list with the simplical elimination ordering
     using Maximum cardinality search as seen in class
-    Input : an Interference graph
-    output: Simplical Elimination ordering 
+
+    Args:
+        igraph (InterferenceGraph): input who's SEO is to be found
+
+    Returns:
+        [InterferenceGraphNode]: Simplical Elimination ordering 
     """
     i = all_none(igraph)
     ans = []
@@ -104,10 +110,12 @@ def all_none(igraph):
     
 def update(node, ans):
     """
-    Used to update the MCS.
-    Always chooses first instead of randomly
-    input is a node in the graph and 
-    ans the list of answers
+    Used to update our coloring order for the MCS. Always chooses first instead of randomly.
+
+    Args:
+        node (InterferenceGraphNode): a node from the interference graph
+        ans (list[InterferenceGraphNode]): updates our MCS
+        
     """
     node.value = None
     ans.append(node)
