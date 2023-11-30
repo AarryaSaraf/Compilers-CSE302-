@@ -26,8 +26,8 @@ class LivenessAnalyzer:
 
         for pred in block.predecessors:
             if (block.entry, pred.entry) not in self.edges_covered:
-                self.liveness_block(live_out, pred)
                 self.edges_covered.add((block.entry, pred.entry))
+                self.liveness_block(live_out, pred)
 
     def liveness(self):
         for block in self.cfg:
@@ -40,12 +40,10 @@ class SSALivenessAnalyzer:
         self.cfg = cfg
         self.edges_covered: Set[Tuple[TACLabel, TACLabel]] = set()
     
-    def liveness_inst(self, live_out: Set[SSATemp], inst: TACOp):
+    def liveness_inst(self, live_out: Set[SSATemp], inst: SSAOp):
         inst.live_out = inst.live_out.union(live_out)
         inst.live_in = inst.live_in.union(live_out)
-        for arg in inst.args:
-            if isinstance(arg, SSATemp):
-                inst.live_in.add(arg)
+        inst.live_in  = inst.live_in.union(inst.use())
         if inst.result is not None and inst.result in inst.live_in:
             inst.live_in.remove(inst.result)
         return inst.live_in
@@ -59,7 +57,7 @@ class SSALivenessAnalyzer:
         defined = set()
         for phi in block.defs:
             defined.add(phi.defined)
-            for (lbl, tmp) in phi.sources:
+            for (lbl, tmp) in phi.sources.items():
                 if lbl in live_out_for_block:
                     live_out_for_block[lbl].add(tmp)
                 else:
@@ -68,11 +66,11 @@ class SSALivenessAnalyzer:
         live_out = live_out - defined
         for pred in block.predecessors:
             if (block.entry, pred.entry) not in self.edges_covered:
+                self.edges_covered.add((block.entry, pred.entry))
                 if block.entry in live_out_for_block:
                     self.liveness_block(live_out_for_block[block.entry]+ live_out, pred)
                 else:
                     self.liveness_block(live_out, pred)
-                self.edges_covered.add((block.entry, pred.entry))
 
     def liveness(self):
         for block in self.cfg:
