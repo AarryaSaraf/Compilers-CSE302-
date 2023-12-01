@@ -99,6 +99,8 @@ class TAC:
                     op.result is not None
                 ):  # only results can that are written to can be tacops
                     temps.add(op.result)
+                # This is commented out because every variable we use should be written to...
+                #temps = temps.union(set([arg for arg in op.args if isinstance(arg, TACTemp)]))
         return temps
 
 
