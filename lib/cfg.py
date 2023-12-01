@@ -82,8 +82,6 @@ def lookup_block(label: TACLabel, blocks: List[BasicBlock]):
             return block
 
 
-from .liveness import LivenessAnalyzer
-
 
 class CFGAnalyzer:
     def __init__(self, proc: TACProc):
