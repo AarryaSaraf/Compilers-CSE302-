@@ -48,10 +48,15 @@ def compile_unit(ast: Function, globalmap: Dict[str, TACGlobal]) -> str:
 
     ssa_liveness_analyzer = SSALivenessAnalyzer(ssa_blocks)
     ssa_liveness_analyzer.liveness()
+    
+    
+    
     print(ast.name)
     for block in ssa_blocks:
         ssa_print_detailed(block)    
     serializer = SSADeconstructor(ssa_blocks)
+    
+    
     tacproc.body = serializer.to_tac()
     asm_gen = AsmGen(tacproc)
     asm = asm_gen.compile()

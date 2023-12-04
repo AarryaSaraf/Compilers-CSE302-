@@ -21,10 +21,11 @@ class StackSlot(MemorySlot):
 
 
 @dataclass
-class InterfernceGraphNode:
+class InterferenceGraphNode:
     tmp: SSATemp | TACTemp
-    neighbors: List[Any]
+    nbh: List[Any]
+    value: int  = 0 
 
 @dataclass
-class InferenceGraph:
-    nodes: List[InterfernceGraphNode]
+class InterferenceGraph:
+    nodes: List[InterferenceGraphNode]
