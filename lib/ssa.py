@@ -1,5 +1,6 @@
 from .tac import *
 from .cfg import BasicBlock
+from .asmgen import CC_REG_ORDER
 from typing import Any, Set
 from copy import deepcopy
 
@@ -99,6 +100,8 @@ class SSAOp:
             dummies.add(SSATemp("%%rdx"))
         elif self.opcode in ["shl", "shr"]:
             dummies.add(SSATemp("%%rcx"))
+        elif self.opcode == "param" and self.args[0] < 7:
+            dummies.add(SSATemp(f"%%{CC_REG_ORDER[self.args[0]-1]}"))
         return dummies
 @dataclass
 class Phi:
