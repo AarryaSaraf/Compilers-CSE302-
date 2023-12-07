@@ -174,6 +174,9 @@ __BODY__
             return f"{tmp.name}(%rip)"
 
     def compile_call(self, op: TACOp) -> str:
+        # We use a single call instruction this makes it easier 
+        # to handle caller-save registers as they have to be pushed 
+        # before the function arguments
         callee = op.args[0]
         args = op.args[1:]
         res = op.result
