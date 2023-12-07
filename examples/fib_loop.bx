@@ -1,0 +1,13 @@
+def main() {
+    var n = readint(): int;
+    n = n-2;
+    var x = 1: int;
+    var y = 1: int;
+    while(n > 0){
+        var z = x+y: int;
+        x = y;
+        y = z;
+        n = n-1;
+    }
+    print(y);
+}

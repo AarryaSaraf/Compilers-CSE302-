@@ -78,7 +78,28 @@ class SSAOp:
     def is_jmp(self) -> bool:
         return self.opcode in JMP_OPS
 
+    def use(self) -> Set[SSATemp]:
+        used = {tmp for tmp in self.args if isinstance(tmp, SSATemp)}
+        used = used.union(self.prealloc_dummies())
+        return used
+    
+    def defined(self) -> Set[SSATemp]:
+        defined = set()
+        
+        if self.result is not None:
+            defined.add(self.result)
+        defined = defined.union(self.prealloc_dummies())
+        return defined
 
+    def prealloc_dummies(self):
+        dummies = set()
+        if self.opcode in ["div", "mod"]:
+            dummies.add(SSATemp("%%rax"))
+            dummies.add(SSATemp("%%rbx"))
+            dummies.add(SSATemp("%%rdx"))
+        elif self.opcode in ["shl", "shr"]:
+            dummies.add(SSATemp("%%rcx"))
+        return dummies
 @dataclass
 class Phi:
     defined: SSATemp
@@ -303,6 +324,7 @@ class SSADeconstructor:
         self.already_serialized = set()
         self.serialization = []
         self.ssa_to_tac = {}
+        self.dummy_counter = 0
         self.tactmp_counter = 0
 
     def ssatmp_to_tac(self, tmp: SSATemp) -> TACTemp:
@@ -314,7 +336,12 @@ class SSADeconstructor:
             self.ssa_to_tac[tmp] = TACTemp(self.tactmp_counter)
             self.tactmp_counter += 1
         return self.ssa_to_tac[tmp]
-
+    
+    def fresh_ssatmp(self):
+        tmp = SSATemp("dummy", self.tactmp_counter)
+        self.tactmp_counter += 1
+        return tmp
+    
     def ssaop_to_tac(self, op: SSAOp) -> TACOp:
         return TACOp(
             op.opcode,
@@ -339,13 +366,35 @@ class SSADeconstructor:
                     copies_to_insert[lab].add((phi.defined, tmp))
         # insert the copies
         for block in self.blocks:
-            copies = [
-                TACOp("copy", [src], res) for res, src in copies_to_insert[block.entry]
-            ]
-            pre_jump = [op for op in block.ops if not op.is_jmp()]
-            jumps = block.ops[len(pre_jump) :]
-            block.ops = pre_jump + copies + jumps
+            self.insert_copies(block, copies_to_insert[block.entry])
+    def insert_copies(self, block, to_insert):
+        # cylce detection
+        breakups = self.detect_cycles(to_insert)
+        print(breakups)
+        dummy_copies = [
+            TACOp("copy", [original], dummy)
+            for (original, dummy) in breakups.items()
+        ]
+        copies = dummy_copies + [
+            TACOp("copy", [breakups.get(src, src)], res)
+            for (res, src) in to_insert
+        ]
+        pretty_print(TAC(copies))
+        pre_jump = [op for op in block.ops if not op.is_jmp()]
+        jumps = block.ops[len(pre_jump) :]
+        block.ops = pre_jump + copies + jumps
 
+    def detect_cycles(self, to_insert):
+        used = set()
+        breakups = {}
+        for res, src in to_insert:
+            if res in used: # if we want to write to something used somewhere else
+                breakups[res] = self.fresh_ssatmp()
+            if src not in breakups: # add every read to a variable that is not already broken up
+                used.add(src)
+        return breakups
+            
+                
     def serialize(self, block: SSABasicBlock) -> TAC:
         if block.entry in self.already_serialized:
             return
