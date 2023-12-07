@@ -8,40 +8,10 @@ Created on Thu Nov 23 14:06:53 2023
 
 from .ssa import *
 from .tac import *
+from .alloc import *
 
-class MemorySlot:
-    pass
-
-
-@dataclass
-class AllocRecord:
-    stacksize: int
-    mapping: Dict[TACTemp | SSATemp, MemorySlot]
-
-
-@dataclass
-class Register(MemorySlot):
-    name: str
-
-@dataclass
-class StackSlot(MemorySlot):
-    offset: int
-
-
-@dataclass
-class InterferenceGraphNode:
-    tmp: SSATemp | TACTemp
-    nbh: List[Any]
-    value : int # none if visited and the integer value if not. 
-                # initially set all of them to 0 
-
-@dataclass
-class InterferenceGraph:
-    nodes: List[InterferenceGraphNode]
     
-    
-    
-    
+        
 def buildIG(temps):
     """
     Parameters
@@ -62,6 +32,7 @@ def buildIG(temps):
     for t in distinct:
         IG[t] = (InterferenceGraphNode(t,[],0))    
     #time to build the connections now
+    print(distinct)
     for target in distinct:
         now = IG[target]
         now.nbh.extend(IG[i] for subset in temps if target in subset for i in subset - {target})

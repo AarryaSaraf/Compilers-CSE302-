@@ -53,6 +53,8 @@ def compile_unit(ast: Function, globalmap: Dict[str, TACGlobal], register_alloc=
     #for block in ssa_blocks:
     #    ssa_print_detailed(block)    
     serializer = SSADeconstructor(ssa_blocks)
+    
+    
     tacproc.body = serializer.to_tac()
     if register_alloc:
         spilled_alloc = SpillingAllocator(tacproc).allocate()

@@ -23,13 +23,10 @@ class StackSlot(MemorySlot):
 
 
 @dataclass
-class InterfernceGraphNode:
+class InterferenceGraphNode:
     tmp: SSATemp | TACTemp
-    neighbors: List[Any]
-
-@dataclass
-class InferenceGraph:
-    nodes: List[InterfernceGraphNode]
+    nbh: List[Any]
+    value: int  = 0 
 
 
 class Allocator:
@@ -53,3 +50,5 @@ class SpillingAllocator(Allocator):
             mapping=params_reg_mapping | params_stack_mapping| var_mapping
         )
 
+class InterferenceGraph:
+    nodes: List[InterferenceGraphNode]
