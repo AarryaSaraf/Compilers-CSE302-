@@ -47,49 +47,38 @@ class AllocAsmGen:
         self.proc = proc
         self.alloc = alloc
         self.tac = proc.body
-        self.temps = proc.body.get_tmps()
-        
-        self.skeleton = f"""
-{proc.name}: 
-    pushq %rbp # store old RBP at top of the stack
-    movq %rsp, %rbp # make RBP point to just after stack slots
-    # At that point, we are 16-byte aligned
-    # - return address (8 bytes) + copy of old RBP (8 bytes)
-    # Now we allocate stack slots in units of 8 bytes (= 64 bits)
-    # E.g., for 8 slots, i.e., 8 * 8 = 64 bytes
-{self.compile_proc_head()}
-__BODY__
-
-        """
-        # TODO: add handling for passed arguments
         self.body = ""
 
     def compile_proc_head(self) -> str:
         head_code = ""
-        head_code += f"{self.proc.name}:"
-        head_code += "    pushq %rbp # store old RBP at top of the stack"
-        head_code += "    movq %rsp, %rbp # make RBP point to just after stack slots"
+        head_code += f"{self.proc.name}:\n"
+        head_code += "    pushq %rbp # store old RBP at top of the stack\n"
+        head_code += "    movq %rsp, %rbp # make RBP point to just after stack slots\n"
 
         #  Ensure 16-bit alignment
-        if len(self.alloc.stacksize) % 2 == 0:
+        if self.alloc.stacksize % 2 == 0:
             head_code += f"    subq ${8*self.alloc.stacksize}, %rsp\n"
         else:
             # allocate an additional stack slot if not even
             head_code += f"    subq ${8*(self.alloc.stacksize+1)}, %rsp\n"
-        head_code += "# save callee save registers"
+        head_code += "# save callee save registers\n"
         # TODO only include the actually used registers
+        head_code += f"    pushq $0\n" # push one more to have 16 byte alignment (callee saves are uneven)
         for reg in CALLEE_SAVE:
-            head_code += f"    pushq %{reg}"
+            head_code += f"    pushq %{reg}\n"
         return head_code
 
     def proc_end(self) -> str:
         # TODO only include the actually used registers
         end_code = ""
+        end_code += f"    popq %r15\n"# pop one more to have 16 byte alignment (callee saves are uneven) also we override r15 anyway
         for reg in reversed(CALLEE_SAVE):
-            end_code += f"    popq %{reg}"
+            end_code += f"    popq %{reg}\n"
         end_code += "    movq %rbp, %rsp # restore old RSP\n"
         end_code += "    popq %rbp # restore old RBP\n"
         end_code += "    retq \n"
+        return end_code
+    
     def compile(self):
         for op in self.tac.ops:
             if not isinstance(op, TACLabel):
@@ -141,9 +130,9 @@ __BODY__
                     if self.alloc.mapping[tmp1] == self.alloc.mapping[res] and isinstance(self.alloc.mapping[res], Register):
                         self.body += f"    {OPCODE_TO_ASM[op]} {self.to_address(tmp2)}, {self.to_address}\n"
                     else:
-                        self.body += self.load_var(tmp1, "rax")
-                        self.body += f"    {OPCODE_TO_ASM[op]} {self.to_address(tmp2)}, %rax\n"
-                        self.body += self.store_var("rax", res)
+                        self.body += self.load_var(tmp1, "r11")
+                        self.body += f"    {OPCODE_TO_ASM[op]} {self.to_address(tmp2)}, %r11\n"
+                        self.body += self.store_var("r11", res)
                 case TACOp(op, [tmp], res) if op in SIMPLE_UN_OPS:
                     self.body += f"    {OPCODE_TO_ASM[op]} {self.to_address(tmp)}\n"
                 case TACOp("copy", [arg], res):
@@ -158,30 +147,30 @@ __BODY__
         return self.compile_proc_head() + self.body
 
     def load_var(self, var, reg) -> str:
-        slot = self.alloc[var]
+        slot = self.alloc.mapping[var]
         
         if isinstance(slot, StackSlot):
-            return f"    movq {slot.offset}(%rbp), %{reg}"
+            return f"    movq {slot.offset}(%rbp), %{reg}\n"
         if isinstance(slot, Register):
             if slot.name == reg:
                 return ""
-            return f"    movq %{slot.name}, %{reg}"
+            return f"    movq %{slot.name}, %{reg}\n"
 
     def to_address(self, var) -> str:
-        slot = self.alloc[var]
+        slot = self.alloc.mapping[var]
         if isinstance(slot, StackSlot):
             return f"{slot.offset}(%rbp)"
         if isinstance(slot, Register):
             return f"%{slot.name}"
     
-    def store_var(self, var, reg) -> str:
-        slot = self.alloc[var]
+    def store_var(self, reg, var) -> str:
+        slot = self.alloc.mapping[var]
         if isinstance(slot, StackSlot):
-            return f"    movq %{reg}, {slot.offset}(%rbp)"
+            return f"    movq %{reg}, {slot.offset}(%rbp)\n"
         if isinstance(slot, Register):
             if slot.name == reg:
                 return ""
-            return f"    movq %{reg}, %{slot.name}"
+            return f"    movq %{reg}, %{slot.name}\n"
 
     def compile_call(self, op: TACOp) -> str:
         # We use a single call instruction this makes it easier 
@@ -206,8 +195,8 @@ __BODY__
         for i, arg in enumerate(args[:6]):
             self.body += self.load_var(arg, CC_REG_ORDER[i])
         for arg in reversed(args[6:]):
-            self.body += self.load_var(arg, "rax")
-            self.body += "    pushq %rax\n"
+            self.body += self.load_var(arg, "r11")
+            self.body += "    pushq %r11\n"
 
         # actual call
         self.body += f"    callq {callee}\n"

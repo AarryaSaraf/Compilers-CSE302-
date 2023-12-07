@@ -9,7 +9,8 @@ from .cfg import CFGAnalyzer, Serializer
 from .bxast import Function, StatementDecl
 from .checker import SyntaxChecker, TypeChecker
 from .ssa import SSACrudeGenerator, SSADeconstructor, ssa_print_detailed, SSAOptimizer
-
+from .asmgen2 import AllocAsmGen
+from .alloc import SpillingAllocator
 
 def compile(src: str):
     decls = parser.parse(src)
@@ -33,7 +34,7 @@ def compile(src: str):
     return symbs + data_section + text_section
 
 
-def compile_unit(ast: Function, globalmap: Dict[str, TACGlobal]) -> str:
+def compile_unit(ast: Function, globalmap: Dict[str, TACGlobal], register_alloc=True) -> str:
     lowerer = TMM(ast, globalmap)
     tacproc = lowerer.lower()
     cfg_analyzer = CFGAnalyzer(tacproc)
@@ -48,11 +49,16 @@ def compile_unit(ast: Function, globalmap: Dict[str, TACGlobal]) -> str:
 
     ssa_liveness_analyzer = SSALivenessAnalyzer(ssa_blocks)
     ssa_liveness_analyzer.liveness()
-    print(ast.name)
-    for block in ssa_blocks:
-        ssa_print_detailed(block)    
+    #print(ast.name)
+    #for block in ssa_blocks:
+    #    ssa_print_detailed(block)    
     serializer = SSADeconstructor(ssa_blocks)
     tacproc.body = serializer.to_tac()
-    asm_gen = AsmGen(tacproc)
+    if register_alloc:
+        spilled_alloc = SpillingAllocator(tacproc).allocate()
+        print(spilled_alloc)
+        asm_gen = AllocAsmGen(tacproc, spilled_alloc)
+    else:
+        asm_gen = AsmGen(tacproc)
     asm = asm_gen.compile()
     return asm
