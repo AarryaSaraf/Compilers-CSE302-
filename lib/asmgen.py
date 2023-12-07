@@ -108,14 +108,8 @@ __BODY__
                 ) if i >= 7:  # This assumes that we order the param calls in reverse during TAC generation
                     self.body += self.load_var(arg, "rax")
                     self.body += "    pushq %rax\n"
-                case TACOp("call", [callee, num_args], res):
-                    if num_args > 6 and num_args % 2 != 0:
-                        self.body += f"    pushq $0\n"
-                    self.body += f"    callq {callee}\n"
-                    if num_args > 6:
-                        self.body += f"    addq ${(num_args-6)*8}, %rsp\n"
-                    if res is not None:
-                        self.body += self.store_var("rax", res)
+                case TACOp("call", _, _):
+                    self.compile_call(op) #  this is a bit more complicated
                 case TACOp(
                     "jz" | "jnz" | "jl" | "jle" | "jnl" | "jnle" as op,
                     [arg, label],
@@ -178,3 +172,31 @@ __BODY__
             return f"-{(self.tmp_alloc[tmp]+1)*8}(%rbp)"
         elif isinstance(tmp, TACGlobal):
             return f"{tmp.name}(%rip)"
+
+    def compile_call(self, op: TACOp) -> str:
+        callee = op.args[0]
+        args = op.args[1:]
+        res = op.result
+        # stack alignment
+        if len(args)> 6 and len(args) % 2 != 0:
+            print("inserting dummy for alingment")
+            self.body += f"    pushq $0\n"
+        # allocate arguments according to CC
+        for i, arg in enumerate(args[:6]):
+            self.body += self.load_var(arg, CC_REG_ORDER[i])
+        for arg in reversed(args[6:]):
+            self.body += self.load_var(arg, "rax")
+            self.body += "    pushq %rax\n"
+
+        # actual call
+        self.body += f"    callq {callee}\n"
+        # restore stack
+        if len(args) > 6:
+            if len(args) % 2 != 0:
+                # in this case we pushed one more
+                self.body += f"    addq ${(len(args)-5)*8}, %rsp\n"
+            else:
+                self.body += f"    addq ${(len(args)-6)*8}, %rsp\n"
+        # store result
+        if res is not None:
+            self.body += self.store_var("rax", res)
