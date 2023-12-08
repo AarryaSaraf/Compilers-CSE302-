@@ -1,7 +1,7 @@
         Jonas                                                                         Aarrya                                                               Antonia
 
-- Carry Liveness information to SSA                                           - Build interference graph                                             - Register Coalescing                            
-- Adjust asmgen to include alloc info                                         - Max Cardinality Search                                               - Greedy Coloring 
+- Carry Liveness information to SSA                                                 - debugging                                                      - Register Coalescing                            
+- Adjust asmgen to include alloc info                                                                                                                - Greedy Coloring 
 - Code Formatting                                                                                                                                    - Precolor graph (mul, div, mod, shr, shl etc.)
 - Integration                                                                                                                                        - Implement Spilling                                                           
 
