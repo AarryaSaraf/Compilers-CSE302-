@@ -63,9 +63,9 @@ class AllocAsmGen:
             head_code += f"    subq ${8*(self.alloc.stacksize+1)}, %rsp\n"
         head_code += "# save callee save registers\n"
         # TODO only include the actually used registers
-        head_code += f"    pushq $0\n" # push one more to have 16 byte alignment (callee saves are uneven)
         for reg in CALLEE_SAVE:
             head_code += f"    pushq %{reg}\n"
+        head_code += f"    pushq $0\n" # push one more to have 16 byte alignment (callee saves are uneven)
         return head_code
 
     def proc_end(self) -> str:
@@ -183,10 +183,10 @@ class AllocAsmGen:
         used_registers = [
             self.alloc.mapping[var] 
             for var in op.live_out.intersection(op.live_in) # we look for all variables that have to stay alive throughout the call
-            if isinstance(self.alloc.mapping[var], Register) and self.alloc.mapping[var] in CALLER_SAVE
+            if isinstance(self.alloc.mapping[var], Register) and self.alloc.mapping[var].name in CALLER_SAVE
         ]
         for reg in used_registers:
-            self.body += f"    pushq %{reg}\n"
+            self.body += f"    pushq %{reg.name}\n"
         # stack alignment
         if max(len(args)-6, 0)+ len(used_registers) % 2 != 0:
             print("inserting dummy for alingment")
@@ -200,14 +200,13 @@ class AllocAsmGen:
 
         # actual call
         self.body += f"    callq {callee}\n"
-
+        # remove alignment buffer if inserted
+        if max(len(args)-6, 0)+ len(used_registers) % 2 != 0:
+            print("removing dummy for alingment")
+            self.body += f"    addq $8, %rsp\n"
         # restore stack
         if len(args) > 6:
-            if len(args) % 2 != 0:
-                # in this case we pushed one more
-                self.body += f"    addq ${(len(args)-5)*8}, %rsp\n"
-            else:
-                self.body += f"    addq ${(len(args)-6)*8}, %rsp\n"
+            self.body += f"    addq ${(len(args)-6)*8}, %rsp\n"
 
         # store result
         if res is not None:
@@ -215,4 +214,4 @@ class AllocAsmGen:
         
         # restore caller-save registers
         for reg in reversed(used_registers):
-            self.body += f"    popq %{reg}\n"
+            self.body += f"    popq %{reg.name}\n"

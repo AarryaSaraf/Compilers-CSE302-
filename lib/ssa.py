@@ -353,12 +353,21 @@ class SSADeconstructor:
                 for arg in op.args
             ],
             self.ssatmp_to_tac(op.result) if op.result is not None else None,
+            live_in=op.live_in,
+            live_out=op.live_out
         )
 
     def to_tac(self) -> TAC:
         self.resolve_phis()
         self.serialize(self.initial)
+        self.rename_liveness_info()
         return TAC(self.serialization)
+
+    def rename_liveness_info(self):
+        for op in self.serialization:
+            if isinstance(op, TACOp):
+                op.live_in = {self.ssa_to_tac[tmp] for tmp in op.live_in}
+                op.live_out = {self.ssa_to_tac[tmp] for tmp in op.live_out}
 
     def resolve_phis(self):
         copies_to_insert = {block.entry: set() for block in self.blocks}
@@ -373,7 +382,6 @@ class SSADeconstructor:
     def insert_copies(self, block, to_insert):
         # cylce detection
         breakups = self.detect_cycles(to_insert)
-        print(breakups)
         dummy_copies = [
             TACOp("copy", [original], dummy)
             for (original, dummy) in breakups.items()
@@ -382,7 +390,6 @@ class SSADeconstructor:
             TACOp("copy", [breakups.get(src, src)], res)
             for (res, src) in to_insert
         ]
-        pretty_print(TAC(copies))
         pre_jump = [op for op in block.ops if not op.is_jmp()]
         jumps = block.ops[len(pre_jump) :]
         block.ops = pre_jump + copies + jumps
