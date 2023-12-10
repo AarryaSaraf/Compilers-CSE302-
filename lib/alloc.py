@@ -2,6 +2,8 @@ from .ssa import *
 from .tac import *
 from typing import List, Dict
 
+CC_REG_ORDER = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"]
+
 class MemorySlot:
     pass
 
@@ -26,12 +28,7 @@ class InterferenceGraphNode:
     tmp: SSATemp | TACTemp
     nbh: List[Any]
     value: int  = 0 
-    
-    def __repr__(self):
-        return f"Tmp {self.tmp} nbh {self.nbh} value {self.value}."
-    
-    def __str__(self):
-        return f"Tmp {self.tmp} nbh {self.nbh} value {self.value}."
+
 @dataclass
 class InterferenceGraph:
     nodes: Dict[SSATemp | TACTemp, List[InterferenceGraphNode]]
@@ -41,3 +38,26 @@ class InterferenceGraph:
     
     def __str__(self):
         return str(self.nodes)
+
+
+class Allocator:
+    @abstractmethod
+    def allocate(self) -> AllocRecord:
+        pass
+
+class SpillingAllocator(Allocator):
+    def __init__(self, tacproc: TACProc) -> None:
+        self.proc = tacproc
+    
+    def allocate(self) -> AllocRecord:
+        params_reg_mapping = {param: Register(CC_REG_ORDER[i]) for i, param in enumerate(self.proc.params[:6])} 
+        params_stack_mapping = {param: StackSlot(16+(i)*8) for i, param in enumerate(reversed(self.proc.params[6:]))} 
+        varlist = self.proc.body.get_tmps()
+        var_mapping={
+            var: StackSlot(-(i+1)*8) for i, var in enumerate(varlist)
+        }
+        return AllocRecord(
+            stacksize=len(var_mapping),
+            mapping=params_reg_mapping | params_stack_mapping| var_mapping
+        )
+

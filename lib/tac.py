@@ -109,7 +109,9 @@ class TACProc:
     name: str
     body: TAC
     params: List[TACTemp]
-
+    
+    def get_tmps(self):
+        return set(self.params).union(self.body.get_tmps())
 
 OPCODES = [
     "jmp",
