@@ -12,6 +12,30 @@ from .alloc import *
 
     
         
+def transformer(lin, de, use, cop):
+    """Takes the arguements and spits out the interference graph.
+
+    Args:
+        lin (list of list of SSATemps or TACTemps): live in
+        de (list of list of SSATemps or TACTemps)): def
+        use (list of list of SSATemps or TACTemps): use
+        cop (list of Bool): copy or not. List of booleans
+    """
+    ans = []
+    for i in range(0,len(de)):
+        temps = set()
+        for x in lin[i]:
+            temps.add(x)
+            for y in de[i]:
+                temps.add(y)
+            if(cop[i]):
+                for y in use[i]:
+                    temps.add(y)
+        ans.append(temps)
+    return buildIG(temps)
+            
+
+        
 def buildIG(temps):
     """
     Parameters
@@ -52,7 +76,7 @@ def mcs(igraph):
     i = all_none(igraph)
     ans = []
     while (i):
-        update(igraph.nodes[i], ans, igraph)
+        ans = update(igraph.nodes[i], ans, igraph)
         i = all_none(igraph)
     return ans
     
@@ -82,15 +106,23 @@ def update(node, ans, igraph):
 
     Args:
         node (InterferenceGraphNode): a node from the interference graph
-        ans (list[InterferenceGraphNode]): updates our MCS
+        ans ([InterferenceGraphNode.tmp]): updates our MCS
+        igraph (InterferenceGraph): our original graph
         
     """
     node.value = None
-    ans.append(node)
+    ans.append(node.tmp)
+    #update value for each neighbour
     for i in node.nbh:
-        for j in igraph.nodes.keys():
-            if j.tmp == i:
-                igraph.nodes[j].value += 1
-                break
-    update(igraph(node.nbh[0]), ans)
+        if(igraph.nodes[i].value !=None):
+            igraph.nodes[i].value+=1
+    nnode = None
+    max = 0
+    for i in node.nbh:
+        if(igraph.nodes[i].value !=None and igraph.nodes[i].value>max):
+            nnode = igraph.nodes[i]
+            max = igraph.nodes[i].value
+    if(nnode == None):
+        return ans
+    return update(nnode, ans, igraph)
     
