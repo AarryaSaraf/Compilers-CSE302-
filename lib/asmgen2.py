@@ -185,13 +185,14 @@ class AllocAsmGen:
             for var in op.live_out.intersection(op.live_in) # we look for all variables that have to stay alive throughout the call
             if isinstance(self.alloc.mapping[var], Register) and self.alloc.mapping[var].name in CALLER_SAVE
         ]
+        
         for reg in used_registers:
             self.body += f"    pushq %{reg.name}\n"
         # stack alignment
         if max(len(args)-6, 0)+ len(used_registers) % 2 != 0:
-            print("inserting dummy for alingment")
             self.body += f"    pushq $0\n"
         # allocate arguments according to CC
+        # TODO: For the duration of this call every register that was saved shuld be consider to be at the stack slot it was pushed to
         for i, arg in enumerate(args[:6]):
             self.body += self.load_var(arg, CC_REG_ORDER[i])
         for arg in reversed(args[6:]):
@@ -200,9 +201,9 @@ class AllocAsmGen:
 
         # actual call
         self.body += f"    callq {callee}\n"
+
         # remove alignment buffer if inserted
         if max(len(args)-6, 0)+ len(used_registers) % 2 != 0:
-            print("removing dummy for alingment")
             self.body += f"    addq $8, %rsp\n"
         # restore stack
         if len(args) > 6:
