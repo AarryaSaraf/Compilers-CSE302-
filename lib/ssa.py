@@ -4,6 +4,7 @@ from .asmgen import CC_REG_ORDER
 from typing import Any, Set
 from copy import deepcopy
 
+CC_REG_ORDER = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"] # used for dummy interference variable
 
 class SSATemp:
     def __init__(self, id: str | int, version: int) -> None:
@@ -100,8 +101,10 @@ class SSAOp:
             dummies.add(SSATemp("%%rdx"))
         elif self.opcode in ["shl", "shr"]:
             dummies.add(SSATemp("%%rcx"))
-        elif self.opcode == "param" and self.args[0] < 7:
+        elif self.opcode == "param" and self.args[0] < 7: # deprecated
             dummies.add(SSATemp(f"%%{CC_REG_ORDER[self.args[0]-1]}"))
+        elif self.opcode == "call":
+            dummies = dummies.union(set(f"%%{reg}" for reg in [CC_REG_ORDER[:len(self.args)]]))
         return dummies
 @dataclass
 class Phi:
