@@ -1,4 +1,5 @@
 import random
+from .mcs import *
 
 color_map = (
 '%%rax', '%%rcx', '%%rdx', '%%rsi', '%%rdi', '%%r8', '%%r9', '%%r10',
@@ -9,11 +10,6 @@ reg_map = {reg: color_map.index(reg) + 1 for reg in color_map}
 def color_to_reg(col): return color_map[col - 1]
 def reg_to_color(reg): return reg_map[reg]
 
-
-
-def SEO(G):
-    """Black box for SEO"""
-    pass
 
 def greedy_coloring(params, ret, G, elim):
 
@@ -55,7 +51,7 @@ def greedy_coloring(params, ret, G, elim):
 
     for u in elim:
         if col[u] == 0:
-            nei_colors = [col[nei] for nei in G[u]]
+            nei_colors = [col[nei] for nei in G.nodes[u].nbh]
             c = min([color for color in available_colors if color not in nei_colors])
             col[u] = c
 
@@ -87,7 +83,7 @@ def spill(col):
         return random.choice([u for u in col.keys() if col[u] == maxi])
     
 
-def allocate(params, ret, G):
+def allocate(params, ret, G, elim):
 
     """
 
@@ -106,13 +102,12 @@ def allocate(params, ret, G):
     
     """
 
-    elim = SEO(G) #to implement : SEO
     col = greedy_coloring(params, ret, G, elim)
     to_spill = spill(col)
     spilled = []
     while to_spill is not None:
         spilled.append(to_spill)
-        G = G.remove(to_spill)  #to implement the remove method
+        G = remove(G, to_spill)  
         col = greedy_coloring(params, ret, G, elim)
         to_spill = spill(col)
     stacksize = 8*len(spilled)

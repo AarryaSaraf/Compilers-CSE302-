@@ -1,5 +1,6 @@
 from .ssa import *
 from .tac import *
+from typing import List, Dict
 
 CC_REG_ORDER = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"]
 
@@ -28,6 +29,16 @@ class InterferenceGraphNode:
     nbh: List[Any]
     value: int  = 0 
 
+@dataclass
+class InterferenceGraph:
+    nodes: Dict[SSATemp | TACTemp, List[InterferenceGraphNode]]
+    
+    def __repr__(self):
+        return str(self.nodes)
+    
+    def __str__(self):
+        return str(self.nodes)
+
 
 class Allocator:
     @abstractmethod
@@ -50,5 +61,3 @@ class SpillingAllocator(Allocator):
             mapping=params_reg_mapping | params_stack_mapping| var_mapping
         )
 
-class InterferenceGraph:
-    nodes: List[InterferenceGraphNode]
