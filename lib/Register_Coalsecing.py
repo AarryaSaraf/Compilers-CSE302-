@@ -9,7 +9,7 @@ from .mcs import *
 # then allocation
 
 def rcol(G, C, cop):
-    """register coalsecing
+    """register coalsecing changes instructions or merges registers
 
     Args:
         G (InterferenceGraph): IFGraph
@@ -34,6 +34,17 @@ def rcol(G, C, cop):
         
         
 def exc(G, C, b):
+    """ Check is such a c exists
+
+    Args:
+        G (InterfereneGraph): Interferene graph
+        C (Dictionary tmp -> Int): Coloring
+        b ([bool, %a, %b]): 1 element of cop from the preious function
+
+    Returns:
+        _type_: False if no such c exists
+                (c+1) if c exists. It is c+1 so it necessarily satisfies the if(c) conditional.
+    """
     u = G.nodes[b[1]].nbh + G.nodes[b[2]].nbh
     col = []
     for i in u:
