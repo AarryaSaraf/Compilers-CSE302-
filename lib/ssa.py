@@ -11,10 +11,10 @@ class SSATemp:
         self.version = version
 
     def __str__(self):
-        return f"%{self.id}.{self.version}"
+        return f"SSATemp({self.id}, {self.version})"
 
     def __repr__(self):
-        return f"%{self.id}.{self.version}"
+        return f"SSATemp({self.id}, {self.version})"
 
     def __eq__(self, __value: object) -> bool:
         return self.id == __value.id and self.version == __value.version
