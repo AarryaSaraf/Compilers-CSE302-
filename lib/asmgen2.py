@@ -61,11 +61,20 @@ class AllocAsmGen:
         else:
             # allocate an additional stack slot if not even
             head_code += f"    subq ${8*(self.alloc.stacksize+1)}, %rsp\n"
-        head_code += "# save callee save registers\n"
+        head_code += "    # save callee save registers\n"
         # TODO only include the actually used registers
         for reg in CALLEE_SAVE:
             head_code += f"    pushq %{reg}\n"
         head_code += f"    pushq $0\n" # push one more to have 16 byte alignment (callee saves are uneven)
+        
+        head_code += "    # move parameters to allocated slots (if necessary)\n"
+        #if parameter variables are not allocated to CC Registers move them:
+        for i, param in enumerate(self.proc.params):
+            if i< 6 and self.alloc.mapping[param] != Register(CC_REG_ORDER[i]):
+                head_code += f"    movq %{CC_REG_ORDER[i]}, {self.to_address(param)}"
+            if i >= 6  and self.alloc.mapping[param] != Register(StackSlot(16+(i-6)*8)):
+                head_code += f"    movq {16+(i-6)*8}(%rsp), {self.to_address(param)}"
+                
         return head_code
 
     def proc_end(self) -> str:
