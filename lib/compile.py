@@ -57,14 +57,14 @@ def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], register_alloc=
 
     ssa_liveness_analyzer = SSALivenessAnalyzer(ssa_blocks)
     ssa_liveness_analyzer.liveness()
-    print(fun.name)
-    for block in ssa_blocks:
-        ssa_print_detailed(block)  
+    #print(fun.name)
+    #for block in ssa_blocks:
+    #    ssa_print_detailed(block)  
     graph_alloc = GraphAndColorAllocator(ssa_blocks, tacproc).allocate()
-    print(graph_alloc)
+    #print(graph_alloc)
     serializer = SSADeconstructor(ssa_blocks)
     tacproc.body = serializer.to_tac()
-    print_detailed(tacproc.body)
+    #print_detailed(tacproc.body)
     if register_alloc:
         #spilled_alloc = SpillingAllocator(tacproc).allocate()
         # this rename is somewhat ugly but has to be done here otherwise we get circular imports
@@ -72,7 +72,7 @@ def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], register_alloc=
             graph_alloc.stacksize,
             serializer.rename_alloc(graph_alloc.mapping)
         )
-        print(alloc)
+        #print(alloc)
         asm_gen = AllocAsmGen(tacproc,alloc)
     else:
         asm_gen = AsmGen(tacproc)

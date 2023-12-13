@@ -52,8 +52,6 @@ def buildIG(temps):
     IG = dict()
     #distinct temporaries
     distinct = {num for temp in temps for num in temp}
-    print(temps)
-    print(distinct)
     #non connected graph 
     for t in distinct:
         IG[t] = (InterferenceGraphNode(t,[],0))    
@@ -76,8 +74,6 @@ def mcs(igraph):
         [InterferenceGraphNode]: Simplical Elimination ordering 
     """
     i = all_none(igraph)
-    print(igraph)
-    print(i)
     ans = []
     while (i):
         ans = update(igraph.nodes[i], ans, igraph)
