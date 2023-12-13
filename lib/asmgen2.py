@@ -156,6 +156,8 @@ class AllocAsmGen:
                 case TACOp(op, [tmp], res) if op in SIMPLE_UN_OPS:
                     self.body += f"    {OPCODE_TO_ASM[op]} {self.to_address(tmp)}\n"
                 case TACOp("copy", [arg], res):
+                    if self.alloc.mapping[arg] == self.alloc.mapping[res]:
+                        continue
                     if isinstance(self.alloc.mapping[arg], Register) or isinstance(self.alloc.mapping[res], Register):
                         self.body += f"    movq {self.to_address(arg)}, {self.to_address(res)}\n"
                     else: # we can't move memory to memory

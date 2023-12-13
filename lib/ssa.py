@@ -348,7 +348,7 @@ class SSADeconstructor:
         return self.ssa_to_tac[tmp]
     
     def fresh_ssatmp(self):
-        tmp = SSATemp("dummy", self.tactmp_counter)
+        tmp = SSATemp(f"dummy", self.tactmp_counter)
         self.tactmp_counter += 1
         return tmp
     
@@ -398,18 +398,32 @@ class SSADeconstructor:
             TACOp("copy", [breakups.get(src, src)], res)
             for (res, src) in to_insert
         ]
+        print(dummy_copies)
+        # TODO: add liveness
+        live_out = set([c[0] for c in to_insert])
+        for copy_inst in reversed(copies):
+            copy_inst.live_out = live_out
+            copy_inst.live_in = live_out.union(copy_inst.use())
+            copy_inst.live_in.remove(copy_inst.result)
+            live_out = copy_inst.live_in
+
         pre_jump = [op for op in block.ops if not op.is_jmp()]
         jumps = block.ops[len(pre_jump) :]
         block.ops = pre_jump + copies + jumps
 
     def detect_cycles(self, to_insert):
         used = set()
+        defined = set()
         breakups = {}
         for res, src in to_insert:
             if res in used: # if we want to write to something used somewhere else
                 breakups[res] = self.fresh_ssatmp()
+            if src in defined:
+                breakups[src] = self.fresh_ssatmp()
             if src not in breakups: # add every read to a variable that is not already broken up
                 used.add(src)
+            if res not in breakups:
+                defined.add(res)
         return breakups
             
                 

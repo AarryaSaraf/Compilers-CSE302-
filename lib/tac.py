@@ -2,6 +2,8 @@ from dataclasses import field
 from .bxast import *
 from typing import Dict, Set
 
+CC_REG_ORDER = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"]
+
 
 class TACTemp:
     def __init__(self, id: str | int) -> None:
@@ -86,6 +88,36 @@ class TACOp:
     def is_jmp(self) -> bool:
         return self.opcode in JMP_OPS
 
+    def use(self,interference=False) -> Set[TACTemp]:
+        used = {tmp for tmp in self.args if not isinstance(tmp, TACGlobal) or isinstance(tmp, int)}
+        if interference:
+            # these dummies only need to be added for the construction of the interference graph
+            used = used.union(self.prealloc_dummies())
+        return used
+    
+    def defined(self, interference=False) -> Set[TACTemp]:
+        defined = set()
+        
+        if self.result is not None:
+            defined.add(self.result)
+        if interference:
+            # these dummies only need to be added for the construction of the interference graph
+            defined = defined.union(self.prealloc_dummies())
+        return defined
+
+    def prealloc_dummies(self):
+        dummies = set()
+        if self.opcode in ["div", "mod"]:
+            dummies.add(TACTemp("%%rax"))
+            dummies.add(TACTemp("%%rbx"))
+            dummies.add(TACTemp("%%rdx"))
+        elif self.opcode in ["shl", "shr"]:
+            dummies.add(TACTemp("%%rcx"))
+        elif self.opcode == "param" and self.args[0] < 7: # deprecated
+            dummies.add(TACTemp(f"%%{CC_REG_ORDER[self.args[0]-1]}"))
+        elif self.opcode == "call":
+            dummies = dummies.union(set([TACTemp(f"%%{reg}") for reg in CC_REG_ORDER[:len(self.args)-1]]))
+        return dummies
 
 @dataclass
 class TAC:

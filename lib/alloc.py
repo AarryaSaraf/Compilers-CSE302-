@@ -18,9 +18,16 @@ class AllocRecord:
 class Register(MemorySlot):
     name: str
 
+    def __eq__(self, __value: object) -> bool:
+        return isinstance(__value, Register) and self.name == __value.name
+    
+    
 @dataclass
 class StackSlot(MemorySlot):
     offset: int
+
+    def __eq__(self, __value: object) -> bool:
+        return isinstance(__value, StackSlot) and self.offset == __value.offset
 
 
 @dataclass

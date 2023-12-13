@@ -228,7 +228,17 @@ class GraphAndColorAllocator:
         else:
             return StackSlot(i)
 
+class TACGraphAndColorAllocator(GraphAndColorAllocator):
+    def __init__(self,tacproc: TACProc):
+        self.proc = tacproc
+        
 
-
-
-
+    def gather_liveness(self):
+        lout, de, use, cop  = [], [], [], []
+        for op in self.proc.body.ops:
+            if isinstance(op, TACOp):
+                lout.append(list(op.live_out))
+                de.append(list(op.defined(interference=True)))
+                use.append(list(op.use(interference=True)))
+                cop.append(op.opcode=="copy")
+        return lout, de, use, cop
