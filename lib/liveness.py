@@ -67,8 +67,8 @@ class SSALivenessAnalyzer:
         for pred in block.predecessors:
             if (block.entry, pred.entry) not in self.edges_covered:
                 self.edges_covered.add((block.entry, pred.entry))
-                if block.entry in live_out_for_block:
-                    self.liveness_block(live_out_for_block[block.entry]+ live_out, pred)
+                if pred.entry in live_out_for_block:
+                    self.liveness_block(live_out_for_block[pred.entry].union(live_out), pred)
                 else:
                     self.liveness_block(live_out, pred)
 

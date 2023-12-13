@@ -8,21 +8,20 @@ color_map = (
 '%%rax', '%%rcx', '%%rdx', '%%rsi', '%%rdi', '%%r8', '%%r9', '%%r10',
 '%%rbx', '%%r12', '%%r13', '%%r14', '%%r15'
 )
+CC_REG_ORDER = ["%%rdi", "%%rsi", "%%rdx", "%%rcx", "%%r8", "%%r9"]
 
 reg_map = {reg: color_map.index(reg) + 1 for reg in color_map}
 def color_to_reg(col): return color_map[col - 1]
 def reg_to_color(reg): return reg_map[reg]
 
 
-def greedy_coloring(params, ret, G, elim):
+def greedy_coloring(params: List[SSATemp], G: InterferenceGraph, elim: List[SSATemp]):
 
     """
     Parameters
     ----------
     params : list[temps]
         list of temps which store the parameters of the function
-    ret : temp
-        temp where the return value of the proc is stored
     G : interferance graph
     elim : list[temps]
         elimination ordering
@@ -38,27 +37,23 @@ def greedy_coloring(params, ret, G, elim):
 
     K = len(elim)
     available_colors = [i + 1 for i in range(K)]
-    print(available_colors)
-    param_colors = [i for i in range(2, 8)] #the first one is rax, then we take from 2 to 2+6=8 for the param colors
     col = {u : 0 for u in elim}
+    # also I can handle it  if the params are not allocated to their CC registers 
+    for param, c in zip(params, CC_REG_ORDER):
+        col[param] = reg_to_color(c)
+        # I don't know why we would need to do this, we don't need to keep the params alive
+        # available_colors.remove(col)
 
+    # pre color the instruction specific interference dummies
     for u in elim:
-        if u == ret:
-            col[u] = 1
-            available_colors.remove(1)
-        for param in params:
-            if param == u:
-                col[u] = param_colors[0]
-                param_colors.remove(col[u])
-                available_colors.remove(col[u])
+        if str(u.id).startswith("%%"):
+            col[u] = reg_to_color(u.id)
 
     for u in elim:
         if col[u] == 0:
             nei_colors = [col[nei] for nei in G.nodes[u].nbh]
             c = min([color for color in available_colors if color not in nei_colors])
             col[u] = c
-
-
     return col
 
 
@@ -86,7 +81,7 @@ def spill(col):
         return random.choice([u for u in col.keys() if col[u] == maxi])
     
 
-def allocate(params, ret, G, elim):
+def allocate(params, G, elim):
 
     """
 
@@ -106,14 +101,14 @@ def allocate(params, ret, G, elim):
     
     """
 
-    col = greedy_coloring(params, ret, G, elim)
+    col = greedy_coloring(params, G, elim)
     # the register coalsecing will mp go here
     to_spill = spill(col)
     spilled = []
     while to_spill is not None:
         spilled.append(to_spill)
         G = remove(G, to_spill)  
-        col = greedy_coloring(params, ret, G, elim)
+        col = greedy_coloring(params, G, elim)
         to_spill = spill(col)
     stacksize = 8*len(spilled)
     alloc = {u : color_to_reg(col[u]) for u in col.keys()}
@@ -180,8 +175,8 @@ G = {'a': ['d'],
     
 elim = ['b', 'd', 'c', 'e', 'a']
 
-class GraphAndColor():
-    def __init__(self, lin, de, use, cop, ):
+class GraphAndColorAllocator:
+    def __init__(self, ssa_blocks: List[SSABasicBlock], tacproc: TACProc):
         """ 
         lin (list of list of SSATemps or TACTemps): live in
         de (list of list of SSATemps or TACTemps)): def
@@ -189,10 +184,10 @@ class GraphAndColor():
         cop (list of Bool): copy or not. List of booleans
         
         """
-        self.ig = transformer(lin,de,use,cop)
-        self.seo = mcs(self.ig)
+        self.ssa = ssa_blocks
+        self.proc = tacproc
         
-    def allocated(self, params, ret):
+    def allocate(self):
         """
 
         Args:
@@ -204,13 +199,34 @@ class GraphAndColor():
         Returns:
             dict temps -> int: values are the assigned color (int) 
         """
-        return allocate((params, ret, self.ig, self.seo) )
+        # get the interference graph
+        lout,de,use,cop = self.gather_liveness()
+        ig = transformer(lout,de,use,cop)
+        # compute elimination ordering
+        seo = mcs(ig)
+        ssa_params = [SSATemp(tmp.id, 0) for tmp in self.proc.params]
+        stacksize, mapping = allocate(ssa_params, ig, seo)
+        return AllocRecord(
+            stacksize,
+            mapping={tmp: self.to_slot(alloc) for tmp, alloc in mapping.items() }
+        )
 
-        
+    def gather_liveness(self):
+        lout, de, use, cop  = [], [], [], []
+        for block in self.ssa:
+            for op in block.ops:
+                lout.append(list(op.live_out))
+                de.append(list(op.defined(interference=True)))
+                use.append(list(op.use(interference=True)))
+                cop.append(op.opcode=="copy")
 
+        return lout, de, use, cop
 
-
-
+    def to_slot(self, i):
+        if isinstance(i, str):
+            return Register(i[2:])
+        else:
+            return StackSlot(i)
 
 
 

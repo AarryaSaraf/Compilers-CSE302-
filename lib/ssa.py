@@ -12,10 +12,10 @@ class SSATemp:
         self.version = version
 
     def __str__(self):
-        return f"SSATemp({self.id}, {self.version})"
+        return f"%{self.id}.{self.version}"
 
     def __repr__(self):
-        return f"SSATemp({self.id}, {self.version})"
+        return f"%{self.id}.{self.version}"
 
     def __eq__(self, __value: object) -> bool:
         return self.id == __value.id and self.version == __value.version
@@ -80,32 +80,37 @@ class SSAOp:
     def is_jmp(self) -> bool:
         return self.opcode in JMP_OPS
 
-    def use(self) -> Set[SSATemp]:
+    def use(self,interference=False) -> Set[SSATemp]:
         used = {tmp for tmp in self.args if isinstance(tmp, SSATemp)}
-        used = used.union(self.prealloc_dummies())
+        if interference:
+            # these dummies only need to be added for the construction of the interference graph
+            used = used.union(self.prealloc_dummies())
         return used
     
-    def defined(self) -> Set[SSATemp]:
+    def defined(self, interference=False) -> Set[SSATemp]:
         defined = set()
         
         if self.result is not None:
             defined.add(self.result)
-        defined = defined.union(self.prealloc_dummies())
+        if interference:
+            # these dummies only need to be added for the construction of the interference graph
+            defined = defined.union(self.prealloc_dummies())
         return defined
 
     def prealloc_dummies(self):
         dummies = set()
         if self.opcode in ["div", "mod"]:
-            dummies.add(SSATemp("%%rax"))
-            dummies.add(SSATemp("%%rbx"))
-            dummies.add(SSATemp("%%rdx"))
+            dummies.add(SSATemp("%%rax", 0))
+            dummies.add(SSATemp("%%rbx", 0))
+            dummies.add(SSATemp("%%rdx", 0))
         elif self.opcode in ["shl", "shr"]:
-            dummies.add(SSATemp("%%rcx"))
+            dummies.add(SSATemp("%%rcx", 0))
         elif self.opcode == "param" and self.args[0] < 7: # deprecated
-            dummies.add(SSATemp(f"%%{CC_REG_ORDER[self.args[0]-1]}"))
+            dummies.add(SSATemp(f"%%{CC_REG_ORDER[self.args[0]-1]}", 0))
         elif self.opcode == "call":
-            dummies = dummies.union(set(f"%%{reg}" for reg in [CC_REG_ORDER[:len(self.args)]]))
+            dummies = dummies.union(set([SSATemp(f"%%{reg}", 0) for reg in CC_REG_ORDER[:len(self.args)-1]]))
         return dummies
+    
 @dataclass
 class Phi:
     defined: SSATemp
@@ -322,7 +327,6 @@ class SSAOptimizer:
                     new_defs.append(phi)
             block.defs = new_defs
 
-
 class SSADeconstructor:
     def __init__(self, blocks: List[SSABasicBlock]):
         self.blocks = blocks
@@ -382,6 +386,7 @@ class SSADeconstructor:
         # insert the copies
         for block in self.blocks:
             self.insert_copies(block, copies_to_insert[block.entry])
+            
     def insert_copies(self, block, to_insert):
         # cylce detection
         breakups = self.detect_cycles(to_insert)
@@ -419,6 +424,8 @@ class SSADeconstructor:
         for succ in block.successors:
             self.serialize(succ)
 
+    def rename_alloc(self, alloc_mapping):
+        return {self.ssatmp_to_tac(tmp): slot for tmp, slot in alloc_mapping.items()}
 
 def ssa_print(block: SSABasicBlock):
     print(str(block.entry) + ":")

@@ -48,6 +48,7 @@ class AllocAsmGen:
         self.alloc = alloc
         self.tac = proc.body
         self.body = ""
+        self.reg_used = list({slot.name for slot in self.alloc.mapping.values() if isinstance(slot, Register)})
 
     def compile_proc_head(self) -> str:
         head_code = ""
@@ -62,10 +63,14 @@ class AllocAsmGen:
             # allocate an additional stack slot if not even
             head_code += f"    subq ${8*(self.alloc.stacksize+1)}, %rsp\n"
         head_code += "    # save callee save registers\n"
-        # TODO only include the actually used registers
-        for reg in CALLEE_SAVE:
+        
+        # save callee save registers if used
+        save_registers = [reg for reg in self.reg_used if reg in CALLEE_SAVE]
+
+        for reg in save_registers:
             head_code += f"    pushq %{reg}\n"
-        head_code += f"    pushq $0\n" # push one more to have 16 byte alignment (callee saves are uneven)
+        if len(save_registers) % 2 != 0:
+            head_code += f"    pushq $0\n" # push one more to have 16 byte alignment (callee saves are uneven)
         
         head_code += "    # move parameters to allocated slots (if necessary)\n"
         #if parameter variables are not allocated to CC Registers move them:
@@ -77,12 +82,18 @@ class AllocAsmGen:
                 
         return head_code
 
+
     def proc_end(self) -> str:
         # TODO only include the actually used registers
         end_code = ""
-        end_code += f"    popq %r15\n"# pop one more to have 16 byte alignment (callee saves are uneven) also we override r15 anyway
-        for reg in reversed(CALLEE_SAVE):
+
+        # restore callee save registers if used
+        save_registers = [reg for reg in self.reg_used if reg in CALLEE_SAVE]
+        if len(save_registers) % 2 != 0:
+            end_code += f"    popq %{save_registers[:-1]}\n"# pop one more to have 16 byte alignment (callee saves are uneven) also we override r15 anyway
+        for reg in reversed(save_registers):
             end_code += f"    popq %{reg}\n"
+
         end_code += "    movq %rbp, %rsp # restore old RSP\n"
         end_code += "    popq %rbp # restore old RBP\n"
         end_code += "    retq \n"
@@ -137,7 +148,7 @@ class AllocAsmGen:
                         self.body += self.store_var("rax", res)
                 case TACOp(op, [tmp1, tmp2], res) if op in SIMPLE_BIN_OPS:
                     if self.alloc.mapping[tmp1] == self.alloc.mapping[res] and isinstance(self.alloc.mapping[res], Register):
-                        self.body += f"    {OPCODE_TO_ASM[op]} {self.to_address(tmp2)}, {self.to_address}\n"
+                        self.body += f"    {OPCODE_TO_ASM[op]} {self.to_address(tmp2)}, {self.to_address(tmp1)}\n"
                     else:
                         self.body += self.load_var(tmp1, "r11")
                         self.body += f"    {OPCODE_TO_ASM[op]} {self.to_address(tmp2)}, %r11\n"
@@ -145,8 +156,11 @@ class AllocAsmGen:
                 case TACOp(op, [tmp], res) if op in SIMPLE_UN_OPS:
                     self.body += f"    {OPCODE_TO_ASM[op]} {self.to_address(tmp)}\n"
                 case TACOp("copy", [arg], res):
-                    self.body += self.load_var(arg, "r11")
-                    self.body += self.store_var("r11", res)
+                    if isinstance(self.alloc.mapping[arg], Register) or isinstance(self.alloc.mapping[res], Register):
+                        self.body += f"    movq {self.to_address(arg)}, {self.to_address(res)}\n"
+                    else: # we can't move memory to memory
+                        self.body += self.load_var(arg, "r11")
+                        self.body += self.store_var("r11", res)
                 case TACOp("const", [val], res):
                     self.body += (
                         f"    movq ${val}, {self.to_address(res)}\n"

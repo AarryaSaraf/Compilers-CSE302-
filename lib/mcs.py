@@ -12,27 +12,27 @@ from .alloc import *
 
     
         
-def transformer(lin, de, use, cop):
+def transformer(live_outs, defs, uses, is_copy):
     """Takes the arguements and spits out the interference graph.
 
     Args:
-        lin (list of list of SSATemps or TACTemps): live in
-        de (list of list of SSATemps or TACTemps)): def
-        use (list of list of SSATemps or TACTemps): use
-        cop (list of Bool): copy or not. List of booleans
+        live_outs (list of list of SSATemps or TACTemps): list of live out sets
+        defs (list of list of SSATemps or TACTemps)): list of def sets
+        use (list of list of SSATemps or TACTemps): list of use sets
+        is_copy (list of Bool): wether the instruction is a copy or not.
     """
     ans = []
-    for i in range(0,len(de)):
-        temps = set()
-        for x in lin[i]:
-            temps.add(x)
-            for y in de[i]:
-                temps.add(y)
-            if(cop[i]):
-                for y in use[i]:
-                    temps.add(y)
-        ans.append(temps)
-    return buildIG(temps)
+    for i in range(0,len(defs)):
+        interfering_temps = set()
+        for x in live_outs[i]:
+            interfering_temps.add(x)
+            for y in defs[i]:
+                interfering_temps.add(y)
+            if(is_copy[i]):
+                for y in uses[i]:
+                    interfering_temps.add(y)
+        ans.append(interfering_temps)
+    return buildIG(ans)
             
 
         
@@ -52,6 +52,8 @@ def buildIG(temps):
     IG = dict()
     #distinct temporaries
     distinct = {num for temp in temps for num in temp}
+    print(temps)
+    print(distinct)
     #non connected graph 
     for t in distinct:
         IG[t] = (InterferenceGraphNode(t,[],0))    
@@ -74,6 +76,8 @@ def mcs(igraph):
         [InterferenceGraphNode]: Simplical Elimination ordering 
     """
     i = all_none(igraph)
+    print(igraph)
+    print(i)
     ans = []
     while (i):
         ans = update(igraph.nodes[i], ans, igraph)
@@ -93,11 +97,9 @@ def all_none(igraph):
     Else Returns first unvisited node
 
     """
-        
-    for i in igraph.nodes.keys():
-        if(igraph.nodes[i].value == None):
-            continue
-        return i
+    for i, node in igraph.nodes.items():
+        if node.value is not None:
+            return i
     return False
     
 def update(node, ans, igraph):

@@ -27,7 +27,7 @@ class StackSlot(MemorySlot):
 class InterferenceGraphNode:
     tmp: SSATemp | TACTemp
     nbh: List[Any]
-    value: int  = 0 
+    value: int  = 0
 
 @dataclass
 class InterferenceGraph:
