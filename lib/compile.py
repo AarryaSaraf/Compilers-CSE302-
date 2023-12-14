@@ -65,6 +65,8 @@ def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], register_alloc=
     serializer = SSADeconstructor(ssa_blocks)
     tacproc.body = serializer.to_tac()
     alloc = TACGraphAndColorAllocator(tacproc).allocate()
+
+    print(alloc)
     print_detailed(tacproc.body)
     if register_alloc:
         #spilled_alloc = SpillingAllocator(tacproc).allocate()
