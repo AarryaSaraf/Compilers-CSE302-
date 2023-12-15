@@ -14,8 +14,13 @@ if __name__ == "__main__":
     with open(sourcefile) as fp:
         source = fp.read()
 
-    asm = compile(source)
+    optim = 0
+    for i in range(5):
+        if f"-o{i}" in sys.argv:
+            optim = i
 
+    asm = compile(source, optim=optim)
+    
     if "--nolink" in sys.argv:
         print(asm)
     else:

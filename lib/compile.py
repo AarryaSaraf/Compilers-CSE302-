@@ -12,7 +12,7 @@ from .ssa import SSACrudeGenerator, SSADeconstructor, ssa_print_detailed, SSAOpt
 from .asmgen2 import AllocAsmGen
 from .alloc import SpillingAllocator, AllocRecord
 from .greedy_coloring import GraphAndColorAllocator, TACGraphAndColorAllocator
-def compile(src: str):
+def compile(src: str, optim=0):
     decls = parser.parse(src)
     s_checker = SyntaxChecker()
     errs = s_checker.check_program(decls)
@@ -30,11 +30,11 @@ def compile(src: str):
 
     symbs = global_symbs(decls)
     data_section = make_data_section(globvars)
-    text_section = make_text_section([compile_unit(fun, globalmap) for fun in funs])
+    text_section = make_text_section([compile_unit(fun, globalmap, optim=optim) for fun in funs])
     return symbs + data_section + text_section
 
 
-def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], register_alloc=True) -> str:
+def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], optim=0) -> str:
     """
     Compiles a single function
 
@@ -46,14 +46,14 @@ def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], register_alloc=
     lowerer = TMM(fun, globalmap)
     tacproc = lowerer.lower()
     cfg_analyzer = CFGAnalyzer(tacproc)
-    blocks = cfg_analyzer.optimize()
+    blocks = cfg_analyzer.optimize(coalesce=optim>0, unc_thread=optim>0, cond_thread=optim>1)
     liveness_analyzer = LivenessAnalyzer(blocks)
     liveness_analyzer.liveness()
     ssa_gen = SSACrudeGenerator(blocks, tacproc)
     ssa_blocks = ssa_gen.to_ssa()
 
     ssa_optim = SSAOptimizer(ssa_blocks)
-    ssa_blocks = ssa_optim.optimize()
+    ssa_blocks = ssa_optim.optimize(copy_propagate=optim > 2, rename_and_dead_choice=optim > 1)
 
     ssa_liveness_analyzer = SSALivenessAnalyzer(ssa_blocks)
     ssa_liveness_analyzer.liveness()
@@ -64,9 +64,8 @@ def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], register_alloc=
     #print(graph_alloc)
     serializer = SSADeconstructor(ssa_blocks)
     tacproc.body = serializer.to_tac()
-    alloc = TACGraphAndColorAllocator(tacproc).allocate()
     print_detailed(tacproc.body)
-    if register_alloc:
+    if optim>2:
         #spilled_alloc = SpillingAllocator(tacproc).allocate()
         # this rename is somewhat ugly but has to be done here otherwise we get circular imports
         #alloc = AllocRecord(
@@ -74,6 +73,7 @@ def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], register_alloc=
         #    serializer.rename_alloc(graph_alloc.mapping)
         #)
         #print(alloc)
+        alloc = TACGraphAndColorAllocator(tacproc).allocate(coalesce_registers=optim>3)
         asm_gen = AllocAsmGen(tacproc,alloc)
     else:
         asm_gen = AsmGen(tacproc)
