@@ -21,7 +21,7 @@ class Register(MemorySlot):
     def __eq__(self, __value: object) -> bool:
         return isinstance(__value, Register) and self.name == __value.name
     
-    
+
 @dataclass
 class StackSlot(MemorySlot):
     offset: int
@@ -33,12 +33,12 @@ class StackSlot(MemorySlot):
 @dataclass
 class InterferenceGraphNode:
     tmp: SSATemp | TACTemp
-    nbh: List[Any]
+    nbh: List[TACTemp| SSATemp]
     value: int  = 0
 
 @dataclass
 class InterferenceGraph:
-    nodes: Dict[SSATemp | TACTemp, List[InterferenceGraphNode]]
+    nodes: Dict[SSATemp | TACTemp, InterferenceGraphNode]
     
     def __repr__(self):
         return str(self.nodes)

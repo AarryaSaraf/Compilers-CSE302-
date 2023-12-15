@@ -144,6 +144,20 @@ class TACProc:
     
     def get_tmps(self):
         return set(self.params).union(self.body.get_tmps())
+    
+    def rename_var(self, old, new):
+        for op in self.body.ops:
+            if isinstance(op, TACOp):
+                op.args = [
+                    new if isinstance(arg, TACTemp) and arg == old else arg
+                    for arg in op.args
+                ]
+                op.result = (
+                    new if op.result is not None and op.result == old else op.result
+                )
+    
+    def new_unused_tmp(self) -> TACTemp:
+        return TACTemp(len(self.get_tmps)+1)
 
 OPCODES = [
     "jmp",

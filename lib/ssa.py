@@ -122,7 +122,6 @@ class Phi:
         )
         return f"{self.defined} = \u03D5 {sourcespretty}"
 
-
 @dataclass
 class SSABasicBlock:
     entry: SSALabel
@@ -144,6 +143,44 @@ class SSABasicBlock:
     def empty(self) -> bool:
         return all([op.opcode in JMP_OPS for op in self.ops])
 
+    def get_tmps(self) -> Set[SSATemp]:
+        temps = set()
+        for op in self.ops:
+                if op.result is not None:  
+                    temps.add(op.result)
+        for phi in self.defs:
+            temps.add(phi.defined)
+        return temps
+    
+
+@dataclass
+class SSAProc:
+    blocks: List[SSABasicBlock]
+    params: List[SSATemp]
+
+    def rename_var(self, old, new):
+        for block in self.blocks:
+            for phi in block.defs:
+                phi.sources = {
+                    lbl: new if tmp == old else tmp for lbl, tmp in phi.sources.items()
+                }
+                phi.defined = new if phi.defined == old else phi.defined
+            for op in block.ops:
+                op.args = [
+                    new if isinstance(arg, SSATemp) and arg == old else arg
+                    for arg in op.args
+                ]
+                op.result = (
+                    new if op.result is not None and op.result == old else op.result
+                )
+    def get_tmps(self):
+        tmps = set(self.params)
+        for block in self.blocks:
+            tmps = tmps.union(block.get_tmps())
+        return tmps
+
+    def new_unused_tmp(self) -> SSATemp:
+        return SSATemp(len(self.get_tmps)+1, 0)
 
 class SSACrudeGenerator:
     def __init__(self, blocks: List[BasicBlock], proc: TACProc) -> None:
@@ -153,7 +190,7 @@ class SSACrudeGenerator:
         self.current_version = {}
         self.converted_blocks = {}
 
-    def to_ssa(self):
+    def to_ssa(self) -> SSAProc:
         # this converts everything into basic SSA with Phony defs that will be turned into phi functions in step2
         ssa_blocks = []
         for block in self.blocks:
@@ -162,7 +199,10 @@ class SSACrudeGenerator:
         self.update_pred_succ(ssa_blocks)
         for block in ssa_blocks:
             self.convert_phony_to_phi(block)
-        return ssa_blocks
+        return SSAProc(
+            ssa_blocks,
+            [SSATemp(tmp.id, 0) for tmp in self.proc.params]
+        )
 
     def insert_phony(self, block: BasicBlock):
         new_block = BasicBlock(
@@ -256,18 +296,19 @@ class SSACrudeGenerator:
 
 
 class SSAOptimizer:
-    def __init__(self, blocks: List[SSABasicBlock]) -> None:
-        self.blocks = blocks
+    def __init__(self, ssa: SSAProc) -> None:
+        self.proc = ssa
+        self.blocks = ssa.blocks
 
     def optimize(
         self, copy_propagate=True, rename_and_dead_choice=True
-    ) -> List[SSABasicBlock]:
+    ) -> SSAProc:
         if copy_propagate:
             self.copy_propagate()
         if rename_and_dead_choice:
             self.rename_simpl()
             self.no_choice_elim()
-        return self.blocks
+        return self.proc
 
     def copy_propagate_block(self, block: SSABasicBlock):
         copy_continuations = {}
@@ -275,7 +316,7 @@ class SSAOptimizer:
         for op in block.ops:
             if op.opcode == "copy":
                 copy_continuations[op.result] = op.args[0]
-                self.rename_var(op.result, op.args[0])
+                self.proc.rename_var(op.result, op.args[0])
             else:
                 new_ops.append(op)
         block.ops = new_ops
@@ -284,27 +325,11 @@ class SSAOptimizer:
         for block in self.blocks:
             self.copy_propagate_block(block)
 
-    def rename_var(self, old, new):
-        for block in self.blocks:
-            for phi in block.defs:
-                phi.sources = {
-                    lbl: new if tmp == old else tmp for lbl, tmp in phi.sources.items()
-                }
-                phi.defined = new if phi.defined == old else phi.defined
-            for op in block.ops:
-                op.args = [
-                    new if isinstance(arg, SSATemp) and arg == old else arg
-                    for arg in op.args
-                ]
-                op.result = (
-                    new if op.result is not None and op.result == old else op.result
-                )
-
     def rename_simpl(self):
         simpls = self.find_renames()
         while len(simpls) != 0:
             for old, new in simpls:
-                self.rename_var(old, new)
+                self.proc.rename_var(old, new)
             self.no_choice_elim()
             simpls = self.find_renames()
 
@@ -328,7 +353,9 @@ class SSAOptimizer:
             block.defs = new_defs
 
 class SSADeconstructor:
-    def __init__(self, blocks: List[SSABasicBlock]):
+    def __init__(self, ssa: SSAProc):
+        self.ssa = ssa
+        blocks = ssa.blocks
         self.blocks = blocks
         self.initial = [block for block in blocks if block.initial][0]
         self.already_serialized = set()
@@ -398,7 +425,6 @@ class SSADeconstructor:
             TACOp("copy", [breakups.get(src, src)], res)
             for (res, src) in to_insert
         ]
-        print(dummy_copies)
         # TODO: add liveness
         live_out = set([c[0] for c in to_insert])
         for copy_inst in reversed(copies):

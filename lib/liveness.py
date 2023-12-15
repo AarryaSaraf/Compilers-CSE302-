@@ -36,8 +36,9 @@ class LivenessAnalyzer:
 
 
 class SSALivenessAnalyzer:
-    def __init__(self, cfg:List[SSABasicBlock]) -> None:
-        self.cfg = cfg
+    def __init__(self, ssaproc: SSAProc) -> None:
+        self.ssaproc = ssaproc
+        self.cfg = ssaproc.blocks
         self.edges_covered: Set[Tuple[TACLabel, TACLabel]] = set()
     
     def liveness_inst(self, live_out: Set[SSATemp], inst: SSAOp):

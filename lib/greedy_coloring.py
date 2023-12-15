@@ -134,7 +134,7 @@ def rcol(G, C, cop):
         if(b[0] and C[b[1]] == C[b[2]]):
             b = None
         elif(b[1] not in G.nodes[b[2]].nbh):
-            flag  = exc(G, C,b)
+            flag  = free_color(G, C,b)
             if(flag):
                 flag -=1
                 tmp = TACTemp(flag, 0)
@@ -143,8 +143,8 @@ def rcol(G, C, cop):
                 G = remove(G, b[2])
                 # replace  %a and %b with %c in the instruction space JONAS TO DO 
                 
-def exc(G, C, b):
-    """ Check is such a c exists
+def free_color(G, C, tmp1, tmp2):
+    """ Check is whether a free color between tmp1 and tmp2  exists
 
     Args:
         G (InterfereneGraph): Interferene graph
@@ -155,7 +155,7 @@ def exc(G, C, b):
         _type_: False if no such c exists
                 (c+1) if c exists. It is c+1 so it necessarily satisfies the if(c) conditional.
     """
-    u = G.nodes[b[1]].nbh + G.nodes[b[2]].nbh
+    u = G.nodes[tmp1].nbh + G.nodes[tmp2].nbh
     col = []
     for i in u:
         col.append(C[i])
@@ -176,36 +176,31 @@ G = {'a': ['d'],
 elim = ['b', 'd', 'c', 'e', 'a']
 
 class GraphAndColorAllocator:
-    def __init__(self, ssa_blocks: List[SSABasicBlock], tacproc: TACProc):
+    def __init__(self, ssa: SSAProc):
         """ 
-        lin (list of list of SSATemps or TACTemps): live in
-        de (list of list of SSATemps or TACTemps)): def
-        use (list of list of SSATemps or TACTemps): use
-        cop (list of Bool): copy or not. List of booleans
-        
-        """
-        self.ssa = ssa_blocks
-        self.proc = tacproc
-        
-    def allocate(self):
-        """
-
         Args:
-            params : list[temps]
-        list of temps which store the parameters of the function
-            ret : temp
-        temp where the return value of the proc is stored
+            ssa: An SSAProc to be allocated
+        """
+        self.proc = ssa
+        self.blocks = ssa.blocks
+        
+    def allocate(self, coalesce_registers=True):
+        """
+        Produces a valid allocation
+        Args:
+            coalesce_registers (bool, optional): Whether to do register coalescing
 
         Returns:
-            dict temps -> int: values are the assigned color (int) 
+            AllocRecord
         """
         # get the interference graph
         lout,de,use,cop = self.gather_liveness()
         ig = transformer(lout,de,use,cop)
         # compute elimination ordering
         seo = mcs(ig)
-        ssa_params = [SSATemp(tmp.id, 0) for tmp in self.proc.params]
-        stacksize, mapping = allocate(ssa_params, ig, seo)
+        stacksize, mapping = allocate(self.proc.params, ig, seo)
+        if coalesce_registers:
+            self.coalesce_registers(ig, mapping)
         return AllocRecord(
             stacksize,
             mapping={tmp: self.to_slot(alloc) for tmp, alloc in mapping.items() }
@@ -213,7 +208,7 @@ class GraphAndColorAllocator:
 
     def gather_liveness(self):
         lout, de, use, cop  = [], [], [], []
-        for block in self.ssa:
+        for block in self.blocks:
             for op in block.ops:
                 lout.append(list(op.live_out))
                 de.append(list(op.defined(interference=True)))
@@ -228,10 +223,49 @@ class GraphAndColorAllocator:
         else:
             return StackSlot(i)
 
+    def coalesce_inst(self, inst: TACOp | SSAOp, ig: InterferenceGraph, coloring: Dict) -> bool:
+        """
+        Performs register coalescing on TAC or SSA instructions.
+
+        Args:
+            inst (TACop or SSAOp): the instruction.
+            ig (InterferenceGraph): an interference graph
+            coloring (dict temp -> int): The current coloring
+        Returns:
+            bool: whether the instruction is to be removed
+        """
+        if inst.opcode == "copy":
+            if inst.result == inst.args[0]:
+                return True
+            if inst.args[0] not in ig.nodes[inst.result].nbh:
+                fc = free_color(ig, coloring, inst.args[0], inst.result)
+                if fc:
+                    new_tmp = self.proc.new_unused_tmp()
+                    coloring[new_tmp] = fc
+                    self.proc.rename_var(old=inst.args[0], new=new_tmp)
+                    self.proc.rename_var(old=inst.result, new=new_tmp)
+                    return True
+        return False
+    
+    def coalesce_registers(self, ig: InterferenceGraph, coloring: Dict):
+        """
+        Do register coalescing
+        """
+        # the main work is done in coalesce inst this just does it for 
+        for block in self.blocks:
+            new_ops =  []
+            for op in block.ops:
+                if not self.coalesce_inst(op, ig, coloring):
+                    new_ops.append(op)
+            block.ops = new_ops
+                
+
 class TACGraphAndColorAllocator(GraphAndColorAllocator):
+    """
+    Slight modification of the GraphAndCOlorAllocator to work with the deconstructed TAC
+    """
     def __init__(self,tacproc: TACProc):
         self.proc = tacproc
-        
 
     def gather_liveness(self):
         lout, de, use, cop  = [], [], [], []
@@ -242,3 +276,11 @@ class TACGraphAndColorAllocator(GraphAndColorAllocator):
                 use.append(list(op.use(interference=True)))
                 cop.append(op.opcode=="copy")
         return lout, de, use, cop
+
+    def coalesce_registers(self,ig: InterferenceGraph, coloring: Dict):
+        new_ops =  []
+        for op in self.proc.body.ops:
+            if not (isinstance(op, TACOp) and self.coalesce_inst(op, ig, coloring)):
+                new_ops.append(op)
+        self.proc.body.ops = new_ops
+                
