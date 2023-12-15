@@ -1,0 +1,24 @@
+def main() {
+    var n =30: int;
+
+    var start = gettime(): int; 
+    var sol = fib(n): int;
+    var end = gettime(): int;
+
+    print(end-start);
+}
+
+
+
+def fib(n:int):int{
+    if (n <= 1){
+        if (n <= 0) {
+            return 0;
+        }
+        return 1;
+    } else {
+        var x = fib(n-1): int;
+        var y = fib(n-2): int;
+        return x+y;
+    }
+}
