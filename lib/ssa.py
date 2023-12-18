@@ -359,7 +359,6 @@ class SSAOptimizer:
     def _rename_simpl(self):
         simpls = self._find_renames()
         while len(simpls) != 0:
-            print(simpls)
             for old, new in simpls:
                 self.proc.rename_var(old, new)
             self._null_choice_elim()
