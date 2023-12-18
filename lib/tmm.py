@@ -132,7 +132,7 @@ class TMM(Lowerer):
                     TACOp("const", [0], tmp),
                     lab_end,
                 ]
-        code += [TACOp("call", [callexpr.target]+ arg_temps , res)]
+        code += [TACOp("call", [callexpr.target] + arg_temps, res)]
         return code
 
     def tmm_bool_code(

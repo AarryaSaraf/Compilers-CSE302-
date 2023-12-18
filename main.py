@@ -16,11 +16,11 @@ if __name__ == "__main__":
 
     optim = 0
     for i in range(5):
-        if f"-o{i}" in sys.argv:
+        if f"-O{i}" in sys.argv:
             optim = i
 
     asm = compile(source, optim=optim)
-    
+
     if "--nolink" in sys.argv:
         print(asm)
     else:

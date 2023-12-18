@@ -82,7 +82,6 @@ def lookup_block(label: TACLabel, blocks: List[BasicBlock]):
             return block
 
 
-
 class CFGAnalyzer:
     def __init__(self, proc: TACProc):
         self.proc = proc

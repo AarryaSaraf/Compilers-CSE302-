@@ -12,6 +12,8 @@ from .ssa import SSACrudeGenerator, SSADeconstructor, ssa_print_detailed, SSAOpt
 from .asmgen2 import AllocAsmGen
 from .alloc import SpillingAllocator, AllocRecord
 from .greedy_coloring import GraphAndColorAllocator, TACGraphAndColorAllocator
+
+
 def compile(src: str, optim=0):
     decls = parser.parse(src)
     s_checker = SyntaxChecker()
@@ -30,7 +32,9 @@ def compile(src: str, optim=0):
 
     symbs = global_symbs(decls)
     data_section = make_data_section(globvars)
-    text_section = make_text_section([compile_unit(fun, globalmap, optim=optim) for fun in funs])
+    text_section = make_text_section(
+        [compile_unit(fun, globalmap, optim=optim) for fun in funs]
+    )
     return symbs + data_section + text_section
 
 
@@ -45,36 +49,49 @@ def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], optim=0) -> str
     """
     lowerer = TMM(fun, globalmap)
     tacproc = lowerer.lower()
+
+    if optim == 0:
+        asm_gen = AsmGen(tacproc)
+        asm = asm_gen.compile()
+        return asm
+
     cfg_analyzer = CFGAnalyzer(tacproc)
-    blocks = cfg_analyzer.optimize(coalesce=optim>0, unc_thread=optim>0, cond_thread=optim>1)
+    blocks = cfg_analyzer.optimize(
+        coalesce=optim > 0, unc_thread=optim > 0, cond_thread=optim > 1
+    )
     liveness_analyzer = LivenessAnalyzer(blocks)
     liveness_analyzer.liveness()
-    ssa_gen = SSACrudeGenerator(blocks, tacproc)
-    ssa_blocks = ssa_gen.to_ssa()
 
-    ssa_optim = SSAOptimizer(ssa_blocks)
-    ssa_blocks = ssa_optim.optimize(copy_propagate=optim > 2, rename_and_dead_choice=optim > 1)
+    if optim > 1:
+        ssa_gen = SSACrudeGenerator(blocks, tacproc)
+        ssa_blocks = ssa_gen.to_ssa()
 
-    ssa_liveness_analyzer = SSALivenessAnalyzer(ssa_blocks)
-    ssa_liveness_analyzer.liveness()
-    #print(fun.name)
-    #for block in ssa_blocks:
-    #    ssa_print_detailed(block)  
-    #graph_alloc = GraphAndColorAllocator(ssa_blocks, tacproc).allocate()
-    #print(graph_alloc)
-    serializer = SSADeconstructor(ssa_blocks)
-    tacproc.body = serializer.to_tac()
-    print_detailed(tacproc.body)
-    if optim>2:
-        #spilled_alloc = SpillingAllocator(tacproc).allocate()
+        ssa_optim = SSAOptimizer(ssa_blocks)
+        ssa_blocks = ssa_optim.optimize(
+            copy_propagate=optim > 3, rename_and_dead_choice=optim > 1
+        )
+
+        ssa_liveness_analyzer = SSALivenessAnalyzer(ssa_blocks)
+        ssa_liveness_analyzer.liveness()
+        # print(fun.name)
+        # for block in ssa_blocks:
+        #    ssa_print_detailed(block)
+        # graph_alloc = GraphAndColorAllocator(ssa_blocks, tacproc).allocate()
+        # print(graph_alloc)
+        serializer = SSADeconstructor(ssa_blocks)
+        tacproc.body = serializer.to_tac()
+    if optim > 2:
+        # spilled_alloc = SpillingAllocator(tacproc).allocate()
         # this rename is somewhat ugly but has to be done here otherwise we get circular imports
-        #alloc = AllocRecord(
+        # alloc = AllocRecord(
         #    graph_alloc.stacksize,
         #    serializer.rename_alloc(graph_alloc.mapping)
-        #)
-        #print(alloc)
-        alloc = TACGraphAndColorAllocator(tacproc).allocate(coalesce_registers=optim>3)
-        asm_gen = AllocAsmGen(tacproc,alloc)
+        # )
+        # print(alloc)
+        alloc = TACGraphAndColorAllocator(tacproc).allocate(
+            coalesce_registers=optim > 3
+        )
+        asm_gen = AllocAsmGen(tacproc, alloc)
     else:
         asm_gen = AsmGen(tacproc)
     asm = asm_gen.compile()
