@@ -1,5 +1,5 @@
 def main() {
-    var n =30: int;
+    var n = 40: int;
 
     var start = gettime(): int; 
     var sol = fib(n): int;
