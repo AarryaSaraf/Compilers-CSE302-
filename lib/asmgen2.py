@@ -287,19 +287,31 @@ class AllocAsmGen:
             if isinstance(self.alloc.mapping[var], Register)
             and self.alloc.mapping[var].name in CALLER_SAVE
         ]
-
+        stack_offset = 0 # to keep track of the stack pointer
         for reg in used_registers:
             self.body += f"    pushq %{reg.name}\n"
+            stack_offset +=1
         # stack alignment
         if max(len(args) - 6, 0) + len(used_registers) % 2 != 0:
             self.body += f"    pushq $0\n"
+            stack_offset +=1 
         # allocate arguments according to CC
-        # TODO: For the duration of this call every register that was saved shuld be consider to be at the stack slot it was pushed to
         for i, arg in enumerate(args[:6]):
-            self.body += self.load_var(arg, CC_REG_ORDER[i])
+            # if we pushed the variable take it from the stack (this also avoids any unwanted overrides to rdi etc.)
+            if self.alloc.mapping[arg] in used_registers:
+                pushed_index = used_registers.index(self.alloc.mapping[arg]) 
+                self.body += f"    movq {stack_offset -pushed_index}(%rsp), %{CC_REG_ORDER[i]}\n" # i hope this math is correct
+            else:
+                self.body += self.load_var(arg, CC_REG_ORDER[i])
         for arg in reversed(args[6:]):
-            self.body += self.load_var(arg, "r11")
+            # if we pushed the variable take it from the stack (this also avoids any unwanted overrides to rdi etc.)
+            if self.alloc.mapping[arg] in used_registers:
+                pushed_index = used_registers.index(self.alloc.mapping[arg]) 
+                self.body += f"    movq {stack_offset -pushed_index}(%rsp), %r11\n"
+            else:
+                self.body += self.load_var(arg, "r11")
             self.body += "    pushq %r11\n"
+            stack_offset += 1
 
         # actual call
         self.body += f"    callq {callee}\n"
