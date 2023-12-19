@@ -26,7 +26,7 @@ class SSATemp:
         return f"%{self.id}.{self.version}"
 
     def __eq__(self, __value: object) -> bool:
-        return self.id == __value.id and self.version == __value.version
+        return isinstance(__value, SSATemp) and self.id == __value.id and self.version == __value.version
 
     def __hash__(self) -> int:
         return hash(self.id) + hash(self.version)
@@ -164,7 +164,7 @@ class SSABasicBlock:
     live_out: Set[SSATemp] = field(default_factory=set)
 
     def final(self) -> bool:
-        return self.ops[-1].opcode == "ret"
+        return len(self.ops) > 0 and self.ops[-1].opcode == "ret"
 
     def empty(self) -> bool:
         return all([op.opcode in JMP_OPS for op in self.ops])
@@ -184,21 +184,23 @@ class SSAProc:
     blocks: List[SSABasicBlock]
     params: List[SSATemp]
 
-    def rename_var(self, old, new):
+    def rename_var(self, old, new, replace_results=True):
         for block in self.blocks:
             for phi in block.defs:
                 phi.sources = {
                     lbl: new if tmp == old else tmp for lbl, tmp in phi.sources.items()
                 }
-                phi.defined = new if phi.defined == old else phi.defined
+                if replace_results:
+                    phi.defined = new if phi.defined == old else phi.defined
             for op in block.ops:
                 op.args = [
                     new if isinstance(arg, SSATemp) and arg == old else arg
                     for arg in op.args
                 ]
-                op.result = (
-                    new if op.result is not None and op.result == old else op.result
-                )
+                if replace_results:
+                    op.result = (
+                        new if op.result is not None and op.result == old else op.result
+                    )
 
     def get_tmps(self):
         tmps = set(self.params)
@@ -209,6 +211,10 @@ class SSAProc:
     def new_unused_tmp(self) -> SSATemp:
         return SSATemp(len(self.get_tmps) + 1, 0)
 
+    def delete_setting_inst(self, vars: Set[SSATemp]):
+        for block in self.blocks:
+            block.ops = [op for op in block.ops if op.result not in vars]
+            block.defs = [phi for phi in block.defs if phi.defined not in vars]
 
 class SSACrudeGenerator:
     def __init__(self, blocks: List[BasicBlock], proc: TACProc) -> None:
@@ -260,6 +266,8 @@ class SSACrudeGenerator:
             op.opcode,
             args_versioned,
             result_versioned,
+            live_in=set(),
+            live_out=set()
         )
         return new_op
 
@@ -277,6 +285,8 @@ class SSACrudeGenerator:
             block.predecessors,
             initial=block.initial,
             versions_out=self.current_version.copy(),
+            live_in=set(),
+            live_out=set()
         )
 
     def _update_pred_succ(self, blocks: List[SSABasicBlock]):

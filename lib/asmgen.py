@@ -160,12 +160,14 @@ __BODY__
             return f"    movq -{(self.tmp_alloc[tmp]+1)*8}(%rbp), %{dest}\n"
         elif isinstance(tmp, TACGlobal):
             return f"    movq {tmp.name}(%rip) , %{dest}\n"
+        else:
+            return f"    movq ${tmp}, %{dest}\n"
 
     def store_var(self, reg, tmp: TACTemp | TACGlobal):
         if isinstance(tmp, TACTemp):
             return f"    movq %{reg}, -{(self.tmp_alloc[tmp]+1)*8}(%rbp)\n"
-        if isinstance(tmp, TACGlobal):
-            return f"    movq %{reg}, -{tmp.name}(%rip)\n"
+        elif isinstance(tmp, TACGlobal):
+            return f"    movq %{reg}, -{tmp.name}(%rip)\n"     
 
     def to_addr(self, tmp: TACTemp):
         if isinstance(tmp, TACTemp):

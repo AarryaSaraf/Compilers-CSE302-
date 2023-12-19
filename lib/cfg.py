@@ -61,8 +61,13 @@ class BasicBlock:
         return hash(self.entry)
 
     def __eq__(self, __value: object) -> bool:
-        return self.entry == self
+        return isinstance(__value, BasicBlock) and self.entry == __value.entry
 
+    def __repr__(self) -> str:
+        return "BasicBlock(" +repr({
+            "entry": self.entry,
+            "ops": self.ops
+        })+ ")"
 
 def coalesce_block(block1: BasicBlock, block2: BasicBlock):
     # assumes block1's last instruction is a jump instruction that can be removed
@@ -150,6 +155,7 @@ class CFGAnalyzer:
         while len_before != len(
             blocks
         ):  # coalesce while there are still things to coalesce
+            print(len(blocks))
             len_before = len(blocks)
             new_blocks = []
             coalesced = set()
@@ -175,6 +181,7 @@ class CFGAnalyzer:
         for skippable in skippable_blocks:
             end_skip = self.trace_jumps(skippable)
             for pred in skippable.predecessors:
+                pred.fallthrough = end_skip
                 pred.replace_jumps(skippable.entry, end_skip.entry)
 
     def cond_thread(self, blocks: List[BasicBlock]):
@@ -261,6 +268,7 @@ class Serializer:
         self.serialization += block.ops
         if block.fallthrough is not None:
             self.serialize(block.fallthrough)
+        print(block.successors)
         for succ in block.successors:
             self.serialize(succ)
 

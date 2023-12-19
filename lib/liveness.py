@@ -54,6 +54,7 @@ class SSALivenessAnalyzer:
     def __init__(self, ssaproc: SSAProc) -> None:
         self.ssaproc = ssaproc
         self.cfg = ssaproc.blocks
+        print(len(self.cfg))
         self.edges_covered: Set[Tuple[TACLabel, TACLabel]] = set()
 
     def liveness_inst(self, live_out: Set[SSATemp], inst: SSAOp):
@@ -97,3 +98,4 @@ class SSALivenessAnalyzer:
         for block in self.cfg:
             if block.final():
                 self.liveness_block(set(), block)
+        print(len(self.cfg))

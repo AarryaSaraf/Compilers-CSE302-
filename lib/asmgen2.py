@@ -121,7 +121,7 @@ class AllocAsmGen:
 
         end_code += "    movq %rbp, %rsp # restore old RSP\n"
         end_code += "    popq %rbp # restore old RBP\n"
-        end_code += "    retq \n"
+        end_code += "    retq\n"
         return end_code
 
     def compile(self):
@@ -231,6 +231,8 @@ class AllocAsmGen:
                 return f"    movq %{slot.name}, %{reg}\n"
         elif isinstance(var, TACGlobal):
             return f"    movq {var.name}(%rip) , %{reg}\n"
+        elif isinstance(var, int):
+            return f"    movq ${var}, %{reg}\n"
 
 
     def to_address(self, var: TACTemp) -> str:
@@ -245,7 +247,8 @@ class AllocAsmGen:
                 return f"%{slot.name}"
         elif isinstance(var, TACGlobal):
             return f"{var.name}(%rip)"
-
+        elif isinstance(var, int):
+            return f"${var}"
 
     def store_var(self, reg: str, var: TACTemp | TACGlobal) -> str:
         """
@@ -268,6 +271,7 @@ class AllocAsmGen:
                 return f"    movq %{reg}, %{slot.name}\n"
         elif isinstance(var, TACGlobal):
             return f"    movq %{reg}, {var.name}(%rip)\n"
+            
 
     def get_location(self, var) -> MemorySlot:
         if isinstance(var, TACTemp):
