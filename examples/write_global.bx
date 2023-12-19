@@ -1,0 +1,9 @@
+def main(){
+    change_state();
+    print(x);
+}
+var x = 0: int;
+
+def change_state(){
+    x = 1;
+}

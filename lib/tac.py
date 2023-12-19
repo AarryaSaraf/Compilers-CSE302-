@@ -32,7 +32,8 @@ class TACGlobal:
     def __eq__(self, __value: object) -> bool:
         return isinstance(__value, TACGlobal) and self.name == __value.name
 
-
+    def __hash__(self) -> int:
+        return hash(str(self))
 @dataclass
 class TACGlobalDecl:
     glob: TACGlobal
@@ -135,7 +136,7 @@ class TAC:
         for op in self.ops:
             if isinstance(op, TACOp):
                 if (
-                    op.result is not None
+                    op.result is not None and isinstance(op.result, TACTemp)
                 ):  # only results can that are written to can be tacops
                     temps.add(op.result)
                 # This is commented out because every variable we use should be written to...

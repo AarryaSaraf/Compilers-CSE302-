@@ -149,7 +149,7 @@ __BODY__
                     self.body += self.store_var("rax", res)
                 case TACOp("const", [val], res):
                     self.body += (
-                        f"    movq ${val}, -{(self.tmp_alloc[res]+1)*8}(%rbp)\n"
+                        f"    movq ${val}, {self.to_addr(res)}\n"
                     )
                 case x:
                     print(f"WARNING: Cannot compile {x}")
