@@ -16,7 +16,7 @@ class TACTemp:
         return f"%{self.id}"
 
     def __eq__(self, __value: object) -> bool:
-        return self.id == __value.id
+        return isinstance(__value, TACTemp) and self.id == __value.id
 
     def __hash__(self) -> int:
         return hash(self.id)
@@ -30,7 +30,7 @@ class TACGlobal:
         return f"@{self.name}"
 
     def __eq__(self, __value: object) -> bool:
-        return self.name == __value.name
+        return isinstance(__value, TACGlobal) and self.name == __value.name
 
 
 @dataclass
@@ -92,7 +92,7 @@ class TACOp:
         used = {
             tmp
             for tmp in self.args
-            if not isinstance(tmp, TACGlobal) or isinstance(tmp, int)
+            if not (isinstance(tmp, TACGlobal) or isinstance(tmp, int) or isinstance(tmp, str))
         }
         if interference:
             # these dummies only need to be added for the construction of the interference graph

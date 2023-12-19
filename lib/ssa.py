@@ -104,7 +104,7 @@ class SSAOp:
         """
         defined = set()
 
-        if self.result is not None:
+        if self.result is not None and not isinstance(self.result, TACGlobal):
             defined.add(self.result)
         if interference:
             # these dummies only need to be added for the construction of the interference graph
@@ -345,7 +345,7 @@ class SSAOptimizer:
         copy_continuations = {}
         new_ops = []
         for op in block.ops:
-            if op.opcode == "copy":
+            if op.opcode == "copy" and not isinstance(op.args[0], TACGlobal):
                 copy_continuations[op.result] = op.args[0]
                 self.proc.rename_var(op.result, op.args[0])
             else:

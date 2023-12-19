@@ -64,23 +64,27 @@ def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], optim=0) -> str
 
     if optim > 1:
         ssa_gen = SSACrudeGenerator(blocks, tacproc)
-        ssa_blocks = ssa_gen.to_ssa()
+        ssaproc = ssa_gen.to_ssa()
 
-        ssa_optim = SSAOptimizer(ssa_blocks)
-        ssa_blocks = ssa_optim.optimize(
+        ssa_optim = SSAOptimizer(ssaproc)
+        ssaproc = ssa_optim.optimize(
             copy_propagate=optim > 3, rename_and_dead_choice=optim > 1
         )
 
-        ssa_liveness_analyzer = SSALivenessAnalyzer(ssa_blocks)
+        ssa_liveness_analyzer = SSALivenessAnalyzer(ssaproc)
         ssa_liveness_analyzer.liveness()
-        # print(fun.name)
-        # for block in ssa_blocks:
-        #    ssa_print_detailed(block)
+        print(fun.name)
+        for block in ssaproc.blocks:
+           ssa_print_detailed(block)
+
+        # This is code for using Allocation in SSA form
         # graph_alloc = GraphAndColorAllocator(ssa_blocks, tacproc).allocate()
         # print(graph_alloc)
-        serializer = SSADeconstructor(ssa_blocks)
+           
+        serializer = SSADeconstructor(ssaproc)
         tacproc.body = serializer.to_tac()
     if optim > 2:
+        # This is code in case we used Allocation in SSA form
         # spilled_alloc = SpillingAllocator(tacproc).allocate()
         # this rename is somewhat ugly but has to be done here otherwise we get circular imports
         # alloc = AllocRecord(
@@ -88,6 +92,7 @@ def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], optim=0) -> str
         #    serializer.rename_alloc(graph_alloc.mapping)
         # )
         # print(alloc)
+
         alloc = TACGraphAndColorAllocator(tacproc).allocate(
             coalesce_registers=optim > 3
         )

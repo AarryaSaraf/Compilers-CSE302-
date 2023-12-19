@@ -254,7 +254,7 @@ class GraphAndColorAllocator:
         Returns:
             bool: whether the instruction is to be removed
         """
-        if inst.opcode == "copy":
+        if inst.opcode == "copy" and not (isinstance(inst.args[0], TACGlobal) or isinstance(inst.result, TACGlobal)):
             if inst.result == inst.args[0]:
                 return True
             if inst.args[0] not in ig.nodes[inst.result].nbh:
