@@ -104,7 +104,7 @@ class SSAOp:
         """
         defined = set()
 
-        if self.result is not None:
+        if self.result is not None and not isinstance(self.result, TACGlobal):
             defined.add(self.result)
         if interference:
             # these dummies only need to be added for the construction of the interference graph
@@ -251,11 +251,11 @@ class SSACrudeGenerator:
             self.current_version[arg] if isinstance(arg, TACTemp) else arg
             for arg in op.args
         ]
-        if op.result is not None:
+        if op.result is not None and isinstance(op.result, TACTemp):
             self._inc_version(op.result)
             result_versioned = self.current_version[op.result]
         else:
-            result_versioned = None
+            result_versioned = op.result
         new_op = SSAOp(
             op.opcode,
             args_versioned,
@@ -345,7 +345,7 @@ class SSAOptimizer:
         copy_continuations = {}
         new_ops = []
         for op in block.ops:
-            if op.opcode == "copy":
+            if op.opcode == "copy" and not isinstance(op.args[0], TACGlobal):
                 copy_continuations[op.result] = op.args[0]
                 self.proc.rename_var(op.result, op.args[0])
             else:
@@ -407,6 +407,8 @@ class SSADeconstructor:
         self.tactmp_counter = 0
 
     def _ssatmp_to_tac(self, tmp: SSATemp) -> TACTemp:
+        if isinstance(tmp, TACGlobal):
+            return tmp
         if tmp in self.ssa_to_tac:
             return self.ssa_to_tac[tmp]
         if isinstance(tmp.id, str) and tmp.version == 0:

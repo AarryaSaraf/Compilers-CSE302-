@@ -1,5 +1,5 @@
 from .tac import *
-from .alloc import AllocRecord, MemorySlot, Register, StackSlot
+from .alloc import AllocRecord, MemorySlot, Register, StackSlot, DataSlot
 
 OPCODE_TO_ASM = {
     "add": "addq",
@@ -95,11 +95,9 @@ class AllocAsmGen:
         head_code += "    # move parameters to allocated slots (if necessary)\n"
         # if parameter variables are not allocated to CC Registers move them:
         for i, param in enumerate(self.proc.params):
-            if i < 6 and self.alloc.mapping[param] != Register(CC_REG_ORDER[i]):
+            if i < 6 and self.get_location(param) != Register(CC_REG_ORDER[i]):
                 head_code += f"    movq %{CC_REG_ORDER[i]}, {self.to_address(param)}"
-            if i >= 6 and self.alloc.mapping[param] != Register(
-                StackSlot(16 + (i - 6) * 8)
-            ):
+            if i >= 6 and self.get_location(param) != StackSlot(16 + (i - 6) * 8):
                 head_code += f"    movq {16+(i-6)*8}(%rsp), {self.to_address(param)}"
 
         return head_code
@@ -183,9 +181,7 @@ class AllocAsmGen:
                     else:
                         self.body += self.store_var("rax", res)
                 case TACOp(op, [tmp1, tmp2], res) if op in SIMPLE_BIN_OPS:
-                    if self.alloc.mapping[tmp1] == self.alloc.mapping[
-                        res
-                    ] and isinstance(self.alloc.mapping[res], Register):
+                    if self.get_location(tmp1) == self.get_location(res) and isinstance(self.get_location(res), Register):
                         self.body += f"    {OPCODE_TO_ASM[op]} {self.to_address(tmp2)}, {self.to_address(tmp1)}\n"
                     else:
                         self.body += self.load_var(tmp1, "r11")
@@ -196,10 +192,10 @@ class AllocAsmGen:
                 case TACOp(op, [tmp], res) if op in SIMPLE_UN_OPS:
                     self.body += f"    {OPCODE_TO_ASM[op]} {self.to_address(tmp)}\n"
                 case TACOp("copy", [arg], res):
-                    if self.alloc.mapping[arg] == self.alloc.mapping[res]:
+                    if  self.get_location(arg )== self.get_location(res):
                         continue
-                    if isinstance(self.alloc.mapping[arg], Register) or isinstance(
-                        self.alloc.mapping[res], Register
+                    if  isinstance(self.get_location(arg), Register) or isinstance(
+                        self.get_location(res), Register
                     ):
                         self.body += (
                             f"    movq {self.to_address(arg)}, {self.to_address(res)}\n"
@@ -213,7 +209,7 @@ class AllocAsmGen:
                     print(f"WARNING: Cannot compile {x}")
         return self.compile_proc_head() + self.body
 
-    def load_var(self, var: TACTemp, reg: str) -> str:
+    def load_var(self, var: TACTemp | TACGlobal, reg: str) -> str:
         """
         Helper to load a variable into a register
 
@@ -224,26 +220,34 @@ class AllocAsmGen:
         Return
             str: The compiled instructions to move the variable
         """
-        slot = self.alloc.mapping[var]
+        if isinstance(var, TACTemp):
+            slot = self.alloc.mapping[var]
 
-        if isinstance(slot, StackSlot):
-            return f"    movq {slot.offset}(%rbp), %{reg}\n"
-        if isinstance(slot, Register):
-            if slot.name == reg:
-                return ""
-            return f"    movq %{slot.name}, %{reg}\n"
+            if isinstance(slot, StackSlot):
+                return f"    movq {slot.offset}(%rbp), %{reg}\n"
+            if isinstance(slot, Register):
+                if slot.name == reg:
+                    return ""
+                return f"    movq %{slot.name}, %{reg}\n"
+        elif isinstance(var, TACGlobal):
+            return f"    movq {var.name}(%rip) , %{reg}\n"
+
 
     def to_address(self, var: TACTemp) -> str:
         """
         Format the address of a variable
         """
-        slot = self.alloc.mapping[var]
-        if isinstance(slot, StackSlot):
-            return f"{slot.offset}(%rbp)"
-        if isinstance(slot, Register):
-            return f"%{slot.name}"
+        if isinstance(var, TACTemp):
+            slot = self.alloc.mapping[var]
+            if isinstance(slot, StackSlot):
+                return f"{slot.offset}(%rbp)"
+            if isinstance(slot, Register):
+                return f"%{slot.name}"
+        elif isinstance(var, TACGlobal):
+            return f"{var.name}(%rip)"
 
-    def store_var(self, reg: str, var: TACTemp) -> str:
+
+    def store_var(self, reg: str, var: TACTemp | TACGlobal) -> str:
         """
         Helper to stored a register in a variable
 
@@ -254,14 +258,23 @@ class AllocAsmGen:
         Return
             str: The compiled instructions to move the variable
         """
-        slot = self.alloc.mapping[var]
-        if isinstance(slot, StackSlot):
-            return f"    movq %{reg}, {slot.offset}(%rbp)\n"
-        if isinstance(slot, Register):
-            if slot.name == reg:
-                return ""
-            return f"    movq %{reg}, %{slot.name}\n"
+        if isinstance(var, TACTemp):
+            slot = self.alloc.mapping[var]
+            if isinstance(slot, StackSlot):
+                return f"    movq %{reg}, {slot.offset}(%rbp)\n"
+            if isinstance(slot, Register):
+                if slot.name == reg:
+                    return ""
+                return f"    movq %{reg}, %{slot.name}\n"
+        elif isinstance(var, TACGlobal):
+            return f"    movq %{reg}, {var.name}(%rip)\n"
 
+    def get_location(self, var) -> MemorySlot:
+        if isinstance(var, TACTemp):
+            return self.alloc.mapping[var]
+        elif isinstance(var, TACGlobal):
+            return DataSlot(var.name)
+        
     def compile_call(self, op: TACOp) -> str:
         """
         Utitility function to compile call instructions
@@ -280,12 +293,12 @@ class AllocAsmGen:
         res = op.result
         # store caller-save registers
         used_registers = [
-            self.alloc.mapping[var]
+            self.get_location(var)
             for var in op.live_out.intersection(
                 op.live_in
             )  # we look for all variables that have to stay alive throughout the call
-            if isinstance(self.alloc.mapping[var], Register)
-            and self.alloc.mapping[var].name in CALLER_SAVE
+            if isinstance(self.get_location(var), Register)
+            and self.get_location(var).name in CALLER_SAVE
         ]
         stack_offset = 0 # to keep track of the stack pointer
         for reg in used_registers:
@@ -298,15 +311,15 @@ class AllocAsmGen:
         # allocate arguments according to CC
         for i, arg in enumerate(args[:6]):
             # if we pushed the variable take it from the stack (this also avoids any unwanted overrides to rdi etc.)
-            if self.alloc.mapping[arg] in used_registers:
-                pushed_index = used_registers.index(self.alloc.mapping[arg]) 
+            if self.get_location(arg) in used_registers:
+                pushed_index = used_registers.index(self.get_location(arg)) 
                 self.body += f"    movq {stack_offset -pushed_index}(%rsp), %{CC_REG_ORDER[i]}\n" # i hope this math is correct
             else:
                 self.body += self.load_var(arg, CC_REG_ORDER[i])
         for arg in reversed(args[6:]):
             # if we pushed the variable take it from the stack (this also avoids any unwanted overrides to rdi etc.)
-            if self.alloc.mapping[arg] in used_registers:
-                pushed_index = used_registers.index(self.alloc.mapping[arg]) 
+            if self.get_location(arg) in used_registers:
+                pushed_index = used_registers.index(self.get_location(arg)) 
                 self.body += f"    movq {stack_offset -pushed_index}(%rsp), %r11\n"
             else:
                 self.body += self.load_var(arg, "r11")
