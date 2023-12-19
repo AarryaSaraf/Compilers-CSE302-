@@ -33,6 +33,7 @@ class SyntaxChecker:
             "print", None, VoidType, [("x", PrimiType("any"))]
         )
         self.functions["readint"] = Function("readint", None, PrimiType("int"), [])
+        self.functions["gettime"] = Function("gettime", None, PrimiType("int"), [])
 
     def check_program(self, program: List[Function | StatementDecl]):
         self.scope_stack = [
@@ -180,6 +181,9 @@ class TypeChecker:
 
     def set_runtime_functions(self):
         self.function_signatures["readint"] = FunctionType(
+            input_types=[], out_type=PrimiType("int")
+        )
+        self.function_signatures["gettime"] = FunctionType(
             input_types=[], out_type=PrimiType("int")
         )
 

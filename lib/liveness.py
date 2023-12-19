@@ -3,7 +3,15 @@ from .tac import *
 from .cfg import *
 from .ssa import *
 
+
 class LivenessAnalyzer:
+    """
+    Anotate a cfg with liveness information. Done on a TAC CFG
+
+    Args:
+        cfg (list of Basic Block): The CFG that is supposed to be annalyzed
+    """
+
     def __init__(self, cfg: List[BasicBlock]) -> None:
         self.cfg = cfg
         self.edges_covered: Set[Tuple[TACLabel, TACLabel]] = set()
@@ -36,14 +44,22 @@ class LivenessAnalyzer:
 
 
 class SSALivenessAnalyzer:
-    def __init__(self, cfg:List[SSABasicBlock]) -> None:
-        self.cfg = cfg
+    """
+    Annotate liveness information on an SSA Proc
+
+    Args:
+        ssaproc (SSAProc): The SSA procedure that is supposed to be annotated
+    """
+
+    def __init__(self, ssaproc: SSAProc) -> None:
+        self.ssaproc = ssaproc
+        self.cfg = ssaproc.blocks
         self.edges_covered: Set[Tuple[TACLabel, TACLabel]] = set()
-    
+
     def liveness_inst(self, live_out: Set[SSATemp], inst: SSAOp):
         inst.live_out = inst.live_out.union(live_out)
         inst.live_in = inst.live_in.union(live_out)
-        inst.live_in  = inst.live_in.union(inst.use())
+        inst.live_in = inst.live_in.union(inst.use())
         if inst.result is not None and inst.result in inst.live_in:
             inst.live_in.remove(inst.result)
         return inst.live_in
@@ -55,20 +71,25 @@ class SSALivenessAnalyzer:
 
         live_out_for_block = {}
         defined = set()
+
+        # we need to detangle the liveness by a phi function
         for phi in block.defs:
             defined.add(phi.defined)
-            for (lbl, tmp) in phi.sources.items():
+            for lbl, tmp in phi.sources.items():
                 if lbl in live_out_for_block:
                     live_out_for_block[lbl].add(tmp)
                 else:
                     live_out_for_block[lbl] = {tmp}
         block.live_in = live_out
         live_out = live_out - defined
+
         for pred in block.predecessors:
             if (block.entry, pred.entry) not in self.edges_covered:
                 self.edges_covered.add((block.entry, pred.entry))
                 if pred.entry in live_out_for_block:
-                    self.liveness_block(live_out_for_block[pred.entry].union(live_out), pred)
+                    self.liveness_block(
+                        live_out_for_block[pred.entry].union(live_out), pred
+                    )
                 else:
                     self.liveness_block(live_out, pred)
 

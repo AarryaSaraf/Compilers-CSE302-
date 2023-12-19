@@ -88,16 +88,20 @@ class TACOp:
     def is_jmp(self) -> bool:
         return self.opcode in JMP_OPS
 
-    def use(self,interference=False) -> Set[TACTemp]:
-        used = {tmp for tmp in self.args if not isinstance(tmp, TACGlobal) or isinstance(tmp, int)}
+    def use(self, interference=False) -> Set[TACTemp]:
+        used = {
+            tmp
+            for tmp in self.args
+            if not isinstance(tmp, TACGlobal) or isinstance(tmp, int)
+        }
         if interference:
             # these dummies only need to be added for the construction of the interference graph
             used = used.union(self.prealloc_dummies())
         return used
-    
+
     def defined(self, interference=False) -> Set[TACTemp]:
         defined = set()
-        
+
         if self.result is not None:
             defined.add(self.result)
         if interference:
@@ -113,11 +117,14 @@ class TACOp:
             dummies.add(TACTemp("%%rdx"))
         elif self.opcode in ["shl", "shr"]:
             dummies.add(TACTemp("%%rcx"))
-        elif self.opcode == "param" and self.args[0] < 7: # deprecated
+        elif self.opcode == "param" and self.args[0] < 7:  # deprecated
             dummies.add(TACTemp(f"%%{CC_REG_ORDER[self.args[0]-1]}"))
         elif self.opcode == "call":
-            dummies = dummies.union(set([TACTemp(f"%%{reg}") for reg in CC_REG_ORDER[:len(self.args)-1]]))
+            dummies = dummies.union(
+                set([TACTemp(f"%%{reg}") for reg in CC_REG_ORDER[: len(self.args) - 1]])
+            )
         return dummies
+
 
 @dataclass
 class TAC:
@@ -132,7 +139,7 @@ class TAC:
                 ):  # only results can that are written to can be tacops
                     temps.add(op.result)
                 # This is commented out because every variable we use should be written to...
-                #temps = temps.union(set([arg for arg in op.args if isinstance(arg, TACTemp)]))
+                # temps = temps.union(set([arg for arg in op.args if isinstance(arg, TACTemp)]))
         return temps
 
 
@@ -141,9 +148,24 @@ class TACProc:
     name: str
     body: TAC
     params: List[TACTemp]
-    
+
     def get_tmps(self):
         return set(self.params).union(self.body.get_tmps())
+
+    def rename_var(self, old, new):
+        for op in self.body.ops:
+            if isinstance(op, TACOp):
+                op.args = [
+                    new if isinstance(arg, TACTemp) and arg == old else arg
+                    for arg in op.args
+                ]
+                op.result = (
+                    new if op.result is not None and op.result == old else op.result
+                )
+
+    def new_unused_tmp(self) -> TACTemp:
+        return TACTemp(len(self.get_tmps) + 1)
+
 
 OPCODES = [
     "jmp",

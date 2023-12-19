@@ -109,7 +109,7 @@ __BODY__
                     self.body += self.load_var(arg, "rax")
                     self.body += "    pushq %rax\n"
                 case TACOp("call", _, _):
-                    self.compile_call(op) #  this is a bit more complicated
+                    self.compile_call(op)  #  this is a bit more complicated
                 case TACOp(
                     "jz" | "jnz" | "jl" | "jle" | "jnl" | "jnle" as op,
                     [arg, label],
@@ -174,14 +174,14 @@ __BODY__
             return f"{tmp.name}(%rip)"
 
     def compile_call(self, op: TACOp) -> str:
-        # We use a single call instruction this makes it easier 
-        # to handle caller-save registers as they have to be pushed 
+        # We use a single call instruction this makes it easier
+        # to handle caller-save registers as they have to be pushed
         # before the function arguments
         callee = op.args[0]
         args = op.args[1:]
         res = op.result
         # stack alignment
-        if len(args)> 6 and len(args) % 2 != 0:
+        if len(args) > 6 and len(args) % 2 != 0:
             print("inserting dummy for alingment")
             self.body += f"    pushq $0\n"
         # allocate arguments according to CC

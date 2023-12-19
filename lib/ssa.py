@@ -4,7 +4,15 @@ from .asmgen import CC_REG_ORDER
 from typing import Any, Set
 from copy import deepcopy
 
-CC_REG_ORDER = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"] # used for dummy interference variable
+CC_REG_ORDER = [
+    "rdi",
+    "rsi",
+    "rdx",
+    "rcx",
+    "r8",
+    "r9",
+]  # used for dummy interference variable
+
 
 class SSATemp:
     def __init__(self, id: str | int, version: int) -> None:
@@ -76,20 +84,26 @@ class SSAOp:
 
     def detailed(self) -> str:
         return f"\t{str(self.live_in)} \n\t{self.pretty()}\n \t{str(self.live_out)}"
-    
+
     def is_jmp(self) -> bool:
         return self.opcode in JMP_OPS
 
-    def use(self,interference=False) -> Set[SSATemp]:
+    def use(self, interference=False) -> Set[SSATemp]:
         used = {tmp for tmp in self.args if isinstance(tmp, SSATemp)}
         if interference:
             # these dummies only need to be added for the construction of the interference graph
             used = used.union(self.prealloc_dummies())
         return used
-    
+
     def defined(self, interference=False) -> Set[SSATemp]:
+        """
+        The def set
+
+        Args:
+            interference (bool, optional):
+        """
         defined = set()
-        
+
         if self.result is not None:
             defined.add(self.result)
         if interference:
@@ -98,6 +112,9 @@ class SSAOp:
         return defined
 
     def prealloc_dummies(self):
+        """
+        Dummies for the interference graph
+        """
         dummies = set()
         if self.opcode in ["div", "mod"]:
             dummies.add(SSATemp("%%rax", 0))
@@ -105,12 +122,20 @@ class SSAOp:
             dummies.add(SSATemp("%%rdx", 0))
         elif self.opcode in ["shl", "shr"]:
             dummies.add(SSATemp("%%rcx", 0))
-        elif self.opcode == "param" and self.args[0] < 7: # deprecated
+        elif self.opcode == "param" and self.args[0] < 7:  # deprecated
             dummies.add(SSATemp(f"%%{CC_REG_ORDER[self.args[0]-1]}", 0))
         elif self.opcode == "call":
-            dummies = dummies.union(set([SSATemp(f"%%{reg}", 0) for reg in CC_REG_ORDER[:len(self.args)-1]]))
+            dummies = dummies.union(
+                set(
+                    [
+                        SSATemp(f"%%{reg}", 0)
+                        for reg in CC_REG_ORDER[: len(self.args) - 1]
+                    ]
+                )
+            )
         return dummies
-    
+
+
 @dataclass
 class Phi:
     defined: SSATemp
@@ -144,6 +169,46 @@ class SSABasicBlock:
     def empty(self) -> bool:
         return all([op.opcode in JMP_OPS for op in self.ops])
 
+    def get_tmps(self) -> Set[SSATemp]:
+        temps = set()
+        for op in self.ops:
+            if op.result is not None:
+                temps.add(op.result)
+        for phi in self.defs:
+            temps.add(phi.defined)
+        return temps
+
+
+@dataclass
+class SSAProc:
+    blocks: List[SSABasicBlock]
+    params: List[SSATemp]
+
+    def rename_var(self, old, new):
+        for block in self.blocks:
+            for phi in block.defs:
+                phi.sources = {
+                    lbl: new if tmp == old else tmp for lbl, tmp in phi.sources.items()
+                }
+                phi.defined = new if phi.defined == old else phi.defined
+            for op in block.ops:
+                op.args = [
+                    new if isinstance(arg, SSATemp) and arg == old else arg
+                    for arg in op.args
+                ]
+                op.result = (
+                    new if op.result is not None and op.result == old else op.result
+                )
+
+    def get_tmps(self):
+        tmps = set(self.params)
+        for block in self.blocks:
+            tmps = tmps.union(block.get_tmps())
+        return tmps
+
+    def new_unused_tmp(self) -> SSATemp:
+        return SSATemp(len(self.get_tmps) + 1, 0)
+
 
 class SSACrudeGenerator:
     def __init__(self, blocks: List[BasicBlock], proc: TACProc) -> None:
@@ -153,18 +218,18 @@ class SSACrudeGenerator:
         self.current_version = {}
         self.converted_blocks = {}
 
-    def to_ssa(self):
+    def to_ssa(self) -> SSAProc:
         # this converts everything into basic SSA with Phony defs that will be turned into phi functions in step2
         ssa_blocks = []
         for block in self.blocks:
-            block = self.insert_phony(block)
-            ssa_blocks.append(self.versioning(block))
-        self.update_pred_succ(ssa_blocks)
+            block = self._insert_phony(block)
+            ssa_blocks.append(self._versioning(block))
+        self._update_pred_succ(ssa_blocks)
         for block in ssa_blocks:
-            self.convert_phony_to_phi(block)
-        return ssa_blocks
+            self._convert_phony_to_phi(block)
+        return SSAProc(ssa_blocks, [SSATemp(tmp.id, 0) for tmp in self.proc.params])
 
-    def insert_phony(self, block: BasicBlock):
+    def _insert_phony(self, block: BasicBlock):
         new_block = BasicBlock(
             deepcopy(block.entry),
             deepcopy(block.ops),
@@ -181,13 +246,13 @@ class SSACrudeGenerator:
         new_block.ops = phony_defs + block.ops
         return new_block
 
-    def convert_op(self, op: TACOp) -> SSAOp:
+    def _convert_op(self, op: TACOp) -> SSAOp:
         args_versioned = [
             self.current_version[arg] if isinstance(arg, TACTemp) else arg
             for arg in op.args
         ]
         if op.result is not None:
-            self.inc_version(op.result)
+            self._inc_version(op.result)
             result_versioned = self.current_version[op.result]
         else:
             result_versioned = None
@@ -197,12 +262,12 @@ class SSACrudeGenerator:
             result_versioned,
         )
         return new_op
-    
-    def versioning(self, block: BasicBlock) -> SSABasicBlock:
+
+    def _versioning(self, block: BasicBlock) -> SSABasicBlock:
         new_ops = []
         # I don't know about this... No this should be set from the phis
         for op in block.ops:
-            new_op = self.convert_op(op)
+            new_op = self._convert_op(op)
             new_ops.append(new_op)
         return SSABasicBlock(
             block.entry,
@@ -214,7 +279,7 @@ class SSACrudeGenerator:
             versions_out=self.current_version.copy(),
         )
 
-    def update_pred_succ(self, blocks: List[SSABasicBlock]):
+    def _update_pred_succ(self, blocks: List[SSABasicBlock]):
         # this has to be done because the old blocks still poitn to TACBasicBlocks...
         label_to_ssablock = {block.entry: block for block in blocks}
         for block in blocks:
@@ -227,7 +292,7 @@ class SSACrudeGenerator:
             if block.fallthrough is not None:
                 block.fallthrough = label_to_ssablock[block.fallthrough.entry]
 
-    def convert_phony_to_phi(self, block: SSABasicBlock) -> SSABasicBlock:
+    def _convert_phony_to_phi(self, block: SSABasicBlock) -> SSABasicBlock:
         defs = [op for op in block.ops if op.opcode == "phony"]
         non_defs = block.ops[len(defs) :]
         if block.initial:
@@ -246,7 +311,7 @@ class SSACrudeGenerator:
             block.defs = phis
         block.ops = non_defs
 
-    def inc_version(self, tmp: TACTemp):
+    def _inc_version(self, tmp: TACTemp):
         if tmp in self.current_version:
             self.current_version[tmp] = SSATemp(
                 tmp.id, self.current_version[tmp].version + 1
@@ -256,79 +321,83 @@ class SSACrudeGenerator:
 
 
 class SSAOptimizer:
-    def __init__(self, blocks: List[SSABasicBlock]) -> None:
-        self.blocks = blocks
+    def __init__(self, ssa: SSAProc) -> None:
+        self.proc = ssa
+        self.blocks = ssa.blocks
 
-    def optimize(
-        self, copy_propagate=True, rename_and_dead_choice=True
-    ) -> List[SSABasicBlock]:
+    def optimize(self, copy_propagate=True, rename_and_dead_choice=True) -> SSAProc:
+        """Optimize the SSAProc
+
+        Args:
+            copy_propagate (bool, optional): Whether to do copy propagation. If activated we require the advanced SSA deconstruction.
+                Defaults to True.
+            rename_and_dead_choice (bool, optional): Whether to do rename and dead choice elimination.
+                Defaults to True.
+        """
         if copy_propagate:
-            self.copy_propagate()
+            self._copy_propagate()
         if rename_and_dead_choice:
-            self.rename_simpl()
-            self.no_choice_elim()
-        return self.blocks
+            self._rename_simpl()
+            self._null_choice_elim()
+        return self.proc
 
-    def copy_propagate_block(self, block: SSABasicBlock):
+    def _copy_propagate_block(self, block: SSABasicBlock):
         copy_continuations = {}
         new_ops = []
         for op in block.ops:
             if op.opcode == "copy":
                 copy_continuations[op.result] = op.args[0]
-                self.rename_var(op.result, op.args[0])
+                self.proc.rename_var(op.result, op.args[0])
             else:
                 new_ops.append(op)
         block.ops = new_ops
 
-    def copy_propagate(self):
+    def _copy_propagate(self):
         for block in self.blocks:
-            self.copy_propagate_block(block)
+            self._copy_propagate_block(block)
 
-    def rename_var(self, old, new):
-        for block in self.blocks:
-            for phi in block.defs:
-                phi.sources = {
-                    lbl: new if tmp == old else tmp for lbl, tmp in phi.sources.items()
-                }
-                phi.defined = new if phi.defined == old else phi.defined
-            for op in block.ops:
-                op.args = [
-                    new if isinstance(arg, SSATemp) and arg == old else arg
-                    for arg in op.args
-                ]
-                op.result = (
-                    new if op.result is not None and op.result == old else op.result
-                )
-
-    def rename_simpl(self):
-        simpls = self.find_renames()
+    def _rename_simpl(self):
+        simpls = self._find_renames()
         while len(simpls) != 0:
             for old, new in simpls:
-                self.rename_var(old, new)
-            self.no_choice_elim()
-            simpls = self.find_renames()
+                self.proc.rename_var(old, new)
+            self._null_choice_elim()
+            simpls = self._find_renames()
 
-    def find_renames(self):
+    def _find_renames(self):
         renames = []
         for block in self.blocks:
             for phi in block.defs:
-                unique_args = list(
-                    set(phi.sources.values())
+                versions_used = {phi.defined.version}.union(set([arg.version for arg in phi.sources.values()]))
+                unique_ids = list(
+                    set([tmp.id for tmp in phi.sources.values()])
                 )  # get unique values in the arguments
-                if len(unique_args) == 1:
-                    renames.append((phi.defined, unique_args[0]))
+                if len(unique_ids) == 1 and len(versions_used) == 2:
+                    versions_used.remove(phi.defined.version)
+                    renames.append((phi.defined, SSATemp(unique_ids[0], versions_used.pop())))
         return renames
 
-    def no_choice_elim(self):
+    def _null_choice_elim(self):
         for block in self.blocks:
             new_defs = []
             for phi in block.defs:
-                if not all([phi.defined == arg for arg in phi.sources.values()]):
+                if not (
+                    all([phi.defined == arg for arg in phi.sources.values()])):
                     new_defs.append(phi)
             block.defs = new_defs
 
+
 class SSADeconstructor:
-    def __init__(self, blocks: List[SSABasicBlock]):
+    """
+    Deconstruct SSA form to TAC
+
+    Args:
+        ssa (SSAProc): The ssa procedure to be converted to TAC
+    """
+
+    def __init__(self, ssa: SSAProc):
+        self.ssa = ssa
+        blocks = ssa.blocks
         self.blocks = blocks
         self.initial = [block for block in blocks if block.initial][0]
         self.already_serialized = set()
@@ -337,7 +406,7 @@ class SSADeconstructor:
         self.dummy_counter = 0
         self.tactmp_counter = 0
 
-    def ssatmp_to_tac(self, tmp: SSATemp) -> TACTemp:
+    def _ssatmp_to_tac(self, tmp: SSATemp) -> TACTemp:
         if tmp in self.ssa_to_tac:
             return self.ssa_to_tac[tmp]
         if isinstance(tmp.id, str) and tmp.version == 0:
@@ -346,37 +415,40 @@ class SSADeconstructor:
             self.ssa_to_tac[tmp] = TACTemp(self.tactmp_counter)
             self.tactmp_counter += 1
         return self.ssa_to_tac[tmp]
-    
-    def fresh_ssatmp(self):
+
+    def _fresh_ssatmp(self):
         tmp = SSATemp(f"dummy", self.tactmp_counter)
         self.tactmp_counter += 1
         return tmp
-    
+
     def ssaop_to_tac(self, op: SSAOp) -> TACOp:
         return TACOp(
             op.opcode,
             [
-                self.ssatmp_to_tac(arg) if isinstance(arg, SSATemp) else arg
+                self._ssatmp_to_tac(arg) if isinstance(arg, SSATemp) else arg
                 for arg in op.args
             ],
-            self.ssatmp_to_tac(op.result) if op.result is not None else None,
+            self._ssatmp_to_tac(op.result) if op.result is not None else None,
             live_in=op.live_in,
-            live_out=op.live_out
+            live_out=op.live_out,
         )
 
     def to_tac(self) -> TAC:
-        self.resolve_phis()
-        self.serialize(self.initial)
-        self.rename_liveness_info()
+        """
+        Convert the SSAProc to TAC
+        """
+        self._resolve_phis()
+        self._serialize(self.initial)
+        self._rename_liveness_info()
         return TAC(self.serialization)
 
-    def rename_liveness_info(self):
+    def _rename_liveness_info(self):
         for op in self.serialization:
             if isinstance(op, TACOp):
                 op.live_in = {self.ssa_to_tac[tmp] for tmp in op.live_in}
                 op.live_out = {self.ssa_to_tac[tmp] for tmp in op.live_out}
 
-    def resolve_phis(self):
+    def _resolve_phis(self):
         copies_to_insert = {block.entry: set() for block in self.blocks}
         # gather the copies to be inserted
         for block in self.blocks:
@@ -385,20 +457,17 @@ class SSADeconstructor:
                     copies_to_insert[lab].add((phi.defined, tmp))
         # insert the copies
         for block in self.blocks:
-            self.insert_copies(block, copies_to_insert[block.entry])
-            
-    def insert_copies(self, block, to_insert):
+            self._insert_copies(block, copies_to_insert[block.entry])
+
+    def _insert_copies(self, block, to_insert):
         # cylce detection
         breakups = self.detect_cycles(to_insert)
         dummy_copies = [
-            TACOp("copy", [original], dummy)
-            for (original, dummy) in breakups.items()
+            TACOp("copy", [original], dummy) for (original, dummy) in breakups.items()
         ]
         copies = dummy_copies + [
-            TACOp("copy", [breakups.get(src, src)], res)
-            for (res, src) in to_insert
+            TACOp("copy", [breakups.get(src, src)], res) for (res, src) in to_insert
         ]
-        print(dummy_copies)
         # TODO: add liveness
         live_out = set([c[0] for c in to_insert])
         for copy_inst in reversed(copies):
@@ -412,34 +481,46 @@ class SSADeconstructor:
         block.ops = pre_jump + copies + jumps
 
     def detect_cycles(self, to_insert):
+        # used for unconventional SSA destruction
         used = set()
         defined = set()
         breakups = {}
         for res, src in to_insert:
-            if res in used: # if we want to write to something used somewhere else
-                breakups[res] = self.fresh_ssatmp()
+            if res in used:  # if we want to write to something used somewhere else
+                breakups[res] = self._fresh_ssatmp()
             if src in defined:
-                breakups[src] = self.fresh_ssatmp()
-            if src not in breakups: # add every read to a variable that is not already broken up
+                breakups[src] = self._fresh_ssatmp()
+            if (
+                src not in breakups
+            ):  # add every read to a variable that is not already broken up
                 used.add(src)
             if res not in breakups:
                 defined.add(res)
         return breakups
-            
-                
-    def serialize(self, block: SSABasicBlock) -> TAC:
+
+    def _serialize(self, block: SSABasicBlock) -> TAC:
         if block.entry in self.already_serialized:
             return
         self.already_serialized.add(block.entry)
         self.serialization.append(block.entry)
         self.serialization += [self.ssaop_to_tac(op) for op in block.ops]
         if block.fallthrough is not None:
-            self.serialize(block.fallthrough)
+            self._serialize(block.fallthrough)
         for succ in block.successors:
-            self.serialize(succ)
+            self._serialize(succ)
 
     def rename_alloc(self, alloc_mapping):
-        return {self.ssatmp_to_tac(tmp): slot for tmp, slot in alloc_mapping.items()}
+        """
+        To be used in case we do register allocation in SSA.
+        In this case we need to rename the temporaries to the new TAC temporaries
+
+        Args:
+            alloc_mapping (dict tmp -> slot): The computed mapping to be renamed
+        Returns:
+            dict: The renamed mapping
+        """
+        return {self._ssatmp_to_tac(tmp): slot for tmp, slot in alloc_mapping.items()}
+
 
 def ssa_print(block: SSABasicBlock):
     print(str(block.entry) + ":")
@@ -450,6 +531,7 @@ def ssa_print(block: SSABasicBlock):
             print(f"\t{op.pretty()}")
         else:
             print(f"{op.name}")
+
 
 def ssa_print_detailed(block: SSABasicBlock):
     print(str(block.entry) + ":")

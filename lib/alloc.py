@@ -4,6 +4,7 @@ from typing import List, Dict
 
 CC_REG_ORDER = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"]
 
+
 class MemorySlot:
     pass
 
@@ -20,8 +21,8 @@ class Register(MemorySlot):
 
     def __eq__(self, __value: object) -> bool:
         return isinstance(__value, Register) and self.name == __value.name
-    
-    
+
+
 @dataclass
 class StackSlot(MemorySlot):
     offset: int
@@ -33,16 +34,17 @@ class StackSlot(MemorySlot):
 @dataclass
 class InterferenceGraphNode:
     tmp: SSATemp | TACTemp
-    nbh: List[Any]
-    value: int  = 0
+    nbh: List[TACTemp | SSATemp]
+    value: int = 0
+
 
 @dataclass
 class InterferenceGraph:
-    nodes: Dict[SSATemp | TACTemp, List[InterferenceGraphNode]]
-    
+    nodes: Dict[SSATemp | TACTemp, InterferenceGraphNode]
+
     def __repr__(self):
         return str(self.nodes)
-    
+
     def __str__(self):
         return str(self.nodes)
 
@@ -52,19 +54,23 @@ class Allocator:
     def allocate(self) -> AllocRecord:
         pass
 
+
 class SpillingAllocator(Allocator):
     def __init__(self, tacproc: TACProc) -> None:
         self.proc = tacproc
-    
+
     def allocate(self) -> AllocRecord:
-        params_reg_mapping = {param: Register(CC_REG_ORDER[i]) for i, param in enumerate(self.proc.params[:6])} 
-        params_stack_mapping = {param: StackSlot(16+(i)*8) for i, param in enumerate(reversed(self.proc.params[6:]))} 
-        varlist = self.proc.body.get_tmps()
-        var_mapping={
-            var: StackSlot(-(i+1)*8) for i, var in enumerate(varlist)
+        params_reg_mapping = {
+            param: Register(CC_REG_ORDER[i])
+            for i, param in enumerate(self.proc.params[:6])
         }
+        params_stack_mapping = {
+            param: StackSlot(16 + (i) * 8)
+            for i, param in enumerate(reversed(self.proc.params[6:]))
+        }
+        varlist = self.proc.body.get_tmps()
+        var_mapping = {var: StackSlot(-(i + 1) * 8) for i, var in enumerate(varlist)}
         return AllocRecord(
             stacksize=len(var_mapping),
-            mapping=params_reg_mapping | params_stack_mapping| var_mapping
+            mapping=params_reg_mapping | params_stack_mapping | var_mapping,
         )
-
