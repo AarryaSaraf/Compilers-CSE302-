@@ -174,6 +174,8 @@ __BODY__
             return f"-{(self.tmp_alloc[tmp]+1)*8}(%rbp)"
         elif isinstance(tmp, TACGlobal):
             return f"{tmp.name}(%rip)"
+        elif isinstance(tmp, int):
+            return f"${tmp}"
 
     def compile_call(self, op: TACOp) -> str:
         # We use a single call instruction this makes it easier

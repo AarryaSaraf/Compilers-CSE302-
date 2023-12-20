@@ -163,18 +163,18 @@ class SCCPOptimizer:
         return new_jmp_ops
 
     def sccp_phi(self, phi: Phi):
-        source_vals = [self.get_val(v)for v in phi.sources.values()]
+        source_vals = [self.get_val(v) for v in phi.sources.values()]
         computed_values = set([
             self.get_val(v) for lbl, v in phi.sources.items() 
             if self.eval[lbl]
-        ]) - {"undef", "dyn"}
+        ])
         if len(set(source_vals) - {"undef", "dyn"}) > 1:
             self.vals[phi.defined] = "dyn"
             return True
         elif (True, "dyn") in [(self.eval[lbl],self.get_val(v)) for lbl, v in phi.sources.items()]:
             self.vals[phi.defined] = "dyn"
             return True
-        elif len(computed_values) == 1:
+        elif "dyn" not in source_vals and "undef" not in source_vals and len(computed_values) == 1:
             self.vals[phi.defined] = computed_values.pop()
             return False
         return True

@@ -232,7 +232,7 @@ class GraphAndColorAllocator:
                 de.append(list(op.defined(interference=True)))
                 use.append(list(op.use(interference=True)))
                 cop.append(op.opcode == "copy")
-
+        print(lout, de, use)
         return lout, de, use, cop
 
     def to_slot(self, i):
@@ -254,7 +254,7 @@ class GraphAndColorAllocator:
         Returns:
             bool: whether the instruction is to be removed
         """
-        if inst.opcode == "copy" and not (isinstance(inst.args[0], TACGlobal) or isinstance(inst.result, TACGlobal)):
+        if inst.opcode == "copy" and isinstance(inst.result, SSATemp | TACTemp) and isinstance(inst.args[0], SSATemp | TACTemp):
             if inst.result == inst.args[0]:
                 return True
             if inst.args[0] not in ig.nodes[inst.result].nbh:
@@ -296,6 +296,7 @@ class TACGraphAndColorAllocator(GraphAndColorAllocator):
                 de.append(list(op.defined(interference=True)))
                 use.append(list(op.use(interference=True)))
                 cop.append(op.opcode == "copy")
+        print(lout, de, use)
         return lout, de, use, cop
 
     def coalesce_registers(self, ig: InterferenceGraph, coloring: Dict):

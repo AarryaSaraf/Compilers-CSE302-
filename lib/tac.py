@@ -93,7 +93,7 @@ class TACOp:
         used = {
             tmp
             for tmp in self.args
-            if not (isinstance(tmp, TACGlobal) or isinstance(tmp, int) or isinstance(tmp, str))
+            if not (isinstance(tmp, TACGlobal) or isinstance(tmp, TACLabel) or isinstance(tmp, int) or isinstance(tmp, str)) # TODO: stupid hack to avoid circular import of SSATemp
         }
         if interference:
             # these dummies only need to be added for the construction of the interference graph

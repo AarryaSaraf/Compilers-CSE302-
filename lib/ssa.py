@@ -178,7 +178,35 @@ class SSABasicBlock:
             temps.add(phi.defined)
         return temps
 
-
+    def coalesce(self, block2):
+        return SSABasicBlock(
+            entry=self.entry,
+            defs= self.defs + block2.defs,
+            ops=self.ops[:-1] + block2.ops,
+            successors=block2.successors,
+            predecessors=self.predecessors,
+            initial=self.initial,
+            fallthrough=block2.fallthrough,
+        )
+    
+    def successor_labels(self):
+        lbls = []
+        for op in self.ops:
+            match op:
+                case SSAOp("jmp", [lbl], None):
+                    lbls.append(lbl)
+                case SSAOp(opcode, [_, lbl], None) if opcode in COND_JMP_OPS:
+                    lbls.append(lbl)
+        return lbls
+    
+    def __repr__(self) -> str:
+        return f"SSABasicBlock({self.entry}, {self.ops})"
+    
+    def __hash__(self) -> int:
+        return hash(self.entry)
+    
+    def __eq__(self, __value: object) -> bool:
+        return isinstance(__value, SSABasicBlock) and self.entry == __value.entry
 @dataclass
 class SSAProc:
     blocks: List[SSABasicBlock]
@@ -306,7 +334,7 @@ class SSACrudeGenerator:
         defs = [op for op in block.ops if op.opcode == "phony"]
         non_defs = block.ops[len(defs) :]
         if block.initial:
-            pass  # Figure out how to handle function parameters
+            pass  
         else:
             phis = [
                 Phi(
@@ -452,6 +480,14 @@ class SSADeconstructor:
         self._resolve_phis()
         self._serialize(self.initial)
         self._rename_liveness_info()
+        print("before fallthrough removal")
+        pretty_print(TAC(self.serialization))
+        self._remove_fallthrough_jmps()
+        print("after fallthrough removal")
+        pretty_print(TAC(self.serialization))
+        self._remove_unused_labels()
+        print("after label removal")
+        pretty_print(TAC(self.serialization))
         return TAC(self.serialization)
 
     def _rename_liveness_info(self):
@@ -521,6 +557,35 @@ class SSADeconstructor:
         for succ in block.successors:
             self._serialize(succ)
 
+    def _remove_fallthrough_jmps(self) -> TAC:
+        new_ops = []
+        for op, next in zip(self.serialization[:-1], self.serialization[1:]):
+            if not (
+                isinstance(op, TACOp)
+                and op.opcode == "jmp"
+                and isinstance(next, TACLabel)
+                and op.args[0] == next
+            ):
+                new_ops.append(op)
+        new_ops.append(
+            self.serialization[-1]
+        ) 
+        self.serialization = new_ops
+    
+    def _remove_unused_labels(self):
+        labels_used = set()
+        for op in self.serialization:
+            if isinstance(op, TACOp) and op.opcode == "jmp":
+                labels_used.add(op.args[0])
+            if isinstance(op, TACOp) and op.opcode in COND_JMP_OPS:
+                labels_used.add(op.args[1])
+        
+        self.serialization = [
+                op
+                for op in self.serialization
+                if not (isinstance(op, TACLabel) and op not in labels_used)
+            ]
+        
     def rename_alloc(self, alloc_mapping):
         """
         To be used in case we do register allocation in SSA.
@@ -554,3 +619,4 @@ def ssa_print_detailed(block: SSABasicBlock):
             print(op.detailed())
         else:
             print(f"{op.name}")
+

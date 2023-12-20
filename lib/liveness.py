@@ -77,10 +77,11 @@ class SSALivenessAnalyzer:
         for phi in block.defs:
             defined.add(phi.defined)
             for lbl, tmp in phi.sources.items():
-                if lbl in live_out_for_block:
-                    live_out_for_block[lbl].add(tmp)
-                else:
-                    live_out_for_block[lbl] = {tmp}
+                if isinstance(tmp, SSATemp):
+                    if lbl in live_out_for_block:
+                        live_out_for_block[lbl].add(tmp)
+                    else:
+                        live_out_for_block[lbl] = {tmp}
         block.live_in = live_out
         live_out = live_out - defined
 

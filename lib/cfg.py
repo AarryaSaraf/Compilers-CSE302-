@@ -68,6 +68,16 @@ class BasicBlock:
             "entry": self.entry,
             "ops": self.ops
         })+ ")"
+    
+    def coalesce(self, block2):
+        return BasicBlock(
+            entry=self.entry,
+            ops=self.ops[:-1] + block2.ops,
+            successors=block2.successors,
+            predecessors=self.predecessors,
+            initial=self.initial,
+            fallthrough=block2.fallthrough,
+        )
 
 def coalesce_block(block1: BasicBlock, block2: BasicBlock):
     # assumes block1's last instruction is a jump instruction that can be removed
@@ -136,9 +146,12 @@ class CFGAnalyzer:
         self.add_fallthroughs(blocks)
         return blocks
 
-    def cfg(self, blocks) -> BasicBlock:
+    def cfg(self, blocks: List[BasicBlock]) -> BasicBlock:
         blocks[0].initial = True
         for block in blocks:
+            block.successors = set()
+            block.predecessors = set()
+        for block in blocks:        
             successor_labels = block.successor_labels()
             successors = [lookup_block(lbl, blocks) for lbl in successor_labels]
             block.successors = successors
@@ -155,7 +168,6 @@ class CFGAnalyzer:
         while len_before != len(
             blocks
         ):  # coalesce while there are still things to coalesce
-            print(len(blocks))
             len_before = len(blocks)
             new_blocks = []
             coalesced = set()
@@ -167,7 +179,7 @@ class CFGAnalyzer:
                     and len(block.successors[0].predecessors) == 1
                 ):
                     coalesced.add(block.successors[0].entry)
-                    new_blocks.append(coalesce_block(block, block.successors[0]))
+                    new_blocks.append(block.coalesce(block.successors[0]))
                 else:
                     new_blocks.append(block)
             blocks = new_blocks
@@ -250,6 +262,9 @@ class CFGAnalyzer:
         if coalesce:
             blocks = self.coalesce_blocks(blocks)
             self.cfg(blocks)  # update pred and succ
+        # remove unreachable:
+        blocks = [block for block in blocks if len(block.predecessors) > 0 or block.initial]
+        self.cfg(blocks)
         return blocks
 
 
@@ -268,7 +283,6 @@ class Serializer:
         self.serialization += block.ops
         if block.fallthrough is not None:
             self.serialize(block.fallthrough)
-        print(block.successors)
         for succ in block.successors:
             self.serialize(succ)
 

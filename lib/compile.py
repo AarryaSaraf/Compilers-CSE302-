@@ -8,7 +8,7 @@ from .liveness import LivenessAnalyzer, SSALivenessAnalyzer
 from .cfg import CFGAnalyzer, Serializer
 from .bxast import Function, StatementDecl
 from .checker import SyntaxChecker, TypeChecker
-from .ssa import SSACrudeGenerator, SSADeconstructor, ssa_print_detailed, SSAOptimizer
+from .ssa import SSACrudeGenerator, SSADeconstructor, ssa_print_detailed, SSAOptimizer, ssa_print
 from .asmgen2 import AllocAsmGen
 from .alloc import SpillingAllocator, AllocRecord
 from .greedy_coloring import GraphAndColorAllocator, TACGraphAndColorAllocator
@@ -65,17 +65,21 @@ def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], optim=0) -> str
     if optim > 1:
         ssa_gen = SSACrudeGenerator(blocks, tacproc)
         ssaproc = ssa_gen.to_ssa()
+        cfg_analyzer.cfg(ssaproc.blocks)
 
         ssa_optim = SSAOptimizer(ssaproc)
         ssaproc = ssa_optim.optimize(
             copy_propagate=optim > 3, rename_and_dead_choice=optim > 1
         )
-        print(len(ssaproc.blocks))
+        print(fun.name)
+        for block in ssaproc.blocks:
+           ssa_print(block)
+        #print(len(ssaproc.blocks))
         if optim > 4:
             dataflow_optim = SCCPOptimizer(ssaproc)
             ssaproc = dataflow_optim.optimize()
 
-        print(len(ssaproc.blocks))
+        #print(len(ssaproc.blocks))
 
         ssa_liveness_analyzer = SSALivenessAnalyzer(ssaproc)
         ssa_liveness_analyzer.liveness()
@@ -85,29 +89,32 @@ def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], optim=0) -> str
         
         # This is code for using Allocation in SSA form
         # graph_alloc = GraphAndColorAllocator(ssa_blocks, tacproc).allocate()
-        # print(graph_alloc)
-           
-        
+        # print(graph_alloc)#
+        if optim >4:
+            # run the coalescing once again
+            # Luckily the TAC CFG Analyzer works on SSA as well
+            cfg_analyzer.cfg(ssaproc.blocks)
+            cfg_analyzer.unc_thread(ssaproc.blocks)
+            cfg_analyzer.cfg(ssaproc.blocks)
+            ssaproc.blocks = cfg_analyzer.coalesce_blocks(ssaproc.blocks)
+        cfg_analyzer.cfg(ssaproc.blocks)
+
+        print(fun.name)
+        for block in ssaproc.blocks:
+           ssa_print(block)
         serializer = SSADeconstructor(ssaproc)
+
         tacproc.body = serializer.to_tac()
-        #pretty_print(tacproc.body)
 
-        if optim > 4:
-            # run coalescing once again
-            print("running CFG again")
-            cfg_analyzer = CFGAnalyzer(tacproc)
-            blocks = cfg_analyzer.optimize(
-                unc_thread=False, cond_thread=False, coalesce=True
-            )
-            tacserializer = Serializer(blocks)
-            tacproc.body = tacserializer.to_tac()
-            #pretty_print(tacproc.body)
-
+       
             
     else:
         serializer = Serializer(blocks)
         tacproc.body = serializer.to_tac()
-    if optim > 2 and optim < 5:
+    print("FINAL TAC")
+    pretty_print(tacproc.body)
+
+    if optim > 2 and optim != 5:
         # This is code in case we used Allocation in SSA form
         # spilled_alloc = SpillingAllocator(tacproc).allocate()
         # this rename is somewhat ugly but has to be done here otherwise we get circular imports
