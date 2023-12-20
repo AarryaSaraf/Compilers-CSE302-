@@ -53,6 +53,38 @@ class InterferenceGraph:
     def __str__(self):
         return str(self.nodes)
 
+    def remove(self, tmp: SSATemp | TACTemp):
+        """removes a node from the graph, used in register coalescing
+
+        Args:
+            tmp (SSATemp|TACTemp): the name of the node to be removed
+
+        Returns:
+            InterferenceGraph: New Graph without the removed node
+        """
+        del self.nodes[tmp]
+        for i in list(self.nodes.keys()):
+            node = self.nodes[i]
+            if tmp in node.nbh:
+                node.nbh.remove(tmp)
+        return self
+
+    def merge_nodes(self, new: SSATemp | TACTemp, old1: SSATemp | TACTemp, old2: SSATemp | TACTemp):
+        """Merge nodes old1 and old2 into new (adding new), used in register coalescing.
+
+        Args:
+            new (Temp): temporary to be added
+            a (Temp): temporary whos neighbours it copies
+            b (Temp): temporary whos neighbours it copies
+
+        Returns:
+            _type_: _description_
+        """
+        nei = self.nodes[old1].nbh + self.nodes[old2].nbh
+        self.nodes[new] = InterferenceGraphNode(new, nei, 0)
+        return self
+
+
 
 class Allocator:
     @abstractmethod

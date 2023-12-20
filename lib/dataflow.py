@@ -1,5 +1,6 @@
 from .ssa import *
 from .tac import COND_JMP_OPS, JMP_OPS
+from math import log2
 STATIC_OPS = [    
     "mod",
     "div",
@@ -111,6 +112,30 @@ class SCCPOptimizer:
                 case "copy": self.vals[inst.result] = self.get_val(inst.args[0])
                 case "const": self.vals[inst.result] = self.get_val(inst.args[0])
             return False # indicates that this instruction can be removed
+        # a bunch of special rules
+        elif inst.opcode == "sub" and inst.args[0] == inst.args[1]:
+            self.vals[inst.result] = 0
+        elif inst.opcode in  ["sub", "add"] and self.get_val(inst.args[1]) == 0:
+            inst.opcode = "copy"
+            inst.args = [inst.args[0]]
+        elif inst.opcode == "add" and self.get_val(inst.args[0]) == 0:
+            inst.opcode = "copy"
+            inst.args = [inst.args[1]]
+        elif inst.opcode in ["mul", "div"] and self.get_val(inst.args[1]) == 1:
+            inst.opcode = "copy"
+            inst.args = [inst.args[0]]
+        elif inst.opcode == "mul" and self.get_val(inst.args[0]) == 1:
+            inst.opcode = "copy"
+            inst.args = [inst.args[1]]
+        elif inst.opcode == "div" and log2(self.get_val(inst.args[1])).is_integer():
+            inst.opcode = "rshift"
+            inst.args = [inst.arg[0], int(log2(self.get_val(inst.args[1])))]
+        elif inst.opcode == "mul" and log2(self.get_val(inst.args[1])).is_integer():
+            inst.opcode = "lshift"
+            inst.args = [inst.arg[0], int(log2(self.get_val(inst.args[1])))]
+        elif inst.opcode == "mul" and log2(self.get_val(inst.args[0])).is_integer():
+            inst.opcode = "lshift"
+            inst.args = [inst.arg[0], int(log2(self.get_val(inst.args[0])))]
         elif self.dynamic(inst):
             self.vals[inst.result] = "dyn"
         return True

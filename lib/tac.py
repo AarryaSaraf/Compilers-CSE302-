@@ -165,7 +165,7 @@ class TACProc:
                 )
 
     def new_unused_tmp(self) -> TACTemp:
-        return TACTemp(len(self.get_tmps) + 1)
+        return TACTemp(len(self.get_tmps()) + 1)
 
 
 OPCODES = [

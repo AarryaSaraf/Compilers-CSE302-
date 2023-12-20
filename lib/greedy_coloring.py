@@ -124,7 +124,7 @@ def allocate(params, G, elim):
         col = greedy_coloring(params, G, elim)
         to_spill = spill(col)
     stacksize = 8 * len(spilled)
-    alloc = {u: color_to_reg(col[u]) for u in col.keys()}
+    alloc = col
     for i, u in enumerate(spilled):
         alloc[u] = -(i + 1) * 8
 
@@ -152,33 +152,30 @@ def rcol(G, C, cop):
             if flag:
                 flag -= 1
                 tmp = TACTemp(flag, 0)
-                G = adder(G, tmp, b[1], b[2])
+                G = merge_nodes(G, tmp, b[1], b[2])
                 G = remove(G, b[1])
                 G = remove(G, b[2])
                 # replace  %a and %b with %c in the instruction space JONAS TO DO
 
 
-def free_color(G, C, tmp1, tmp2):
+def free_color(graph: InterferenceGraph, coloring: Dict[SSATemp | TACTemp, int], tmp1: SSATemp | TACTemp, tmp2: SSATemp | TACTemp):
     """Check is whether a free color between tmp1 and tmp2  exists
 
     Args:
         G (InterfereneGraph): Interferene graph
-        C (Dictionary tmp -> Int): Coloring
-        b ([bool, %a, %b]): 1 element of cop from the preious function
+        C (Dictionary SSATemp or TACTemp -> Int): Coloring
+        tmp1 (SSATemp or TACTemp): The first temporary.
+        tmp2 (SSATemp or TACTemp)
 
     Returns:
-        _type_: False if no such c exists
-                (c+1) if c exists. It is c+1 so it necessarily satisfies the if(c) conditional.
+        bool or int: if it finds a free (register) color it returns its number. If not it returns false.
     """
-    u = G.nodes[tmp1].nbh + G.nodes[tmp2].nbh
-    col = []
-    for i in u:
-        col.append(C[i])
-    flag = False
-    for i in list(C.values()):
-        if i not in col:
-            flag = i + 1
-    return flag
+    already_used = {coloring[tmp] for tmp in graph.nodes[tmp1].nbh + graph.nodes[tmp2].nbh}
+
+    for i in range(1, len(color_map)+1):
+        if i not in already_used:
+            return i
+    return False
 
 
 # example from the lecture
@@ -235,8 +232,8 @@ class GraphAndColorAllocator:
         return lout, de, use, cop
 
     def to_slot(self, i):
-        if isinstance(i, str):
-            return Register(i[2:])
+        if i >= 0:
+            return Register(color_to_reg(i)[2:])
         else:
             return StackSlot(i)
 
@@ -254,12 +251,15 @@ class GraphAndColorAllocator:
             bool: whether the instruction is to be removed
         """
         if inst.opcode == "copy" and isinstance(inst.result, SSATemp | TACTemp) and isinstance(inst.args[0], SSATemp | TACTemp):
-            if inst.result == inst.args[0]:
+            if coloring[inst.result] == coloring[inst.args[0]]:
                 return True
             if inst.args[0] not in ig.nodes[inst.result].nbh:
                 fc = free_color(ig, coloring, inst.args[0], inst.result)
                 if fc:
                     new_tmp = self.proc.new_unused_tmp()
+                    ig.merge_nodes(new_tmp, inst.result, inst.args[0])
+                    ig.remove(inst.result)
+                    ig.remove(inst.args[0])
                     coloring[new_tmp] = fc
                     self.proc.rename_var(old=inst.args[0], new=new_tmp)
                     self.proc.rename_var(old=inst.result, new=new_tmp)

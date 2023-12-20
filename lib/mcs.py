@@ -27,6 +27,8 @@ def transformer(live_outs, defs, uses, is_copy):
             interfering_temps.add(x)
             for y in defs[i]:
                 interfering_temps.add(y)
+            # we can't do register coalescing with this 
+            # we aren't really sure why source and destination would interfere here instead of just destination...
             if is_copy[i]:
                 for y in uses[i]:
                     interfering_temps.add(y)
@@ -131,38 +133,3 @@ def update(node, ans, igraph):
     if nnode == None:
         return ans
     return update(nnode, ans, igraph)
-
-
-def remove(igraph, tmp):
-    """removes a node from the graph
-
-    Args:
-        igraph (InteferenceGraph): the graph to remove the node from
-        tmp (SSATemp|TACTemp): the name of the node to be removed
-
-    Returns:
-        InterferenceGraph: New Graph without the removed node
-    """
-    del igraph.nodes[tmp]
-    for i in list(igraph.nodes.keys()):
-        node = igraph.nodes[i]
-        if tmp in node.nbh:
-            node.nbh.remove(tmp)
-    return igraph
-
-
-def adder(igraph, tmp, a, b):
-    """add a node to the graph
-
-    Args:
-        igraph (InterferenceGrpah): OG graph
-        tmp (Temp): temporary to be added
-        a (Temp): temporary whos neighbours it copies
-        b (Temp): temporary whos neighbours it copies
-
-    Returns:
-        _type_: _description_
-    """
-    nei = igraph.nodes[a].nbh + igraph.nodes[b].nbh
-    igraph.nodes[tmp] = InterferenceGraphNode(tmp, nei, 0)
-    return igraph
