@@ -186,7 +186,6 @@ __BODY__
         res = op.result
         # stack alignment
         if len(args) > 6 and len(args) % 2 != 0:
-            print("inserting dummy for alingment")
             self.body += f"    pushq $0\n"
         # allocate arguments according to CC
         for i, arg in enumerate(args[:6]):

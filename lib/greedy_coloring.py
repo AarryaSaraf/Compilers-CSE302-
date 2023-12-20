@@ -232,7 +232,6 @@ class GraphAndColorAllocator:
                 de.append(list(op.defined(interference=True)))
                 use.append(list(op.use(interference=True)))
                 cop.append(op.opcode == "copy")
-        print(lout, de, use)
         return lout, de, use, cop
 
     def to_slot(self, i):
@@ -296,7 +295,6 @@ class TACGraphAndColorAllocator(GraphAndColorAllocator):
                 de.append(list(op.defined(interference=True)))
                 use.append(list(op.use(interference=True)))
                 cop.append(op.opcode == "copy")
-        print(lout, de, use)
         return lout, de, use, cop
 
     def coalesce_registers(self, ig: InterferenceGraph, coloring: Dict):

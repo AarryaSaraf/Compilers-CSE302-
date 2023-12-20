@@ -71,9 +71,9 @@ def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], optim=0) -> str
         ssaproc = ssa_optim.optimize(
             copy_propagate=optim > 3, rename_and_dead_choice=optim > 1
         )
-        print(fun.name)
-        for block in ssaproc.blocks:
-           ssa_print(block)
+        # print(fun.name)
+        # for block in ssaproc.blocks:
+        #    ssa_print(block)
         #print(len(ssaproc.blocks))
         if optim > 4:
             dataflow_optim = SCCPOptimizer(ssaproc)
@@ -83,9 +83,6 @@ def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], optim=0) -> str
 
         ssa_liveness_analyzer = SSALivenessAnalyzer(ssaproc)
         ssa_liveness_analyzer.liveness()
-        print(fun.name)
-        for block in ssaproc.blocks:
-           ssa_print_detailed(block)
         
         # This is code for using Allocation in SSA form
         # graph_alloc = GraphAndColorAllocator(ssa_blocks, tacproc).allocate()
@@ -99,9 +96,9 @@ def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], optim=0) -> str
             ssaproc.blocks = cfg_analyzer.coalesce_blocks(ssaproc.blocks)
         cfg_analyzer.cfg(ssaproc.blocks)
 
-        print(fun.name)
-        for block in ssaproc.blocks:
-           ssa_print(block)
+        # print(fun.name)
+        # for block in ssaproc.blocks:
+        #    ssa_print(block)
         serializer = SSADeconstructor(ssaproc)
 
         tacproc.body = serializer.to_tac()
@@ -111,8 +108,7 @@ def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], optim=0) -> str
     else:
         serializer = Serializer(blocks)
         tacproc.body = serializer.to_tac()
-    print("FINAL TAC")
-    pretty_print(tacproc.body)
+    
 
     if optim > 2 and optim != 5:
         # This is code in case we used Allocation in SSA form

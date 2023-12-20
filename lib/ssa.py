@@ -480,14 +480,8 @@ class SSADeconstructor:
         self._resolve_phis()
         self._serialize(self.initial)
         self._rename_liveness_info()
-        print("before fallthrough removal")
-        pretty_print(TAC(self.serialization))
         self._remove_fallthrough_jmps()
-        print("after fallthrough removal")
-        pretty_print(TAC(self.serialization))
         self._remove_unused_labels()
-        print("after label removal")
-        pretty_print(TAC(self.serialization))
         return TAC(self.serialization)
 
     def _rename_liveness_info(self):
@@ -516,7 +510,7 @@ class SSADeconstructor:
         copies = dummy_copies + [
             TACOp("copy", [breakups.get(src, src)], res) for (res, src) in to_insert
         ]
-        # TODO: add liveness
+        # carry over liveness
         live_out = set([c[0] for c in to_insert])
         for copy_inst in reversed(copies):
             copy_inst.live_out = live_out
