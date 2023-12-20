@@ -69,7 +69,7 @@ Where we really add extra complication is in the calling convention since we hav
 
 ## ! Extra Experimental !: SCCP Optimization
 
-Because I was bored I implemented SCCP from the dataflow project proposal. The code can be found in `lib/dataflow.py`. The SCCP can be activated using the `-O5` option. If you want to combine SCCP with Register allocation you need to use `-O6`.
+Because I was bored I implemented SCCP from the dataflow project proposal. The code can be found in `lib/dataflow.py`. The SCCP can be activated using the `-O5` option. The real kick comes in after we apply block coalescing after this step. We can reduce the example of `examples/bigcondition2.bx` to just a simple call to print using this. If you want to combine SCCP with Register allocation you need to use `-O6`. 
 
 ## Tying it all together
 
