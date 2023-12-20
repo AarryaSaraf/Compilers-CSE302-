@@ -67,7 +67,6 @@ class InterferenceGraph:
             node = self.nodes[i]
             if tmp in node.nbh:
                 node.nbh.remove(tmp)
-        return self
 
     def merge_nodes(self, new: SSATemp | TACTemp, old1: SSATemp | TACTemp, old2: SSATemp | TACTemp):
         """Merge nodes old1 and old2 into new (adding new), used in register coalescing.
