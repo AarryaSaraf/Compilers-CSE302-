@@ -131,33 +131,6 @@ def allocate(params, G, elim):
     return stacksize, alloc
 
 
-# generate colored graph
-# then coalsecing
-# then allocation
-
-
-def rcol(G, C, cop):
-    """register coalsecing changes instructions or merges registers
-
-    Args:
-        G (InterferenceGraph): IFGraph
-        C (Dictionary tmp -> Int): Coloring
-        cop (list of lists): each inner list contains a boolean (true if copy false if not, %a, %b where the instruction is %b = copy %a)
-    """
-    for b in cop:
-        if b[0] and C[b[1]] == C[b[2]]:
-            b = None
-        elif b[1] not in G.nodes[b[2]].nbh:
-            flag = free_color(G, C, b)
-            if flag:
-                flag -= 1
-                tmp = TACTemp(flag, 0)
-                G = merge_nodes(G, tmp, b[1], b[2])
-                G = remove(G, b[1])
-                G = remove(G, b[2])
-                # replace  %a and %b with %c in the instruction space JONAS TO DO
-
-
 def free_color(graph: InterferenceGraph, coloring: Dict[SSATemp | TACTemp, int], tmp1: SSATemp | TACTemp, tmp2: SSATemp | TACTemp):
     """Check is whether a free color between tmp1 and tmp2  exists
 
