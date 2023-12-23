@@ -121,6 +121,7 @@ def allocate(params, G, elim):
     while to_spill is not None:
         spilled.append(to_spill)
         G.remove(to_spill)
+        elim.remove(to_spill)
         col = greedy_coloring(params, G, elim)
         to_spill = spill(col)
     stacksize = 8 * len(spilled)

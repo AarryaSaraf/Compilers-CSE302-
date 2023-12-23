@@ -96,9 +96,10 @@ class AllocAsmGen:
         # if parameter variables are not allocated to CC Registers move them:
         for i, param in enumerate(self.proc.params):
             if i < 6 and self.get_location(param) != Register(CC_REG_ORDER[i]):
-                head_code += f"    movq %{CC_REG_ORDER[i]}, {self.to_address(param)}"
+                head_code += f"    movq %{CC_REG_ORDER[i]}, {self.to_address(param)}\n"
             if i >= 6 and self.get_location(param) != StackSlot(16 + (i - 6) * 8):
-                head_code += f"    movq {16+(i-6)*8}(%rsp), {self.to_address(param)}"
+                head_code += f"    movq {16+(i-6)*8}(%rsp), %r11\n"
+                head_code += f"    movq %r11, {self.to_address(param)}\n"
 
         return head_code
 
