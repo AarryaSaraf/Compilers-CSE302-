@@ -319,14 +319,14 @@ class AllocAsmGen:
             # if we pushed the variable take it from the stack (this also avoids any unwanted overrides to rdi etc.)
             if self.get_location(arg) in used_registers:
                 pushed_index = used_registers.index(self.get_location(arg)) 
-                self.body += f"    movq {stack_offset -pushed_index}(%rsp), %{CC_REG_ORDER[i]}\n" # i hope this math is correct
+                self.body += f"    movq {(stack_offset -pushed_index-1)*8}(%rsp), %{CC_REG_ORDER[i]}\n" # i hope this math is correct
             else:
                 self.body += self.load_var(arg, CC_REG_ORDER[i])
         for arg in reversed(args[6:]):
             # if we pushed the variable take it from the stack (this also avoids any unwanted overrides to rdi etc.)
             if self.get_location(arg) in used_registers:
                 pushed_index = used_registers.index(self.get_location(arg)) 
-                self.body += f"    movq {stack_offset -pushed_index}(%rsp), %r11\n"
+                self.body += f"    movq {(stack_offset -pushed_index-1)*8}(%rsp), %r11\n"
             else:
                 self.body += self.load_var(arg, "r11")
             self.body += "    pushq %r11\n"
