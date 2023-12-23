@@ -59,7 +59,7 @@ Also, we rename all the versioned SSATemps into regular unversioned TACTemps.
 
 ### Computer the Interference Graph
 
-Represented temporaries by nodes storing the name, value (only for Max Cardinality Search), and the list of neighbors. Then the total graph is a dictionary from the name of a temp to such nodes. A dictionary with no neighbors was created and then based on the livein, def, etc we created sets of which temps appeared together and added the neighbors accordingly. This can be found in `lib/mcs.py`.
+Represented temporaries by nodes storing the name, value (only for Max Cardinality Search), and the list of neighbors. The class can be seen in `lib\alloc.py` . Then the total graph is a dictionary from the name of a temp to such nodes. A dictionary with no neighbors was created and then based on the livein, def, etc we created sets of which temps appeared together and added the neighbors accordingly. This can be found in `lib/mcs.py`.
 
 ### Use Mac Cardinality Search to find a Simplicial Elimination Ordering 
 
@@ -67,17 +67,21 @@ Applied the given algorithm by updating the value count of the elements in the d
 
 ### Use Greedy Coloring on the SEO
 
-This can be found in `lib/greedy_coloring.py`.
+Applies the given algorithm and spits out a dictionary with the temps as keys and colors as values. The fixed registers are the six input parameters. This can be found in `lib/greedy_coloring.py`.
+
 
 ### If needing >13 colors spill some temporaries and redo from step 2
-
-This can be found in `lib/greedy_coloring.py`.
+A function checks if there are more than 13 colors. If no it returns no, but if yes it randomly picks a node and returns it. In the allocation, if a node is returned then we remove it from the InterferenceGraph and try again. Hence this uses a remove function in the Interference Graph, updates the stack size, and repeats the process from step 2. This can be found in `lib/greedy_coloring.py`.
 
 ### Finally, compute the allocation record
 
 Register allocation is done on the deconstructed TAC but is implemented in a way that it is possible to also do it in SSA form. In this case, one only needs to remember to call `SSADeconstructor.rename_alloc` to rename the SSA Temps in the Allocation Record to their regular TAC form.
 
 ## Register Coalescing 
+
+According to the given algorithm, checks for conditions, and merges two temporaries in the Interference Graph using the marge nodes function. This can be found in `lib/greedy_coloring.py`.
+
+#JONAS TO DO 
 
 ## Assembly generation
 
