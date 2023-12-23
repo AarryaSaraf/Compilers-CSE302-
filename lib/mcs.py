@@ -3,7 +3,6 @@
 """
 Created on Thu Nov 23 14:06:53 2023
 
-@author: aarrya.saraf
 """
 
 from .ssa import *
