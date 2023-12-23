@@ -100,7 +100,7 @@ def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], optim=0) -> str
         # print(fun.name)
         # for block in ssaproc.blocks:
         #    ssa_print(block)
-        # serializer = SSADeconstructor(ssaproc)
+        serializer = SSADeconstructor(ssaproc)
 
         tacproc.body = serializer.to_tac()
 
