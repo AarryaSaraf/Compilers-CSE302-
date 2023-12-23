@@ -43,14 +43,14 @@ We use the `SSALivenessAnalyzer` in `lib/liveness.py` to annotate liveness infor
 
 All optimization in SSA Form is done in `SSAOptimizer` in `lib/ssa.py`. We have 3 optimizations:
 
-1. Copy Propagation: A copy in SSA form `%1.n = copy %0.m` can be replaced by gloablly renaming `%1.n` as `%0.m`. THis is rather straight forward to do. An requires only one single pass
-2. Null choice elimination and rename simplification. These are used im union each time we perform all possible rename simplifications we follow up by eliminating all null choice phis. This goes on until we can't find any renames any more.
+1. Copy Propagation: A copy in SSA form `%1.n = copy %0.m` can be replaced by gloablly renaming `%1.n` as `%0.m`. This is rather straight forward to do and only requires only one single pass.
+2. Null choice elimination and rename simplification. These are used im union: each time we perform all possible rename simplifications we follow up by eliminating all null choice phis. This goes on until we can't find any renames any more.
 
 ## SSA Deconstruction
 
 The deconstruction is implemented in `SSADeconstructor` in `lib/ssa.py`. This performs the advanced deconstruction technique outlined in the lecture:
 
-Every `%x.0 = phi (L1 : %y1.v1, ..., Ln: %yn.vn)` gets converted into a `%x.0 = copy %yi.vi` at the end of the `Li` block. If we have any circular copies that could lead to dangerous undesired overrides we detect this and insert a dummy vaariable to break the cycle as outlined in the lecture.
+Every `%x.0 = phi (L1 : %y1.v1, ..., Ln: %yn.vn)` gets converted into a `%x.0 = copy %yi.vi` at the end of the `Li` block in random order. If we have any circular copies that could lead to dangerous undesired overrides we detect this and insert a dummy variable to break the cycle as outlined in the lecture for unconventional SSA destruction.
 
 Also we rename all the versioned SSATemps into regular unversioned TACTemps.
 
@@ -69,7 +69,11 @@ Where we really add extra complication is in the calling convention since we hav
 
 ## ! Extra Experimental !: SCCP Optimization
 
-Because I was bored I implemented SCCP from the dataflow project proposal. The code can be found in `lib/dataflow.py`. The SCCP can be activated using the `-O5` option. The real kick comes in after we apply block coalescing after this step. We can reduce the example of `examples/bigcondition2.bx` to just a simple call to print using this. If you want to combine SCCP with Register allocation you need to use `-O6`. 
+Because I was bored I implemented SCCP from the dataflow project proposal. The code can be found in `lib/dataflow.py`. The SCCP can be activated using the `-O5` option. In addition to the static computations outlined in the project proposal we can also handle a bit more complex cases like: 
+1. Identities like `%x = add %y 0` or `%x = div %y 1` are treated as copies (i.e. replaced by renames).
+2. We can also interpret `%x = sub %y %y` as `%x = const 0`.
+3. Divisions or multiplications by a power of 2 are optimized to shifts.
+A real improvement comes when we combine the static jump evaluation with block coalescing after this step. This will then really get rid of long jump chains that are now statically known. We can reduce the example of `examples/bigcondition2.bx` to just a simple call to print using this. If you want to combine SCCP with Register allocation you need to use `-O6`. This required some changes in the assembly generation to be able to handle instructions with constants in them in all cases but is otherwise a drop-in module.
 
 ## Tying it all together
 
