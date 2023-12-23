@@ -191,7 +191,9 @@ class AllocAsmGen:
                         )
                         self.body += self.store_var("r11", res)
                 case TACOp(op, [tmp], res) if op in SIMPLE_UN_OPS:
-                    self.body += f"    {OPCODE_TO_ASM[op]} {self.to_address(tmp)}\n"
+                    if self.get_location(tmp) != self.get_location(res):
+                        self.body += f"    movq {self.to_address(tmp)}, {self.to_address(res)}\n"
+                    self.body += f"    {OPCODE_TO_ASM[op]} {self.to_address(res)}\n"
                 case TACOp("copy", [arg], res):
                     if  self.get_location(arg )== self.get_location(res):
                         continue
