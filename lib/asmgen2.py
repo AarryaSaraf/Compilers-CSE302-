@@ -17,7 +17,7 @@ CC_REG_ORDER = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"]
 SIMPLE_BIN_OPS = {"add", "sub", "mul", "and", "or", "xor"}
 SIMPLE_UN_OPS = {"not", "neg"}
 CALLEE_SAVE = ["rbx", "r12", "r13", "r14", "r15"]
-CALLER_SAVE = ["rax", "rdi", "rdi", "rdx", "rcx", "r8", "r9", "10", "r11"]
+CALLER_SAVE = ["rax", "rdi", "rsi", "rdx", "rcx", "r8", "r9", "10", "r11"]
 
 
 def global_symbs(decls: List[StatementDecl | Function]):
@@ -263,6 +263,8 @@ class AllocAsmGen:
             str: The compiled instructions to move the variable
         """
         if isinstance(var, TACTemp):
+            if var not in self.alloc.mapping[var]:
+                return f"    movq %{reg}, %rax\n"
             slot = self.alloc.mapping[var]
             if isinstance(slot, StackSlot):
                 return f"    movq %{reg}, {slot.offset}(%rbp)\n"
@@ -276,6 +278,8 @@ class AllocAsmGen:
 
     def get_location(self, var) -> MemorySlot:
         if isinstance(var, TACTemp):
+            if var not in self.alloc.mapping:
+                return Register("rax") # quick fix: if it didn't end up in the interference graph it doesnt interfere with anything => rax works
             return self.alloc.mapping[var]
         elif isinstance(var, TACGlobal):
             return DataSlot(var.name)
