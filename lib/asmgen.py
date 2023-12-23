@@ -73,7 +73,7 @@ __BODY__
             if i < 6:
                 head_code += self.store_var(CC_REG_ORDER[i], param)
             else:
-                head_code += f"    movq +{16+(i-6)*8}(%rbp), %rax\n"
+                head_code += f"    movq {16+(i-6)*8}(%rbp), %rax\n"
                 head_code += self.store_var("rax", param)
         return head_code
 
