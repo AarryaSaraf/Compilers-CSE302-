@@ -116,7 +116,7 @@ class TACOp:
             dummies.add(TACTemp("%%rax"))
             dummies.add(TACTemp("%%rbx"))
             dummies.add(TACTemp("%%rdx"))
-        elif self.opcode in ["shl", "shr"]:
+        elif self.opcode in ["rshift", "lshift"]:
             dummies.add(TACTemp("%%rcx"))
         elif self.opcode == "param" and self.args[0] < 7:  # deprecated
             dummies.add(TACTemp(f"%%{CC_REG_ORDER[self.args[0]-1]}"))
