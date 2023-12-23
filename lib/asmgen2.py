@@ -173,7 +173,6 @@ class AllocAsmGen:
                     self.body += f"    {OPCODE_TO_ASM[op]} %cl, %r11\n"
                     self.body += self.store_var("r11", res)
                 case TACOp("mod" | "div" as opcode, [tmp1, tmp2], res):
-                    print([self.get_location(tmp) for tmp in op.live_out])
                     self.body += self.load_var(tmp1, "rax")
                     self.body += "    cqto\n"
                     self.body += self.load_var(tmp2, "rbx")
