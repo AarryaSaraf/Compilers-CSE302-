@@ -164,7 +164,7 @@ class SCCPOptimizer:
         return inst.opcode in STATIC_OPS and all([self.get_val(v) not in ["undef", "dyn"] for v in inst.args]) and isinstance(inst.result, SSATemp)
     
     def dynamic(self, inst: SSAOp):
-        return inst.opcode in DYN_OPS or any(self.get_val(var) == "dyn" for var in inst.args)
+        return inst.opcode in DYN_OPS or any([self.get_val(var) == "dyn" for var in inst.args])
     
     def sccp_jumps(self, jmp_ops: List[SSAOp]):
         # go through all of the jumps until one is definite, stopping after a definite jump
@@ -177,7 +177,7 @@ class SCCPOptimizer:
                     new_jmp_ops.append(jmp)
                     self.eval[jmp.args[1]] = True
                 case code if code in COND_JMP_OPS and self.get_val(jmp.args[0]) == "undef": 
-                    new_jmp_ops = jmp_ops
+                    new_jmp_ops = jmp_ops # abort the whole jumpy analysis
                     break
                 case "jz" if self.get_val(jmp.args[0]) == 0: 
                     self.eval[jmp.args[1]] = True 

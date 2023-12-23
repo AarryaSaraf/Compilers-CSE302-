@@ -153,13 +153,12 @@ class CFGAnalyzer:
             block.predecessors = set()
         for block in blocks:        
             successor_labels = block.successor_labels()
-            successors = [lookup_block(lbl, blocks) for lbl in successor_labels]
+            successors = set([lookup_block(lbl, blocks) for lbl in successor_labels])
             block.successors = successors
             for succ in successors:
                 succ.predecessors.add(block)
             if block.ops[-1].opcode == "jmp":
                 block.fallthrough = lookup_block(block.ops[-1].args[0], blocks)
-        blocks[0]
         return blocks[0]
 
     def coalesce_blocks(self, blocks: List[BasicBlock]) -> List[BasicBlock]:
@@ -176,10 +175,10 @@ class CFGAnalyzer:
                     continue
                 if (
                     len(block.successors) == 1
-                    and len(block.successors[0].predecessors) == 1
+                    and len(list(block.successors)[0].predecessors) == 1
                 ):
-                    coalesced.add(block.successors[0].entry)
-                    new_blocks.append(block.coalesce(block.successors[0]))
+                    coalesced.add(list(block.successors)[0].entry)
+                    new_blocks.append(block.coalesce(list(block.successors)[0]))
                 else:
                     new_blocks.append(block)
             blocks = new_blocks
@@ -235,7 +234,7 @@ class CFGAnalyzer:
     def trace_jumps(self, block: BasicBlock) -> BasicBlock:
         trace = block
         while len(trace.successors) == 1 and trace.empty():
-            trace = trace.successors[0]
+            trace = list(trace.successors)[0]
         return trace
 
     def remove_inst_after_ret(self, blocks: List[BasicBlock]):

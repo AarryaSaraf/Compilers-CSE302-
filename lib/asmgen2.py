@@ -90,7 +90,7 @@ class AllocAsmGen:
         for reg in save_registers:
             head_code += f"    pushq %{reg}\n"
         if len(save_registers) % 2 != 0:
-            head_code += f"    pushq $0\n"  # push one more to have 16 byte alignment (callee saves are uneven)
+            head_code += f"    movq $0, %r11\n    pushq %r11\n"  # push one more to have 16 byte alignment (callee saves are uneven)
 
         head_code += "    # move parameters to allocated slots (if necessary)\n"
         # if parameter variables are not allocated to CC Registers move them:
@@ -115,7 +115,8 @@ class AllocAsmGen:
         # restore callee save registers if used
         save_registers = [reg for reg in self.reg_used if reg in CALLEE_SAVE]
         if len(save_registers) % 2 != 0:
-            end_code += f"    popq %{save_registers[:-1]}\n"  # pop one more to have 16 byte alignment (callee saves are uneven) also we override r15 anyway
+            end_code += f"    popq %{save_registers[-1]}\n"  # pop one more to have 16 byte alignment (callee saves are uneven) also we override r15 anyway
+
         for reg in reversed(save_registers):
             end_code += f"    popq %{reg}\n"
 
@@ -171,12 +172,13 @@ class AllocAsmGen:
                     self.body += self.load_var(tmp2, "rcx")
                     self.body += f"    {OPCODE_TO_ASM[op]} %cl, %r11\n"
                     self.body += self.store_var("r11", res)
-                case TACOp("mod" | "div" as op, [tmp1, tmp2], res):
+                case TACOp("mod" | "div" as opcode, [tmp1, tmp2], res):
+                    print([self.get_location(tmp) for tmp in op.live_out])
                     self.body += self.load_var(tmp1, "rax")
                     self.body += "    cqto\n"
                     self.body += self.load_var(tmp2, "rbx")
                     self.body += "    idivq %rbx\n"
-                    if op == "mod":
+                    if opcode == "mod":
                         self.body += self.store_var("rdx", res)
                     else:
                         self.body += self.store_var("rax", res)
@@ -310,7 +312,7 @@ class AllocAsmGen:
             stack_offset +=1
         # stack alignment
         if max(len(args) - 6, 0) + len(used_registers) % 2 != 0:
-            self.body += f"    pushq $0\n"
+            self.body += f"    movq $0, %r11\n    pushq %r11\n"
             stack_offset +=1 
         # allocate arguments according to CC
         for i, arg in enumerate(args[:6]):

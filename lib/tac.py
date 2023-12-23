@@ -89,7 +89,7 @@ class TACOp:
     def is_jmp(self) -> bool:
         return self.opcode in JMP_OPS
 
-    def use(self, interference=False) -> Set[TACTemp]:
+    def use(self, interference=True) -> Set[TACTemp]:
         used = {
             tmp
             for tmp in self.args
@@ -100,7 +100,7 @@ class TACOp:
             used = used.union(self.prealloc_dummies())
         return used
 
-    def defined(self, interference=False) -> Set[TACTemp]:
+    def defined(self, interference=True) -> Set[TACTemp]:
         defined = set()
 
         if self.result is not None:

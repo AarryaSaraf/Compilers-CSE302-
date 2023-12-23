@@ -66,11 +66,12 @@ def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], optim=0) -> str
         ssa_gen = SSACrudeGenerator(blocks, tacproc)
         ssaproc = ssa_gen.to_ssa()
         cfg_analyzer.cfg(ssaproc.blocks)
-
-        ssa_optim = SSAOptimizer(ssaproc)
-        ssaproc = ssa_optim.optimize(
-            copy_propagate=optim > 3, rename_and_dead_choice=optim > 1
-        )
+        if optim < 5:
+            # when SCCP is active we don't need this anymore
+            ssa_optim = SSAOptimizer(ssaproc)
+            ssaproc = ssa_optim.optimize(
+                copy_propagate=optim > 3, rename_and_dead_choice=optim > 1
+            )
         # print(fun.name)
         # for block in ssaproc.blocks:
         #    ssa_print(block)

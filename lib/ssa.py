@@ -88,14 +88,14 @@ class SSAOp:
     def is_jmp(self) -> bool:
         return self.opcode in JMP_OPS
 
-    def use(self, interference=False) -> Set[SSATemp]:
+    def use(self, interference=True) -> Set[SSATemp]:
         used = {tmp for tmp in self.args if isinstance(tmp, SSATemp)}
         if interference:
             # these dummies only need to be added for the construction of the interference graph
             used = used.union(self.prealloc_dummies())
         return used
 
-    def defined(self, interference=False) -> Set[SSATemp]:
+    def defined(self, interference=True) -> Set[SSATemp]:
         """
         The def set
 
@@ -487,8 +487,8 @@ class SSADeconstructor:
     def _rename_liveness_info(self):
         for op in self.serialization:
             if isinstance(op, TACOp):
-                op.live_in = {self.ssa_to_tac[tmp] for tmp in op.live_in}
-                op.live_out = {self.ssa_to_tac[tmp] for tmp in op.live_out}
+                op.live_in = {self.ssa_to_tac[tmp] if not (isinstance(tmp.id, str) and tmp.id.startswith("%%"))  else tmp for tmp in op.live_in}
+                op.live_out = {self.ssa_to_tac[tmp] if not (isinstance(tmp.id, str) and tmp.id.startswith("%%"))  else tmp for tmp in op.live_out}
 
     def _resolve_phis(self):
         copies_to_insert = {block.entry: set() for block in self.blocks}
