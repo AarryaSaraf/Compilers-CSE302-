@@ -1,6 +1,7 @@
 # CSE302Compilers
 
 Team - Antonia Baies, Aarrya Saraf, and Jonas Treplin.
+Project: Register Allocation.
 Labs and project for CSE302 compilers 
 
 
