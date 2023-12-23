@@ -57,8 +57,27 @@ Also, we rename all the versioned SSATemps into regular unversioned TACTemps.
 
 ## Register Allocation
 
+### Computer the Interference Graph
+
+Represented temporaries by nodes storing the name, value (only for Max Cardinality Search), and the list of neighbors. Then the total graph is a dictionary from the name of a temp to such nodes. A dictionary with no neighbors was created and then based on the livein, def, etc we created sets of which temps appeared together and added the neighbors accordingly. This can be found in `lib/mcs.py`.
+
+### Use Mac Cardinality Search to find a Simplicial Elimination Ordering 
+
+Applied the given algorithm by updating the value count of the elements in the dictionary. This can be found in `lib/mcs.py`.
+
+### Use Greedy Coloring on the SEO
+
+This can be found in `lib/greedy_coloring.py`.
+
+### If needing >13 colors spill some temporaries and redo from step 2
+
+This can be found in `lib/greedy_coloring.py`.
+
+### Finally, compute the allocation record
+
 Register allocation is done on the deconstructed TAC but is implemented in a way that it is possible to also do it in SSA form. In this case, one only needs to remember to call `SSADeconstructor.rename_alloc` to rename the SSA Temps in the Allocation Record to their regular TAC form.
-TODO: Antonia & Aarrya
+
+## Register Coalescing 
 
 ## Assembly generation
 
