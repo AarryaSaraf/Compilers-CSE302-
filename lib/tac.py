@@ -258,7 +258,8 @@ class Lowerer:
         raise Exception(f"Variable {var} undefined")
 
     def add_var(self, var: str):
-        self.scope_stack[-1][var] = TACTemp(var)
+        
+        self.scope_stack[-1][var] = self.fresh_temp()
 
     def fresh_temp(self) -> TACTemp:
         var = TACTemp(self.temporary_counter)
