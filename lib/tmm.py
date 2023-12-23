@@ -85,9 +85,9 @@ class TMM(Lowerer):
                     else:
                         code += [label_end]
                 case StatementBreak():
-                    code += [TACOp("jmp", [self.break_stack[0]], None)]
+                    code += [TACOp("jmp", [self.break_stack[-1]], None)]
                 case StatementContinue():
-                    code += [TACOp("jmp", [self.continue_stack[0]], None)]
+                    code += [TACOp("jmp", [self.continue_stack[-1]], None)]
                 case StatementBlock(block):
                     code += self.tmm_block(block)
                 case StatementReturn(expr) if expr is not None:
