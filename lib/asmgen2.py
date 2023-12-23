@@ -265,7 +265,7 @@ class AllocAsmGen:
             str: The compiled instructions to move the variable
         """
         if isinstance(var, TACTemp):
-            if var not in self.alloc.mapping[var]:
+            if var not in self.alloc.mapping:
                 return f"    movq %{reg}, %rax\n"
             slot = self.alloc.mapping[var]
             if isinstance(slot, StackSlot):
