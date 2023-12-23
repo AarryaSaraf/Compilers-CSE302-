@@ -97,14 +97,13 @@ def compile_unit(fun: Function, globalmap: Dict[str, TACGlobal], optim=0) -> str
             ssaproc.blocks = cfg_analyzer.coalesce_blocks(ssaproc.blocks)
         cfg_analyzer.cfg(ssaproc.blocks)
 
-        print(fun.name)
-        for block in ssaproc.blocks:
-           ssa_print(block)
-        serializer = SSADeconstructor(ssaproc)
+        # print(fun.name)
+        # for block in ssaproc.blocks:
+        #    ssa_print(block)
+        # serializer = SSADeconstructor(ssaproc)
 
         tacproc.body = serializer.to_tac()
 
-        pretty_print(tacproc.body)
             
     else:
         serializer = Serializer(blocks)
