@@ -81,7 +81,7 @@ Register allocation is done on the deconstructed TAC but is implemented in a way
 
 According to the given algorithm, checks for conditions, and merges two temporaries in the Interference Graph using the marge nodes function. This can be found in `lib/greedy_coloring.py`.
 
-#JONAS TO DO 
+# JONAS TO DO 
 
 ## Assembly generation
 
