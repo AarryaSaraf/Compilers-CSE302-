@@ -148,8 +148,8 @@ class SCCPOptimizer:
         # convert mul/div by power of two into a shift
         elif inst.opcode == "div" and log2(self.get_val(inst.args[1])).is_integer():
             inst.opcode = "rshift"
-            inst.args = [inst.arg[0], int(log2(self.get_val(inst.args[1])))]
-        elif inst.opcode == "mul" and log2(self.get_val(inst.args[1])).is_integer():
+            inst.args = [inst.args[0], int(log2(self.get_val(inst.args[1])))]
+        elif inst.opcode == "mul" and isinstance(self.get_val(inst.args[1]), int) and log2(self.get_val(inst.args[1])).is_integer():
             inst.opcode = "lshift"
             inst.args = [inst.arg[0], int(log2(self.get_val(inst.args[1])))]
         elif inst.opcode == "mul" and log2(self.get_val(inst.args[0])).is_integer():
@@ -228,6 +228,8 @@ class SCCPOptimizer:
         elif "dyn" not in source_vals and "undef" not in source_vals and len(computed_values) == 1:
             self.vals[phi.defined] = computed_values.pop()
             return False
+        
+        self.vals[phi.defined] = "dyn"
         return True
         
     def get_val(self, var: SSATemp | TACGlobal):
