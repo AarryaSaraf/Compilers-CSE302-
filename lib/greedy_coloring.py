@@ -187,11 +187,16 @@ class GraphAndColorAllocator:
         # compute elimination ordering
         seo = mcs(ig)
         stacksize, mapping = allocate(self.proc.params, ig, seo)
+        
         if coalesce_registers:
             self.coalesce_registers(ig, mapping)
+        mapping = {tmp: self.to_slot(alloc) for tmp, alloc in mapping.items()}
+        # add locations for the stack parameters:
+        for i, param in enumerate(reversed(self.proc.params[6:])):
+            mapping[param] = StackSlot(16 + i * 8)
         return AllocRecord(
             stacksize,
-            mapping={tmp: self.to_slot(alloc) for tmp, alloc in mapping.items()},
+            mapping=mapping
         )
 
     def gather_liveness(self):
