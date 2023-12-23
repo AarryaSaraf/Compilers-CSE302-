@@ -59,7 +59,7 @@ Also, we rename all the versioned SSATemps into regular unversioned TACTemps.
 
 ### Computer the Interference Graph
 
-Represented temporaries by nodes storing the name, value (only for Max Cardinality Search), and the list of neighbors. The class can be seen in `lib\alloc.py` . Then the total graph is a dictionary from the name of a temp to such nodes. A dictionary with no neighbors was created and then based on the livein, def, etc we created sets of which temps appeared together and added the neighbors accordingly. This can be found in `lib/mcs.py`.
+Represented temporaries by nodes storing the name, value (only for Max Cardinality Search), and the list of neighbors. The class can be seen in `lib/alloc.py` . Then the total graph is a dictionary from the name of a temp to such nodes. A dictionary with no neighbors was created and then based on the livein, def, etc we created sets of which temps appeared together and added the neighbors accordingly. This can be found in `lib/mcs.py`.
 
 ### Use Mac Cardinality Search to find a Simplicial Elimination Ordering 
 
